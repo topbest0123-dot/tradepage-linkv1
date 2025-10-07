@@ -40,7 +40,7 @@ export default function PublicPage() {
   const services = useMemo(() => toList(p?.services), [p]);
   const priceLines = useMemo(
     () =>
-      String(p?.prices ?? '')
+      String(p?. ?? '')
         .split(/\r?\n/)
         .map((s) => s.trim())
         .filter(Boolean),
@@ -157,22 +157,20 @@ export default function PublicPage() {
         </Card>
 
         {/* Prices */}
-        <Card title="Prices">
-          <ul style={listResetStyle}>
-            {priceLines.length === 0 && (
-              <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>
-            )}
-            {priceLines.map((ln, i) => (
-              <li
-                key={i}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}
-              >
-                <span style={tagStyle}>from</span>
-                <span>{ln}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
+<Card title="Prices">
+  <ul style={listResetStyle}>
+    {priceLines.length === 0 ? (
+      <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>
+    ) : (
+      priceLines.map((ln, i) => (
+        <li key={i} style={{ marginBottom: 8, lineHeight: 1.5 }}>
+          {ln}
+        </li>
+      ))
+    )}
+  </ul>
+</Card>
+
 
         {/* Areas / Zones */}
         <Card title="Areas we cover">
