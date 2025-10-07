@@ -166,8 +166,7 @@ export default function PublicPage() {
               <li
                 key={i}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}
-              >
-                <span style={tagStyle}>from</span>
+              >               
                 <span>{ln}</span>
               </li>
             ))}
