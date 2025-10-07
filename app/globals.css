@@ -1,0 +1,11 @@
+/* keep header links white in every state */
+header a,
+header a:any-link,
+header a:-webkit-any-link,
+header a:link,
+header a:visited,
+header a:hover,
+header a:active,
+header a:focus-visible {
+  color: #fff !important;
+}
