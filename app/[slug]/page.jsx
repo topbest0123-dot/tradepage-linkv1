@@ -143,7 +143,10 @@ export default function PublicPage() {
             flex: 1 1 0;
             min-width: 110px;
           }
-        }
+            .tp-avatar {
+             transform: translateY(-8px); /* tweak -6px…-12px as needed */
+         }  
+          }
 
         /* Grid layout: 1 col mobile, 2 cols desktop */
         .tp-grid {
