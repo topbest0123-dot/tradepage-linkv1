@@ -13,7 +13,29 @@ const toList = (value) =>
     .filter(Boolean);
 // Build a public URL from a storage path in the 'avatars' bucket
 const publicUrlFor = (path) =>
+  
   path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
+// Turn "@handle" or partial into a full URL per network
+function normalizeSocial(type, raw) {
+  const v = String(raw || '').trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v; // already a full URL
+
+  const handle = v.replace(/^@/, '');
+
+  switch (type) {
+    case 'facebook':
+      return `https://facebook.com/${handle}`;
+    case 'instagram':
+      return `https://instagram.com/${handle}`;
+    case 'tiktok':
+      return `https://www.tiktok.com/@${handle}`;
+    case 'x':
+      return `https://x.com/${handle}`;
+    default:
+      return null;
+  }
+}
 
 export default function PublicPage() {
   const { slug } = useParams();
