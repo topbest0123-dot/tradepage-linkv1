@@ -329,6 +329,40 @@ const logoDotStyle = {
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
 const headerSubStyle = { opacity: 0.75, fontSize: 14, marginTop: 4 };
 const ctaRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' };
+/* Social icons (header right) */
+const socialRowStyle = {
+  display: 'flex',
+  gap: 8,
+  alignItems: 'center',
+  flexWrap: 'wrap',            // wraps nicely on small screens
+  marginLeft: 4,               // tiny separation from buttons
+};
+
+const socialBtnStyle = {
+  width: 36,
+  height: 36,
+  borderRadius: 999,
+  border: '1px solid #213a6b', // same border tone you use elsewhere
+  background: 'transparent',
+  color: '#eaf2ff',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  textDecoration: 'none',
+  outline: 'none',
+  // Optional finesse:
+  transition: 'transform 120ms ease, background 120ms ease, border-color 120ms ease',
+};
+
+const socialGlyphStyle = {
+  // We’re drawing simple mono “glyphs” (text or svg)
+  fontSize: 13,         // visually balanced inside a 36x36 circle
+  fontWeight: 800,
+  letterSpacing: 0.2,
+  lineHeight: 1,
+  translate: '0 0',     // keeps it centered on some browsers
+};
+
 
 const btnBaseStyle = {
   padding: '10px 16px',
