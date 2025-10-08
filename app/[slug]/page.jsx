@@ -48,7 +48,7 @@ export default function PublicPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path'
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,other_info,avatar_path'
         )
         .ilike('slug', slug)
         .maybeSingle();
@@ -289,6 +289,22 @@ export default function PublicPage() {
           <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
         </Card>
 
+        {p.other_info && p.other_info.trim().length > 0 && (
+  <Card title="Other Useful Information" wide>
+    <p
+      style={{
+        marginTop: 0,
+        marginBottom: 0,
+        whiteSpace: 'pre-wrap',
+        overflowWrap: 'anywhere',
+        lineHeight: 1.5,
+        maxWidth: '100%',
+      }}
+    >
+      {p.other_info}
+    </p>
+  </Card>
+)}
         {/* Gallery */}
         <Card title="Gallery" wide>
           <div style={galleryGridStyle}>
