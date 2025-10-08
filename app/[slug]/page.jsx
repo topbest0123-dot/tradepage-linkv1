@@ -21,20 +21,13 @@ function normalizeSocial(type, raw) {
   const v = String(raw || '').trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v; // already a full URL
-
   const handle = v.replace(/^@/, '');
-
   switch (type) {
-    case 'facebook':
-      return `https://facebook.com/${handle}`;
-    case 'instagram':
-      return `https://instagram.com/${handle}`;
-    case 'tiktok':
-      return `https://www.tiktok.com/@${handle}`;
-    case 'x':
-      return `https://x.com/${handle}`;
-    default:
-      return null;
+    case 'facebook':  return `https://facebook.com/${handle}`;
+    case 'instagram': return `https://instagram.com/${handle}`;
+    case 'tiktok':    return `https://www.tiktok.com/@${handle}`;
+    case 'x':         return `https://x.com/${handle}`;
+    default:          return null;
   }
 }
 
@@ -48,7 +41,7 @@ export default function PublicPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          // ADDED other_info
+          // includes other_info
           'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info'
         )
         .ilike('slug', slug)
@@ -106,30 +99,24 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* HEADER CARD */}
-      <div style={headerCardStyle}>
-        <div style={headerLeftStyle}>
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={`${p.name || p.slug} logo`}
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 14,
-                objectFit: 'cover',
-                border: '1px solid #183153',
-                background: '#0b1524',
-              }}
-            />
-          ) : (
-            <div style={logoDotStyle}>★</div>
-          )}
+      {/* AVATAR CARD — separate, bigger, mobile-first (centered), floats by header on desktop */}
+      <div className="avatarCard">
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={`${p.name || p.slug} logo`}
+            className="avatarImg"
+          />
+        ) : (
+          <div className="avatarFallback">★</div>
+        )}
+      </div>
 
-          <div>
-            <div style={headerNameStyle}>{p.name || p.slug}</div>
-            <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
-          </div>
+      {/* HEADER CARD */}
+      <div className="headerCard" style={headerCardStyle}>
+        <div style={headerLeftNoAvatar}>
+          <div style={headerNameStyle}>{p.name || p.slug}</div>
+          <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
         </div>
 
         <div style={ctaRowStyle}>
@@ -169,50 +156,22 @@ export default function PublicPage() {
       {(fb || ig || tk || xx) && (
         <div className="socialbar" style={socialBarWrapStyle}>
           {fb && (
-            <a
-              href={fb}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Facebook"
-              title="Facebook"
-              style={socialBtnStyle}
-            >
+            <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}>
               <span style={socialGlyphStyle}>f</span>
             </a>
           )}
           {ig && (
-            <a
-              href={ig}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-              title="Instagram"
-              style={socialBtnStyle}
-            >
+            <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}>
               <span style={socialGlyphStyle}>IG</span>
             </a>
           )}
           {tk && (
-            <a
-              href={tk}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="TikTok"
-              title="TikTok"
-              style={socialBtnStyle}
-            >
+            <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={socialBtnStyle}>
               <span style={socialGlyphStyle}>t</span>
             </a>
           )}
           {xx && (
-            <a
-              href={xx}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="X (Twitter)"
-              title="X (Twitter)"
-              style={socialBtnStyle}
-            >
+            <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}>
               <span style={socialGlyphStyle}>X</span>
             </a>
           )}
@@ -220,20 +179,10 @@ export default function PublicPage() {
       )}
 
       {/* GRID */}
-      <div className="grid2" style={grid2BaseStyle}>
+      <div className="grid2" style={grid2Style}>
         {/* About */}
         <Card title="About">
-          <p
-            style={{
-              marginTop: 0,
-              marginBottom: 0,
-              whiteSpace: 'pre-wrap',
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-              lineHeight: 1.5,
-              maxWidth: '100%',
-            }}
-          >
+          <p style={textBlockStyle}>
             {p.about && p.about.trim().length > 0
               ? p.about
               : (services[0]
@@ -245,14 +194,9 @@ export default function PublicPage() {
         {/* Prices */}
         <Card title="Prices">
           <ul style={listResetStyle}>
-            {priceLines.length === 0 && (
-              <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>
-            )}
+            {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
             {priceLines.map((ln, i) => (
-              <li
-                key={i}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}
-              >
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                 <span>{ln}</span>
               </li>
             ))}
@@ -290,23 +234,10 @@ export default function PublicPage() {
           <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
         </Card>
 
-        {/* Other useful information — OPTIONAL, shown only if provided */}
+        {/* Other useful information — OPTIONAL */}
         {p.other_info && p.other_info.trim().length > 0 && (
           <Card title="Other useful information" wide>
-            <p
-              style={{
-                marginTop: 0,
-                marginBottom: 0,
-                whiteSpace: 'pre-wrap',
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-                lineHeight: 1.5,
-                maxWidth: '100%',
-                opacity: 0.95,
-              }}
-            >
-              {p.other_info}
-            </p>
+            <p style={{ ...textBlockStyle, opacity: 0.95 }}>{p.other_info}</p>
           </Card>
         )}
 
@@ -326,40 +257,65 @@ export default function PublicPage() {
         </Card>
       </div>
 
-      {/* Responsive grid CSS: 1 column on mobile, 2 columns from 860px */}
-     <style jsx>{`
-  .grid2 {
-    grid-template-columns: 1fr;
-  }
+      {/* Responsive CSS (scoped) */}
+      <style jsx>{`
+        /* Grid: 1 col on phones, 2 cols from 720px up */
+        .grid2 { grid-template-columns: 1fr; }
+        @media (min-width: 720px) { .grid2 { grid-template-columns: 1fr 1fr; } }
 
-  @media (min-width: 860px) {
-    .grid2 {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
+        /* Social bar: centered on mobile, left-aligned from 720px+ */
+        .socialbar { justify-content: center; }
+        @media (min-width: 720px) { .socialbar { justify-content: flex-start; } }
 
-  /* Gallery: 1col → 2col → 3col */
-  .gallery {
-    grid-template-columns: 1fr;
-  }
+        /* Gallery: 1col → 2col (>=600px) → 3col (>=960px) */
+        .gallery { grid-template-columns: 1fr; }
+        @media (min-width: 600px) { .gallery { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 960px) { .gallery { grid-template-columns: 1fr 1fr 1fr; } }
 
-  @media (min-width: 600px) {
-    .gallery {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
+        /* Avatar card: big & centered on mobile; floats next to header on desktop */
+        .avatarCard {
+          width: 104px;
+          height: 104px;
+          border-radius: 16px;
+          border: 1px solid #183153;
+          background: linear-gradient(180deg,#0f213a,#0b1524);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 12px auto;   /* centered above header on phones */
+          overflow: hidden;
+        }
+        .avatarImg {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 14px;
+        }
+        .avatarFallback {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          font-size: 26px;
+          color: #0a0f1c;
+          background: #63d3e0;
+        }
 
-  @media (min-width: 960px) {
-    .gallery {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
-  }
-  /* Social bar: centered on mobile, left-aligned from 720px+ */
-.socialbar { justify-content: center; }
-@media (min-width: 720px) { .socialbar { justify-content: flex-start; } }
-
-`}</style>
-
+        /* On desktop, float avatar by the header and give header space */
+        @media (min-width: 960px) {
+          .headerCard { position: relative; padding-left: 132px; } /* space for avatar */
+          .avatarCard {
+            position: absolute;
+            left: 18px;
+            top: 18px;                 /* sits within the header’s top area */
+            width: 88px;
+            height: 88px;
+            margin: 0;                 /* no auto-centering on desktop */
+          }
+        }
+      `}</style>
     </div>
   );
 }
@@ -374,7 +330,7 @@ function Card({ title, wide = false, children }) {
   );
 }
 
-/* ---------- Styles ---------- */
+/* ---------- Styles (JS objects) ---------- */
 const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
@@ -392,26 +348,15 @@ const headerCardStyle = {
   borderRadius: 16,
   border: '1px solid #183153',
   background: 'linear-gradient(180deg,#0f213a,#0b1524)',
-  marginBottom: 20,
+  marginBottom: 12, // a touch less since avatar is above
 };
-const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
-const logoDotStyle = {
-  width: 48,
-  height: 48,
-  borderRadius: 14,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: '#63d3e0',
-  color: '#0a0f1c',
-  fontWeight: 800,
-  fontSize: 20,
-};
+
+const headerLeftNoAvatar = { display: 'flex', flexDirection: 'column', gap: 4 };
+
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const headerSubStyle = { opacity: 0.75, fontSize: 14 };
 const ctaRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' };
 
-/* Social bar (below header) */
 const socialBarWrapStyle = {
   display: 'flex',
   gap: 10,
@@ -469,8 +414,7 @@ const cardStyle = {
   minWidth: 0,
 };
 
-// UPDATED: base grid styles (columns handled by CSS above)
-const grid2BaseStyle = { display: 'grid', gap: 16, marginTop: 16 };
+const grid2Style = { display: 'grid', gap: 16, marginTop: 16 };
 
 const chipStyle = {
   padding: '6px 12px',
@@ -480,15 +424,17 @@ const chipStyle = {
   color: '#d1e1ff',
   fontSize: 13,
 };
-const tagStyle = {
-  fontSize: 12,
-  padding: '2px 8px',
-  borderRadius: 999,
-  border: '1px solid #27406e',
-  background: '#0c1a2e',
-  color: '#b8ccff',
-};
+
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
+const textBlockStyle = {
+  marginTop: 0,
+  marginBottom: 0,
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
+  wordBreak: 'break-word',
+  lineHeight: 1.5,
+  maxWidth: '100%',
+};
 
 const galleryGridStyleBase = { display: 'grid', gap: 16 };
 const galleryItemStyle = {
