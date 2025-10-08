@@ -120,7 +120,59 @@ export default function PublicPage() {
 ) : (
   <div style={logoDotStyle}>★</div>
 )}
-
+          {/* SOCIAL BAR: sits below the header card */}
+{(fb || ig || tk || xx) && (
+  <div style={socialBarWrapStyle}>
+    {fb && (
+      <a
+        href={fb}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Facebook"
+        aria-label="Facebook"
+        style={socialCircleBtnStyle}
+      >
+        <span style={socialGlyphStyle}>f</span>
+      </a>
+    )}
+    {ig && (
+      <a
+        href={ig}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Instagram"
+        aria-label="Instagram"
+        style={socialCircleBtnStyle}
+      >
+        <span style={socialGlyphStyle}>IG</span>
+      </a>
+    )}
+    {tk && (
+      <a
+        href={tk}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="TikTok"
+        aria-label="TikTok"
+        style={socialCircleBtnStyle}
+      >
+        <span style={socialGlyphStyle}>t</span>
+      </a>
+    )}
+    {xx && (
+      <a
+        href={xx}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="X (Twitter)"
+        aria-label="X"
+        style={socialCircleBtnStyle}
+      >
+        <span style={socialGlyphStyle}>X</span>
+      </a>
+    )}
+  </div>
+)}
           <div>
             <div style={headerNameStyle}>{p.name || p.slug}</div>
             <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
@@ -158,39 +210,7 @@ export default function PublicPage() {
             Share
           </button>
         </div>
-        {/* Social icons (only show if present) */}
-{(fb || ig || tk || xx) && (
-  <div style={socialRowStyle}>
-    {fb && (
-      <a href={fb} target="_blank" rel="noopener noreferrer"
-         aria-label="Facebook" title="Facebook"
-         style={socialBtnStyle}>
-        <span style={socialGlyphStyle}>f</span>
-      </a>
-    )}
-    {ig && (
-      <a href={ig} target="_blank" rel="noopener noreferrer"
-         aria-label="Instagram" title="Instagram"
-         style={socialBtnStyle}>
-        <span style={socialGlyphStyle}>IG</span>
-      </a>
-    )}
-    {tk && (
-      <a href={tk} target="_blank" rel="noopener noreferrer"
-         aria-label="TikTok" title="TikTok"
-         style={socialBtnStyle}>
-        <span style={socialGlyphStyle}>t</span>
-      </a>
-    )}
-    {xx && (
-      <a href={xx} target="_blank" rel="noopener noreferrer"
-         aria-label="X (Twitter)" title="X (Twitter)"
-         style={socialBtnStyle}>
-        <span style={socialGlyphStyle}>X</span>
-      </a>
-    )}
-  </div>
-)}
+      
       </div>
 
       {/* GRID */}
