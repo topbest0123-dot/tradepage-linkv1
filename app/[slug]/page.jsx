@@ -167,7 +167,7 @@ export default function PublicPage() {
 
       {/* SOCIAL BAR — sits just under the header card */}
       {(fb || ig || tk || xx) && (
-        <div style={socialBarWrapStyle}>
+        <div className="socialbar" style={socialBarWrapStyle}>
           {fb && (
             <a
               href={fb}
@@ -312,7 +312,7 @@ export default function PublicPage() {
 
         {/* Gallery */}
         <Card title="Gallery" wide>
-          <div style={galleryGridStyle}>
+          <div className="gallery" style={galleryGridStyleBase}>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
             <div style={galleryItemStyle}>
@@ -327,16 +327,39 @@ export default function PublicPage() {
       </div>
 
       {/* Responsive grid CSS: 1 column on mobile, 2 columns from 860px */}
-      <style jsx>{`
-        .grid2 {
-          grid-template-columns: 1fr;
-        }
-        @media (min-width: 860px) {
-          .grid2 {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-      `}</style>
+     <style jsx>{`
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 860px) {
+    .grid2 {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* Gallery: 1col → 2col → 3col */
+  .gallery {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 600px) {
+    .gallery {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (min-width: 960px) {
+    .gallery {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+  /* Social bar: centered on mobile, left-aligned from 720px+ */
+.socialbar { justify-content: center; }
+@media (min-width: 720px) { .socialbar { justify-content: flex-start; } }
+
+`}</style>
+
     </div>
   );
 }
@@ -467,7 +490,7 @@ const tagStyle = {
 };
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
-const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
+const galleryGridStyleBase = { display: 'grid', gap: 16 };
 const galleryItemStyle = {
   height: 220,
   borderRadius: 14,
