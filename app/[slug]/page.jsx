@@ -8,7 +8,7 @@ import Script from 'next/script'; // kept to avoid changing imports
 /** Turn any value into a clean list of strings */
 const toList = (value) =>
   String(value ?? '')
-    .split(/[,\n]+/)   // commas OR new lines
+    .split(/[,\n]+/) // commas OR new lines
     .map((s) => s.trim())
     .filter(Boolean);
 
@@ -23,11 +23,16 @@ function normalizeSocial(type, raw) {
   if (/^https?:\/\//i.test(v)) return v; // already a full URL
   const handle = v.replace(/^@/, '');
   switch (type) {
-    case 'facebook':  return `https://facebook.com/${handle}`;
-    case 'instagram': return `https://instagram.com/${handle}`;
-    case 'tiktok':    return `https://www.tiktok.com/@${handle}`;
-    case 'x':         return `https://x.com/${handle}`;
-    default:          return null;
+    case 'facebook':
+      return `https://facebook.com/${handle}`;
+    case 'instagram':
+      return `https://instagram.com/${handle}`;
+    case 'tiktok':
+      return `https://www.tiktok.com/@${handle}`;
+    case 'x':
+      return `https://x.com/${handle}`;
+    default:
+      return null;
   }
 }
 
@@ -41,15 +46,14 @@ export default function PublicPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          // includes other_info
           'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info'
         )
         .ilike('slug', slug)
         .maybeSingle();
 
-      if (error) console.error(error);
-      if (!data) setNotFound(true);
-      else setP(data);
+    if (error) console.error(error);
+    if (!data) setNotFound(true);
+    else setP(data);
     };
     load();
   }, [slug]);
@@ -99,126 +103,104 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* AVATAR CARD — separate, bigger, mobile-first (centered), floats by header on desktop */}
-      <div className="avatarCard">
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={`${p.name || p.slug} logo`}
-            className="avatarImg"
-          />
-        ) : (
-          <div className="avatarFallback">★</div>
-        )}
+      {/* Responsive CSS for hero (avatar + header) and grid */}
+      <style>{`
+        .tp-hero {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 12px;
+          align-items: start;
+          margin-bottom: 12px;
+        }
+        .tp-avatar {
+          width: 112px;
+          height: 112px;
+          border-radius: 16px;
+          border: 1px solid #183153;
+          background: linear-gradient(180deg,#0f213a,#0b1524);
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto; /* mobile: centered */
+        }
+        .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .tp-avatar-fallback {
+          width: 100%; height: 100%;
+          display: flex; align-items: center; justify-content: center;
+          background: #63d3e0; color: #0a0f1c; font-weight: 800; font-size: 28px;
+        }
+        .tp-grid {
+          display: grid;
+          grid-template-columns: 1fr;   /* mobile: single column */
+          gap: 16px;
+          margin-top: 16px;
+        }
+        @media (min-width: 820px) {
+          .tp-hero {
+            grid-template-columns: 112px 1fr; /* desktop: avatar left, header right */
+            align-items: center;
+          }
+          .tp-avatar { margin: 0; width: 96px; height: 96px; border-radius: 14px; }
+          .tp-grid { grid-template-columns: 1fr 1fr; } /* desktop: 2 columns */
+        }
+      `}</style>
+
+      {/* HERO: avatar card + header card */}
+      <div className="tp-hero">
+        {/* AVATAR (separate little card) */}
+        <div className="tp-avatar">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={`${p.name || p.slug} logo`} />
+          ) : (
+            <div className="tp-avatar-fallback">★</div>
+          )}
+        </div>
+
+        {/* HEADER CARD (no avatar inside) */}
+        <div style={headerCardStyle}>
+          <div style={headerLeftStyle}>
+            <div>
+              <div style={headerNameStyle}>{p.name || p.slug}</div>
+              <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
+            </div>
+          </div>
+
+          <div style={ctaRowStyle}>
+            {callHref && (
+              <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+                Call
+              </a>
+            )}
+            {waHref && (
+              <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                WhatsApp
+              </a>
+            )}
+            <button
+              type="button"
+              id="share-btn"
+              onClick={handleShare}
+              style={{
+                padding: '8px 12px',
+                borderRadius: 10,
+                border: '1px solid #213a6b',
+                background: 'transparent',
+                color: '#eaf2ff',
+                fontWeight: 700,
+                cursor: 'pointer',
+                marginLeft: 8,
+              }}
+            >
+              Share
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* --- responsive CSS for the avatar/header “hero” area --- */}
-<style>{`
-  .tp-hero {
-    display: grid;
-    grid-template-columns: 1fr;      /* mobile: stacked */
-    gap: 12px;
-    align-items: start;
-    margin-bottom: 12px;
-  }
-  .tp-avatar {
-    width: 112px;
-    height: 112px;
-    border-radius: 16px;
-    border: 1px solid #183153;
-    background: linear-gradient(180deg,#0f213a,#0b1524);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;                  /* mobile: center */
-  }
-  .tp-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .tp-avatar-fallback {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #63d3e0;
-    color: #0a0f1c;
-    font-weight: 800;
-    font-size: 28px;
-  }
-  @media (min-width: 820px) {
-    .tp-hero {
-      grid-template-columns: 112px 1fr;  /* desktop: avatar left, header right */
-      align-items: center;
-    }
-    .tp-avatar {
-      margin: 0;                           /* no centering on desktop */
-      width: 96px;
-      height: 96px;
-      border-radius: 14px;
-    }
-  }
-`}</style>
-
-{/* HERO = avatar card + header card */}
-<div className="tp-hero">
-  {/* AVATAR CARD (separate from header) */}
-  <div className="tp-avatar">
-    {avatarUrl ? (
-      <img src={avatarUrl} alt={`${p.name || p.slug} logo`} />
-    ) : (
-      <div className="tp-avatar-fallback">★</div>
-    )}
-  </div>
-
-  {/* HEADER CARD (no avatar inside now) */}
-  <div style={headerCardStyle}>
-    <div style={headerLeftStyle}>
-      <div>
-        <div style={headerNameStyle}>{p.name || p.slug}</div>
-        <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
-      </div>
-    </div>
-
-    <div style={ctaRowStyle}>
-      {callHref && (
-        <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
-          Call
-        </a>
-      )}
-      {waHref && (
-        <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-          WhatsApp
-        </a>
-      )}
-      <button
-        type="button"
-        id="share-btn"
-        onClick={handleShare}
-        style={{
-          padding: '8px 12px',
-          borderRadius: 10,
-          border: '1px solid #213a6b',
-          background: 'transparent',
-          color: '#eaf2ff',
-          fontWeight: 700,
-          cursor: 'pointer',
-          marginLeft: 8,
-        }}
-      >
-        Share
-      </button>
-    </div>
-  </div>
-</div>
-
 
       {/* SOCIAL BAR — sits just under the header card */}
       {(fb || ig || tk || xx) && (
-        <div className="socialbar" style={socialBarWrapStyle}>
+        <div style={socialBarWrapStyle}>
           {fb && (
             <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}>
               <span style={socialGlyphStyle}>f</span>
@@ -242,11 +224,21 @@ export default function PublicPage() {
         </div>
       )}
 
-      {/* GRID */}
-      <div className="grid2" style={grid2Style}>
+      {/* GRID (responsive: 1 col mobile, 2 cols desktop) */}
+      <div className="tp-grid">
         {/* About */}
         <Card title="About">
-          <p style={textBlockStyle}>
+          <p
+            style={{
+              marginTop: 0,
+              marginBottom: 0,
+              whiteSpace: 'pre-wrap',
+              overflowWrap: 'anywhere',
+              wordBreak: 'break-word',
+              lineHeight: 1.5,
+              maxWidth: '100%',
+            }}
+          >
             {p.about && p.about.trim().length > 0
               ? p.about
               : (services[0]
@@ -301,13 +293,26 @@ export default function PublicPage() {
         {/* Other useful information — OPTIONAL */}
         {p.other_info && p.other_info.trim().length > 0 && (
           <Card title="Other useful information" wide>
-            <p style={{ ...textBlockStyle, opacity: 0.95 }}>{p.other_info}</p>
+            <p
+              style={{
+                marginTop: 0,
+                marginBottom: 0,
+                whiteSpace: 'pre-wrap',
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+                lineHeight: 1.5,
+                maxWidth: '100%',
+                opacity: 0.95,
+              }}
+            >
+              {p.other_info}
+            </p>
           </Card>
         )}
 
         {/* Gallery */}
         <Card title="Gallery" wide>
-          <div className="gallery" style={galleryGridStyleBase}>
+          <div style={galleryGridStyle}>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
             <div style={galleryItemStyle}>
@@ -320,66 +325,6 @@ export default function PublicPage() {
           </div>
         </Card>
       </div>
-
-      {/* Responsive CSS (scoped) */}
-      <style jsx>{`
-        /* Grid: 1 col on phones, 2 cols from 720px up */
-        .grid2 { grid-template-columns: 1fr; }
-        @media (min-width: 720px) { .grid2 { grid-template-columns: 1fr 1fr; } }
-
-        /* Social bar: centered on mobile, left-aligned from 720px+ */
-        .socialbar { justify-content: center; }
-        @media (min-width: 720px) { .socialbar { justify-content: flex-start; } }
-
-        /* Gallery: 1col → 2col (>=600px) → 3col (>=960px) */
-        .gallery { grid-template-columns: 1fr; }
-        @media (min-width: 600px) { .gallery { grid-template-columns: 1fr 1fr; } }
-        @media (min-width: 960px) { .gallery { grid-template-columns: 1fr 1fr 1fr; } }
-
-        /* Avatar card: big & centered on mobile; floats next to header on desktop */
-        .avatarCard {
-          width: 104px;
-          height: 104px;
-          border-radius: 16px;
-          border: 1px solid #183153;
-          background: linear-gradient(180deg,#0f213a,#0b1524);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 auto 12px auto;   /* centered above header on phones */
-          overflow: hidden;
-        }
-        .avatarImg {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          border-radius: 14px;
-        }
-        .avatarFallback {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 800;
-          font-size: 26px;
-          color: #0a0f1c;
-          background: #63d3e0;
-        }
-
-        /* On desktop, float avatar by the header and give header space */
-        @media (min-width: 960px) {
-          .headerCard { position: relative; padding-left: 132px; } /* space for avatar */
-          .avatarCard {
-            position: absolute;
-            left: 18px;
-            top: 18px;                 /* sits within the header’s top area */
-            width: 88px;
-            height: 88px;
-            margin: 0;                 /* no auto-centering on desktop */
-          }
-        }
-      `}</style>
     </div>
   );
 }
@@ -394,7 +339,7 @@ function Card({ title, wide = false, children }) {
   );
 }
 
-/* ---------- Styles (JS objects) ---------- */
+/* ---------- Styles ---------- */
 const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
@@ -412,15 +357,28 @@ const headerCardStyle = {
   borderRadius: 16,
   border: '1px solid #183153',
   background: 'linear-gradient(180deg,#0f213a,#0b1524)',
-  marginBottom: 12, // a touch less since avatar is above
+  marginBottom: 8,
 };
 
-const headerLeftNoAvatar = { display: 'flex', flexDirection: 'column', gap: 4 };
+const headerLeftStyle = { display: 'flex', alignItems: 'center' };
 
+const logoDotStyle = {
+  width: 48,
+  height: 48,
+  borderRadius: 14,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: '#63d3e0',
+  color: '#0a0f1c',
+  fontWeight: 800,
+  fontSize: 20,
+};
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle = { opacity: 0.75, fontSize: 14 };
+const headerSubStyle = { opacity: 0.75, fontSize: 14, marginTop: 4 };
 const ctaRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' };
 
+/* Social bar (below header) */
 const socialBarWrapStyle = {
   display: 'flex',
   gap: 10,
@@ -478,8 +436,6 @@ const cardStyle = {
   minWidth: 0,
 };
 
-const grid2Style = { display: 'grid', gap: 16, marginTop: 16 };
-
 const chipStyle = {
   padding: '6px 12px',
   borderRadius: 999,
@@ -488,19 +444,17 @@ const chipStyle = {
   color: '#d1e1ff',
   fontSize: 13,
 };
-
-const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
-const textBlockStyle = {
-  marginTop: 0,
-  marginBottom: 0,
-  whiteSpace: 'pre-wrap',
-  overflowWrap: 'anywhere',
-  wordBreak: 'break-word',
-  lineHeight: 1.5,
-  maxWidth: '100%',
+const tagStyle = {
+  fontSize: 12,
+  padding: '2px 8px',
+  borderRadius: 999,
+  border: '1px solid #27406e',
+  background: '#0c1a2e',
+  color: '#b8ccff',
 };
+const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
-const galleryGridStyleBase = { display: 'grid', gap: 16 };
+const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
 const galleryItemStyle = {
   height: 220,
   borderRadius: 14,
