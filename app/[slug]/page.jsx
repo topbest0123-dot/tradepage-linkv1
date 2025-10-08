@@ -75,6 +75,11 @@ export default function PublicPage() {
   const callHref = p?.phone ? `tel:${p.phone.replace(/\s+/g, '')}` : null;
   const waHref = p?.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
   const avatarUrl = publicUrlFor(p?.avatar_path);
+  const fb = normalizeSocial('facebook',  p?.facebook);
+  const ig = normalizeSocial('instagram', p?.instagram);
+  const tk = normalizeSocial('tiktok',    p?.tiktok);
+  const xx = normalizeSocial('x',         p?.x);
+
 
   // --- Share handler (native share on mobile, clipboard fallback on desktop) ---
   const handleShare = () => {
