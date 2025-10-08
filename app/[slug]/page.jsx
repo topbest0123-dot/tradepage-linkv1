@@ -51,9 +51,9 @@ export default function PublicPage() {
         .ilike('slug', slug)
         .maybeSingle();
 
-    if (error) console.error(error);
-    if (!data) setNotFound(true);
-    else setP(data);
+      if (error) console.error(error);
+      if (!data) setNotFound(true);
+      else setP(data);
     };
     load();
   }, [slug]);
@@ -83,7 +83,7 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
 
-  // --- Share handler (native share on mobile, clipboard fallback on desktop) ---
+  // --- Share handler ---
   const handleShare = () => {
     const url = window.location.href;
     const title = document.title || 'TradePage';
@@ -103,7 +103,7 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* Responsive CSS for hero (avatar + header) and grid */}
+      {/* Responsive CSS */}
       <style>{`
         .tp-hero {
           display: grid;
@@ -122,7 +122,7 @@ export default function PublicPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          margin: 0 auto; /* mobile: centered */
+          margin: 0 auto; /* mobile centered */
         }
         .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .tp-avatar-fallback {
@@ -130,25 +130,41 @@ export default function PublicPage() {
           display: flex; align-items: center; justify-content: center;
           background: #63d3e0; color: #0a0f1c; font-weight: 800; font-size: 28px;
         }
+
+        /* Header responsiveness */
+        .tp-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
+
+        /* Make the header stack nicely on small screens */
+        @media (max-width: 480px) {
+          .tp-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+          .tp-cta { width: 100%; }
+          .tp-cta a, .tp-cta button {
+            flex: 1 1 0;
+            min-width: 110px;
+          }
+        }
+
+        /* Grid layout: 1 col mobile, 2 cols desktop */
         .tp-grid {
           display: grid;
-          grid-template-columns: 1fr;   /* mobile: single column */
+          grid-template-columns: 1fr;
           gap: 16px;
           margin-top: 16px;
         }
         @media (min-width: 820px) {
           .tp-hero {
-            grid-template-columns: 112px 1fr; /* desktop: avatar left, header right */
+            grid-template-columns: 112px 1fr;  /* avatar left, header right */
             align-items: center;
           }
           .tp-avatar { margin: 0; width: 96px; height: 96px; border-radius: 14px; }
-          .tp-grid { grid-template-columns: 1fr 1fr; } /* desktop: 2 columns */
+          .tp-grid { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
 
-      {/* HERO: avatar card + header card */}
+      {/* HERO: avatar + header */}
       <div className="tp-hero">
-        {/* AVATAR (separate little card) */}
+        {/* Avatar card */}
         <div className="tp-avatar">
           {avatarUrl ? (
             <img src={avatarUrl} alt={`${p.name || p.slug} logo`} />
@@ -157,8 +173,8 @@ export default function PublicPage() {
           )}
         </div>
 
-        {/* HEADER CARD (no avatar inside) */}
-        <div style={headerCardStyle}>
+        {/* Header card */}
+        <div className="tp-header" style={headerCardStyle}>
           <div style={headerLeftStyle}>
             <div>
               <div style={headerNameStyle}>{p.name || p.slug}</div>
@@ -166,7 +182,7 @@ export default function PublicPage() {
             </div>
           </div>
 
-          <div style={ctaRowStyle}>
+          <div className="tp-cta" style={ctaRowStyle}>
             {callHref && (
               <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
                 Call
@@ -179,17 +195,12 @@ export default function PublicPage() {
             )}
             <button
               type="button"
-              id="share-btn"
               onClick={handleShare}
               style={{
-                padding: '8px 12px',
-                borderRadius: 10,
+                ...btnBaseStyle,
                 border: '1px solid #213a6b',
                 background: 'transparent',
                 color: '#eaf2ff',
-                fontWeight: 700,
-                cursor: 'pointer',
-                marginLeft: 8,
               }}
             >
               Share
@@ -198,47 +209,20 @@ export default function PublicPage() {
         </div>
       </div>
 
-      {/* SOCIAL BAR — sits just under the header card */}
+      {/* Social bar */}
       {(fb || ig || tk || xx) && (
         <div style={socialBarWrapStyle}>
-          {fb && (
-            <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}>
-              <span style={socialGlyphStyle}>f</span>
-            </a>
-          )}
-          {ig && (
-            <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}>
-              <span style={socialGlyphStyle}>IG</span>
-            </a>
-          )}
-          {tk && (
-            <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={socialBtnStyle}>
-              <span style={socialGlyphStyle}>t</span>
-            </a>
-          )}
-          {xx && (
-            <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}>
-              <span style={socialGlyphStyle}>X</span>
-            </a>
-          )}
+          {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}><span style={socialGlyphStyle}>f</span></a>}
+          {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}><span style={socialGlyphStyle}>IG</span></a>}
+          {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={socialBtnStyle}><span style={socialGlyphStyle}>t</span></a>}
+          {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}><span style={socialGlyphStyle}>X</span></a>}
         </div>
       )}
 
-      {/* GRID (responsive: 1 col mobile, 2 cols desktop) */}
+      {/* Content grid */}
       <div className="tp-grid">
-        {/* About */}
         <Card title="About">
-          <p
-            style={{
-              marginTop: 0,
-              marginBottom: 0,
-              whiteSpace: 'pre-wrap',
-              overflowWrap: 'anywhere',
-              wordBreak: 'break-word',
-              lineHeight: 1.5,
-              maxWidth: '100%',
-            }}
-          >
+          <p style={{ marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}>
             {p.about && p.about.trim().length > 0
               ? p.about
               : (services[0]
@@ -247,7 +231,6 @@ export default function PublicPage() {
           </p>
         </Card>
 
-        {/* Prices */}
         <Card title="Prices">
           <ul style={listResetStyle}>
             {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
@@ -259,7 +242,6 @@ export default function PublicPage() {
           </ul>
         </Card>
 
-        {/* Areas / Zones */}
         <Card title="Areas we cover">
           {areas.length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -272,7 +254,6 @@ export default function PublicPage() {
           )}
         </Card>
 
-        {/* Services */}
         <Card title="Services">
           {services.length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -285,32 +266,18 @@ export default function PublicPage() {
           )}
         </Card>
 
-        {/* Hours */}
         <Card title="Hours">
           <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
         </Card>
 
-        {/* Other useful information — OPTIONAL */}
         {p.other_info && p.other_info.trim().length > 0 && (
           <Card title="Other useful information" wide>
-            <p
-              style={{
-                marginTop: 0,
-                marginBottom: 0,
-                whiteSpace: 'pre-wrap',
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-                lineHeight: 1.5,
-                maxWidth: '100%',
-                opacity: 0.95,
-              }}
-            >
+            <p style={{ marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5, opacity: 0.95 }}>
               {p.other_info}
             </p>
           </Card>
         )}
 
-        {/* Gallery */}
         <Card title="Gallery" wide>
           <div style={galleryGridStyle}>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
@@ -352,8 +319,8 @@ const headerCardStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  gap: 16,
-  padding: '16px 18px',
+  gap: 12,
+  padding: '12px 14px',
   borderRadius: 16,
   border: '1px solid #183153',
   background: 'linear-gradient(180deg,#0f213a,#0b1524)',
@@ -362,66 +329,36 @@ const headerCardStyle = {
 
 const headerLeftStyle = { display: 'flex', alignItems: 'center' };
 
-const logoDotStyle = {
-  width: 48,
-  height: 48,
-  borderRadius: 14,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: '#63d3e0',
-  color: '#0a0f1c',
+const headerNameStyle = {
   fontWeight: 800,
-  fontSize: 20,
-};
-const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const ctaRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' };
-
-/* Social bar (below header) */
-const socialBarWrapStyle = {
-  display: 'flex',
-  gap: 10,
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  margin: '0 0 12px 0',
+  fontSize: 'clamp(18px, 5vw, 22px)', // responsive
+  lineHeight: '24px',
 };
 
-const socialBtnStyle = {
-  width: 36,
-  height: 36,
-  borderRadius: 999,
-  border: '1px solid #213a6b',
-  background: 'transparent',
-  color: '#eaf2ff',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textDecoration: 'none',
-  outline: 'none',
-  transition: 'transform 120ms ease, background 120ms ease, border-color 120ms ease',
+const headerSubStyle = {
+  opacity: 0.75,
+  fontSize: 'clamp(12px, 3.5vw, 14px)', // responsive
+  marginTop: 4,
 };
 
-const socialGlyphStyle = {
-  fontSize: 13,
-  fontWeight: 800,
-  letterSpacing: 0.2,
-  lineHeight: 1,
-  translate: '0 0',
-};
+const ctaRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
 
 const btnBaseStyle = {
-  padding: '10px 16px',
-  borderRadius: 12,
+  padding: 'clamp(6px, 1.2vw, 10px) clamp(10px, 2.4vw, 16px)', // responsive
+  borderRadius: 10,
   border: '1px solid #2f3c4f',
   textDecoration: 'none',
   fontWeight: 700,
+  fontSize: 'clamp(12px, 3.2vw, 14px)', // responsive
+  cursor: 'pointer',
 };
+
 const btnPrimaryStyle = {
   background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
   color: '#08101e',
   border: '1px solid #2d4e82',
 };
+
 const btnNeutralStyle = {
   background: '#1f2937',
   color: '#ffffff',
@@ -469,4 +406,35 @@ const imgPlaceholderStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   opacity: 0.75,
+};
+
+const socialBarWrapStyle = {
+  display: 'flex',
+  gap: 10,
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  margin: '0 0 12px 0',
+};
+
+const socialBtnStyle = {
+  width: 36,
+  height: 36,
+  borderRadius: 999,
+  border: '1px solid #213a6b',
+  background: 'transparent',
+  color: '#eaf2ff',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  textDecoration: 'none',
+  outline: 'none',
+  transition: 'transform 120ms ease, background 120ms ease, border-color 120ms ease',
+};
+
+const socialGlyphStyle = {
+  fontSize: 13,
+  fontWeight: 800,
+  letterSpacing: 0.2,
+  lineHeight: 1,
+  translate: '0 0',
 };
