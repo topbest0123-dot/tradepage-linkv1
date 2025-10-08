@@ -33,8 +33,6 @@ export default function Dashboard() {
     instagram: '',
     tiktok: '',
     x: '',
-    other_info: '',
-
     // NEW: where we store the storage object path (e.g. userId/1699999999.jpg)
     avatar_path: '',
   });
@@ -50,7 +48,7 @@ export default function Dashboard() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,other_info,avatar_path') // ← added avatar_path
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path') // ← added avatar_path
         .eq('id', user.id)
         .maybeSingle();
 
@@ -74,7 +72,6 @@ export default function Dashboard() {
           instagram: data.instagram ?? '',
           tiktok: data.tiktok ?? '',
           x: data.x ?? '',
-          other_info: data.other_info ?? '',
 
         });
         // show preview if there is an existing image
@@ -151,12 +148,10 @@ export default function Dashboard() {
       services: normalizedServices,
       prices: form.prices,
       hours: form.hours,
-      : form.,
+      facebook: form.facebook,
       instagram: form.instagram,
       tiktok: form.tiktok,
       x: form.x,
-      other_info: form.other_info,
-
       // NEW: persist the storage path
       avatar_path: form.avatar_path,
       updated_at: new Date().toISOString(),
@@ -239,38 +234,6 @@ export default function Dashboard() {
     </label>
   );
 
-  /* ---------- Button sizing styles (Save + Preview) ---------- */
-  const actionsRowStyle = { display: 'flex', gap: 12, alignItems: 'center', marginTop: 8 };
-
-  const actionBtnBase = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 40,
-    padding: '0 18px',
-    borderRadius: 12,
-    fontWeight: 700,
-    fontSize: 14,
-    lineHeight: 1,
-    cursor: 'pointer',
-    textDecoration: 'none',
-    transition: 'transform 120ms ease, background 120ms ease, border-color 120ms ease',
-  };
-
-  const actionBtnPrimary = {
-    ...actionBtnBase,
-    background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
-    color: '#08101e',
-    border: '1px solid #2d4e82',
-  };
-
-  const actionBtnOutline = {
-    ...actionBtnBase,
-    background: 'transparent',
-    color: '#eaf2ff',
-    border: '1px solid #213a6b',
-  };
-
   return (
     <section>
       <h2>Dashboard</h2>
@@ -344,6 +307,7 @@ export default function Dashboard() {
       {input('TikTok (URL or @)',    'tiktok',    'https://tiktok.com/@yourname or @yourname')}
       {input('X / Twitter (URL or @)','x',        'https://x.com/yourname or @yourname')}
 
+
       {textarea(
         'About (short description for your public page)',
         'about',
@@ -368,16 +332,20 @@ export default function Dashboard() {
       )}
       {textarea('Opening hours', 'hours', 'e.g. Mon–Fri 8:00–18:00')}
 
-      {textarea(
-       'Other Useful Information (optional)',
-       'other_info',
-       'Anything else customers should know (parking, call-out fee, insurance, certifications, languages, etc.)'
-      )}
-
-
-      {/* Actions: Save + Preview (matched sizes) */}
-      <div style={actionsRowStyle}>
-        <button type="button" onClick={save} style={actionBtnPrimary}>
+      {/* Actions: Save + Preview */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={save}
+          style={{
+            padding: '10px 14px',
+            borderRadius: 12,
+            border: '1px solid #27406e',
+            background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
+            color: '#08101e',
+            fontWeight: 700,
+          }}
+        >
           Save
         </button>
 
@@ -386,7 +354,16 @@ export default function Dashboard() {
             href={previewHref}
             target="_blank"
             rel="noopener noreferrer"
-            style={actionBtnOutline}
+            style={{
+              padding: '10px 14px',
+              borderRadius: 12,
+              border: '1px solid #213a6b',
+              background: 'transparent',
+              color: '#eaf2ff',
+              fontWeight: 700,
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
           >
             Preview
           </a>
@@ -395,7 +372,16 @@ export default function Dashboard() {
             type="button"
             disabled
             title="Enter a slug to preview"
-            style={{ ...actionBtnOutline, opacity: 0.6, color: '#8aa0c8', cursor: 'not-allowed' }}
+            style={{
+              padding: '10px 14px',
+              borderRadius: 12,
+              border: '1px solid #213a6b',
+              background: 'transparent',
+              color: '#8aa0c8',
+              fontWeight: 700,
+              opacity: 0.6,
+              cursor: 'not-allowed',
+            }}
           >
             Preview
           </button>
