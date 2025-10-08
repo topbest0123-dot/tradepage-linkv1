@@ -135,19 +135,18 @@ export default function PublicPage() {
         .tp-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
         .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
 
-        /* Make the header stack nicely on small screens */
-        @media (max-width: 480px) {
-          .tp-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-          .tp-cta { width: 100%; }
-          .tp-cta a, .tp-cta button {
-            flex: 1 1 0;
-            min-width: 110px;
-          }
-            .tp-avatar {
-             transform: translateY(-8px); /* tweak -6px…-12px as needed */
-         }  
-          }
-
+       /* Make the header stack nicely on small screens */
+          @media (max-width: 480px) {
+         .tp-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+         .tp-cta { width: 100%; }
+         .tp-cta a, .tp-cta button {
+           flex: 1 1 0;
+           min-width: 110px;
+         }
+         .tp-avatar {
+           transform: translateY(-8px); /* tweak -6px…-12px as needed */
+         }
+       }
         /* Grid layout: 1 col mobile, 2 cols desktop */
         .tp-grid {
           display: grid;
