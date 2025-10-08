@@ -112,45 +112,109 @@ export default function PublicPage() {
         )}
       </div>
 
-      {/* HEADER CARD */}
-      <div className="headerCard" style={headerCardStyle}>
-        <div style={headerLeftNoAvatar}>
-          <div style={headerNameStyle}>{p.name || p.slug}</div>
-          <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
-        </div>
+      {/* --- responsive CSS for the avatar/header “hero” area --- */}
+<style>{`
+  .tp-hero {
+    display: grid;
+    grid-template-columns: 1fr;      /* mobile: stacked */
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 12px;
+  }
+  .tp-avatar {
+    width: 112px;
+    height: 112px;
+    border-radius: 16px;
+    border: 1px solid #183153;
+    background: linear-gradient(180deg,#0f213a,#0b1524);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;                  /* mobile: center */
+  }
+  .tp-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .tp-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #63d3e0;
+    color: #0a0f1c;
+    font-weight: 800;
+    font-size: 28px;
+  }
+  @media (min-width: 820px) {
+    .tp-hero {
+      grid-template-columns: 112px 1fr;  /* desktop: avatar left, header right */
+      align-items: center;
+    }
+    .tp-avatar {
+      margin: 0;                           /* no centering on desktop */
+      width: 96px;
+      height: 96px;
+      border-radius: 14px;
+    }
+  }
+`}</style>
 
-        <div style={ctaRowStyle}>
-          {callHref && (
-            <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
-              Call
-            </a>
-          )}
-          {waHref && (
-            <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-              WhatsApp
-            </a>
-          )}
+{/* HERO = avatar card + header card */}
+<div className="tp-hero">
+  {/* AVATAR CARD (separate from header) */}
+  <div className="tp-avatar">
+    {avatarUrl ? (
+      <img src={avatarUrl} alt={`${p.name || p.slug} logo`} />
+    ) : (
+      <div className="tp-avatar-fallback">★</div>
+    )}
+  </div>
 
-          {/* Share button */}
-          <button
-            type="button"
-            id="share-btn"
-            onClick={handleShare}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 10,
-              border: '1px solid #213a6b',
-              background: 'transparent',
-              color: '#eaf2ff',
-              fontWeight: 700,
-              cursor: 'pointer',
-              marginLeft: 8,
-            }}
-          >
-            Share
-          </button>
-        </div>
+  {/* HEADER CARD (no avatar inside now) */}
+  <div style={headerCardStyle}>
+    <div style={headerLeftStyle}>
+      <div>
+        <div style={headerNameStyle}>{p.name || p.slug}</div>
+        <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
       </div>
+    </div>
+
+    <div style={ctaRowStyle}>
+      {callHref && (
+        <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+          Call
+        </a>
+      )}
+      {waHref && (
+        <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+          WhatsApp
+        </a>
+      )}
+      <button
+        type="button"
+        id="share-btn"
+        onClick={handleShare}
+        style={{
+          padding: '8px 12px',
+          borderRadius: 10,
+          border: '1px solid #213a6b',
+          background: 'transparent',
+          color: '#eaf2ff',
+          fontWeight: 700,
+          cursor: 'pointer',
+          marginLeft: 8,
+        }}
+      >
+        Share
+      </button>
+    </div>
+  </div>
+</div>
+
 
       {/* SOCIAL BAR — sits just under the header card */}
       {(fb || ig || tk || xx) && (
