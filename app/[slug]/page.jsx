@@ -48,7 +48,8 @@ export default function PublicPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path'
+          // ADDED other_info
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info'
         )
         .ilike('slug', slug)
         .maybeSingle();
@@ -220,7 +221,7 @@ export default function PublicPage() {
 
       {/* GRID */}
       <div style={grid2Style}>
-        {/* About = text only, wraps properly */}
+        {/* About */}
         <Card title="About">
           <p
             style={{
@@ -271,7 +272,7 @@ export default function PublicPage() {
           )}
         </Card>
 
-        {/* Services as chips */}
+        {/* Services */}
         <Card title="Services">
           {services.length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -288,6 +289,26 @@ export default function PublicPage() {
         <Card title="Hours">
           <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
         </Card>
+
+        {/* Other useful information — OPTIONAL, shown only if provided */}
+        {p.other_info && p.other_info.trim().length > 0 && (
+          <Card title="Other useful information" wide>
+            <p
+              style={{
+                marginTop: 0,
+                marginBottom: 0,
+                whiteSpace: 'pre-wrap',
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+                lineHeight: 1.5,
+                maxWidth: '100%',
+                opacity: 0.95,
+              }}
+            >
+              {p.other_info}
+            </p>
+          </Card>
+        )}
 
         {/* Gallery */}
         <Card title="Gallery" wide>
@@ -361,7 +382,7 @@ const socialBarWrapStyle = {
   gap: 10,
   alignItems: 'center',
   flexWrap: 'wrap',
-  margin: '0 0 12px 0', // a bit of space under the header
+  margin: '0 0 12px 0',
 };
 
 const socialBtnStyle = {
