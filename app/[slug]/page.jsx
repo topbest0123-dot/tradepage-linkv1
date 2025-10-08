@@ -3,19 +3,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import Script from 'next/script'; // kept, even though not required, to avoid changing imports
+import Script from 'next/script'; // kept to avoid changing imports
 
-/** Small helper: turn any value into a clean list of strings */
+/** Turn any value into a clean list of strings */
 const toList = (value) =>
-  String(value ?? '') // safe coerce (handles numbers/null/undefined)
-    .split(/[,\n]+/)  // commas OR new lines
+  String(value ?? '')
+    .split(/[,\n]+/)   // commas OR new lines
     .map((s) => s.trim())
     .filter(Boolean);
-// Build a public URL from a storage path in the 'avatars' bucket
+
+/** Build a public URL from a storage path in the 'avatars' bucket */
 const publicUrlFor = (path) =>
-  
   path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
-// Turn "@handle" or partial into a full URL per network
+
+/** Turn "@handle" or partial into a full URL per network */
 function normalizeSocial(type, raw) {
   const v = String(raw || '').trim();
   if (!v) return null;
@@ -46,7 +47,9 @@ export default function PublicPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path')
+        .select(
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path'
+        )
         .ilike('slug', slug)
         .maybeSingle();
 
@@ -75,11 +78,12 @@ export default function PublicPage() {
   const callHref = p?.phone ? `tel:${p.phone.replace(/\s+/g, '')}` : null;
   const waHref = p?.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
   const avatarUrl = publicUrlFor(p?.avatar_path);
+
+  // Social links (show only if present)
   const fb = normalizeSocial('facebook',  p?.facebook);
   const ig = normalizeSocial('instagram', p?.instagram);
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
-
 
   // --- Share handler (native share on mobile, clipboard fallback on desktop) ---
   const handleShare = () => {
@@ -105,21 +109,21 @@ export default function PublicPage() {
       <div style={headerCardStyle}>
         <div style={headerLeftStyle}>
           {avatarUrl ? (
-  <img
-    src={avatarUrl}
-    alt={`${p.name || p.slug} logo`}
-    style={{
-      width: 48,
-      height: 48,
-      borderRadius: 14,
-      objectFit: 'cover',
-      border: '1px solid #183153',
-      background: '#0b1524',
-    }}
-  />
-) : (
-  <div style={logoDotStyle}>★</div>
-)}
+            <img
+              src={avatarUrl}
+              alt={`${p.name || p.slug} logo`}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                objectFit: 'cover',
+                border: '1px solid #183153',
+                background: '#0b1524',
+              }}
+            />
+          ) : (
+            <div style={logoDotStyle}>★</div>
+          )}
 
           <div>
             <div style={headerNameStyle}>{p.name || p.slug}</div>
@@ -158,40 +162,61 @@ export default function PublicPage() {
             Share
           </button>
         </div>
-        {/* Social icons (only show if present) */}
-{(fb || ig || tk || xx) && (
-  <div style={socialRowStyle}>
-    {fb && (
-      <a href={fb} target="_blank" rel="noopener noreferrer"
-         aria-label="Facebook" title="Facebook"
-         style={socialBtnStyle}>
-        <span style={socialGlyphStyle}>f</span>
-      </a>
-    )}
-    {ig && (
-      <a href={ig} target="_blank" rel="noopener noreferrer"
-         aria-label="Instagram" title="Instagram"
-         style={socialBtnStyle}>
-        <span style={socialGlyphStyle}>IG</span>
-      </a>
-    )}
-    {tk && (
-      <a href={tk} target="_blank" rel="noopener noreferrer"
-         aria-label="TikTok" title="TikTok"
-         style={socialBtnStyle}>
-        <span style={socialGlyphStyle}>t</span>
-      </a>
-    )}
-    {xx && (
-      <a href={xx} target="_blank" rel="noopener noreferrer"
-         aria-label="X (Twitter)" title="X (Twitter)"
-         style={socialBtnStyle}>
-        <span style={socialGlyphStyle}>X</span>
-      </a>
-    )}
-  </div>
-)}
       </div>
+
+      {/* SOCIAL BAR — sits just under the header card */}
+      {(fb || ig || tk || xx) && (
+        <div style={socialBarWrapStyle}>
+          {fb && (
+            <a
+              href={fb}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              title="Facebook"
+              style={socialBtnStyle}
+            >
+              <span style={socialGlyphStyle}>f</span>
+            </a>
+          )}
+          {ig && (
+            <a
+              href={ig}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              title="Instagram"
+              style={socialBtnStyle}
+            >
+              <span style={socialGlyphStyle}>IG</span>
+            </a>
+          )}
+          {tk && (
+            <a
+              href={tk}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok"
+              title="TikTok"
+              style={socialBtnStyle}
+            >
+              <span style={socialGlyphStyle}>t</span>
+            </a>
+          )}
+          {xx && (
+            <a
+              href={xx}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="X (Twitter)"
+              title="X (Twitter)"
+              style={socialBtnStyle}
+            >
+              <span style={socialGlyphStyle}>X</span>
+            </a>
+          )}
+        </div>
+      )}
 
       {/* GRID */}
       <div style={grid2Style}>
@@ -226,7 +251,7 @@ export default function PublicPage() {
               <li
                 key={i}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}
-              >               
+              >
                 <span>{ln}</span>
               </li>
             ))}
@@ -329,20 +354,21 @@ const logoDotStyle = {
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
 const headerSubStyle = { opacity: 0.75, fontSize: 14, marginTop: 4 };
 const ctaRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' };
-/* Social icons (header right) */
-const socialRowStyle = {
+
+/* Social bar (below header) */
+const socialBarWrapStyle = {
   display: 'flex',
-  gap: 8,
+  gap: 10,
   alignItems: 'center',
-  flexWrap: 'wrap',            // wraps nicely on small screens
-  marginLeft: 4,               // tiny separation from buttons
+  flexWrap: 'wrap',
+  margin: '0 0 12px 0', // a bit of space under the header
 };
 
 const socialBtnStyle = {
   width: 36,
   height: 36,
   borderRadius: 999,
-  border: '1px solid #213a6b', // same border tone you use elsewhere
+  border: '1px solid #213a6b',
   background: 'transparent',
   color: '#eaf2ff',
   display: 'inline-flex',
@@ -350,19 +376,16 @@ const socialBtnStyle = {
   justifyContent: 'center',
   textDecoration: 'none',
   outline: 'none',
-  // Optional finesse:
   transition: 'transform 120ms ease, background 120ms ease, border-color 120ms ease',
 };
 
 const socialGlyphStyle = {
-  // We’re drawing simple mono “glyphs” (text or svg)
-  fontSize: 13,         // visually balanced inside a 36x36 circle
+  fontSize: 13,
   fontWeight: 800,
   letterSpacing: 0.2,
   lineHeight: 1,
-  translate: '0 0',     // keeps it centered on some browsers
+  translate: '0 0',
 };
-
 
 const btnBaseStyle = {
   padding: '10px 16px',
@@ -387,7 +410,7 @@ const cardStyle = {
   borderRadius: 16,
   border: '1px solid #183153',
   background: 'linear-gradient(180deg,#0f213a,#0b1524)',
-  minWidth: 0, // important so long content can wrap inside grid
+  minWidth: 0,
 };
 const grid2Style = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 };
 
