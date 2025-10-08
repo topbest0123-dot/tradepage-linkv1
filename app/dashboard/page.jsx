@@ -33,6 +33,8 @@ export default function Dashboard() {
     instagram: '',
     tiktok: '',
     x: '',
+    // NEW
+    other_info: '',                // <- added
     // NEW: where we store the storage object path (e.g. userId/1699999999.jpg)
     avatar_path: '',
   });
@@ -48,7 +50,9 @@ export default function Dashboard() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path') // ← added avatar_path
+        .select(
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info' // <- added other_info
+        )
         .eq('id', user.id)
         .maybeSingle();
 
@@ -72,6 +76,7 @@ export default function Dashboard() {
           instagram: data.instagram ?? '',
           tiktok: data.tiktok ?? '',
           x: data.x ?? '',
+          other_info: data.other_info ?? '',   // <- added
         });
         // show preview if there is an existing image
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
@@ -151,6 +156,7 @@ export default function Dashboard() {
       instagram: form.instagram,
       tiktok: form.tiktok,
       x: form.x,
+      other_info: form.other_info,           // <- added
       // NEW: persist the storage path
       avatar_path: form.avatar_path,
       updated_at: new Date().toISOString(),
@@ -361,6 +367,13 @@ export default function Dashboard() {
         'e.g.\nRegular clean: £18/hr\nDeep clean: from £120'
       )}
       {textarea('Opening hours', 'hours', 'e.g. Mon–Fri 8:00–18:00')}
+
+      {/* NEW: Other Useful Information (optional) */}
+      {textarea(
+        'Other Useful Information (optional)',
+        'other_info',
+        'Anything else customers should know (parking, call-out fee, insurance, certifications, languages, etc.)'
+      )}
 
       {/* Actions: Save + Preview (matched sizes) */}
       <div style={actionsRowStyle}>
