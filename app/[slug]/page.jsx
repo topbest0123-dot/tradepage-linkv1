@@ -220,7 +220,7 @@ export default function PublicPage() {
       )}
 
       {/* GRID */}
-      <div style={grid2Style}>
+      <div className="grid2" style={grid2BaseStyle}>
         {/* About */}
         <Card title="About">
           <p
@@ -325,6 +325,18 @@ export default function PublicPage() {
           </div>
         </Card>
       </div>
+
+      {/* Responsive grid CSS: 1 column on mobile, 2 columns from 860px */}
+      <style jsx>{`
+        .grid2 {
+          grid-template-columns: 1fr;
+        }
+        @media (min-width: 860px) {
+          .grid2 {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+      `}</style>
     </div>
   );
 }
@@ -433,7 +445,9 @@ const cardStyle = {
   background: 'linear-gradient(180deg,#0f213a,#0b1524)',
   minWidth: 0,
 };
-const grid2Style = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 };
+
+// UPDATED: base grid styles (columns handled by CSS above)
+const grid2BaseStyle = { display: 'grid', gap: 16, marginTop: 16 };
 
 const chipStyle = {
   padding: '6px 12px',
