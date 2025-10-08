@@ -29,6 +29,10 @@ export default function Dashboard() {
     services: '',
     prices: '',
     hours: '',
+    facebook: '',
+    instagram: '',
+    tiktok: '',
+    x: '',
     // NEW: where we store the storage object path (e.g. userId/1699999999.jpg)
     avatar_path: '',
   });
@@ -44,7 +48,7 @@ export default function Dashboard() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,avatar_path') // ← added avatar_path
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path') // ← added avatar_path
         .eq('id', user.id)
         .maybeSingle();
 
@@ -64,6 +68,11 @@ export default function Dashboard() {
           prices: data.prices ?? '',
           hours: data.hours ?? '',
           avatar_path: data.avatar_path ?? '',
+          facebook: data.facebook ?? '',
+          instagram: data.instagram ?? '',
+          tiktok: data.tiktok ?? '',
+          x: data.x ?? '',
+
         });
         // show preview if there is an existing image
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
@@ -139,6 +148,10 @@ export default function Dashboard() {
       services: normalizedServices,
       prices: form.prices,
       hours: form.hours,
+      facebook: form.facebook,
+      instagram: form.instagram,
+      tiktok: form.tiktok,
+      x: form.x,
       // NEW: persist the storage path
       avatar_path: form.avatar_path,
       updated_at: new Date().toISOString(),
@@ -286,6 +299,14 @@ export default function Dashboard() {
       {input('City', 'city', 'e.g. London')}
       {input('Phone (tap to call)', 'phone', 'e.g. +44 7700 900123')}
       {input('WhatsApp number', 'whatsapp', 'e.g. +44 7700 900123')}
+      
+      {/* Social links (optional) */}
+      <div style={{ marginTop: 4, marginBottom: 8, opacity: 0.8 }}>Social (optional)</div>
+      {input('Facebook (URL or @)',  'facebook',  'https://facebook.com/yourpage or @yourpage')}
+      {input('Instagram (URL or @)', 'instagram', 'https://instagram.com/yourname or @yourname')}
+      {input('TikTok (URL or @)',    'tiktok',    'https://tiktok.com/@yourname or @yourname')}
+      {input('X / Twitter (URL or @)','x',        'https://x.com/yourname or @yourname')}
+
 
       {textarea(
         'About (short description for your public page)',
