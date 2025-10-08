@@ -144,7 +144,7 @@ export default function PublicPage() {
             min-width: 110px;
           }
           /* no translateY; spacing is controlled by margins above */
-          .tp-avatar { margin: -4px auto 12px; }
+          .tp-avatar { margin: -10px auto 12px; }
         }
 
         /* Grid layout: 1 col mobile, 2 cols desktop */
