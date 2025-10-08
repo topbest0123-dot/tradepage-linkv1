@@ -1,34 +1,31 @@
-// app/[slug]/layout.jsx (SERVER component)
-import { supabaseServer } from '@/lib/supabaseServer';
+// app/[slug]/layout.jsx  (SERVER COMPONENT)
+import { createClient } from '@supabase/supabase-js';
+
+export const revalidate = 60;         // ISR
+export const dynamic = 'force-static';
 
 export async function generateMetadata({ params }) {
-  const slug = params.slug;
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false } }
+  );
 
-  const { data } = await supabaseServer
+  const { data: p } = await sb
     .from('profiles')
-    .select('slug,name,trade,city,about,avatar_url')
-    .ilike('slug', slug)
+    .select('slug,name,trade,city,avatar_path')
+    .ilike('slug', params.slug)
     .maybeSingle();
 
-  if (!data) {
-    return {
-      title: 'TradePage',
-      description: 'Public profile',
-      openGraph: { images: ['/og-default.png'] },
-      twitter: { images: ['/og-default.png'] },
-    };
-  }
-
-  const titleBits = [data.name || data.slug, [data.trade, data.city].filter(Boolean).join(' • ')].filter(Boolean);
-  const title = titleBits.join(' — ');
+  const title = p?.name || params.slug;
   const description =
-    (data.about || '')
-      .trim()
-      .slice(0, 160) ||
-    `Contact ${data.name || data.slug}${data.city ? ` in ${data.city}` : ''}${data.trade ? ` for ${data.trade}` : ''}.`;
+    [p?.trade, p?.city].filter(Boolean).join(' • ') || 'Your business in a link';
 
-  // Supabase avatar URLs are already absolute; fallback to default OG image
-  const image = data.avatar_url || '/og-default.png';
+  const avatarUrl = p?.avatar_path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(
+        p.avatar_path
+      )}`
+    : '/og-default.png';
 
   return {
     title,
@@ -36,28 +33,21 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title,
       description,
+      url: `/${params.slug}`,
       type: 'profile',
-      url: `/${data.slug}`,
       siteName: 'TradePage',
-      images: [
-        {
-          url: image,
-          width: 800,
-          height: 800,
-          alt: title,
-        },
-      ],
+      images: [avatarUrl],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [image],
+      images: [avatarUrl],
     },
   };
 }
 
-// This layout just renders the page content
-export default function ProfileLayout({ children }) {
+export default function SlugLayout({ children }) {
+  // pass-through wrapper
   return children;
 }
