@@ -1,61 +1,53 @@
-// app/[slug]/head.jsx
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.tradepage.link';
-
 export default async function Head({ params }) {
-  // Fetch minimal data for OG
-  const { data } = await supabase
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  // Load just what we need
+  const { data: p } = await sb
     .from('profiles')
-    .select('slug,name,trade,city,avatar_url')
+    .select('slug,name,trade,city,avatar_path')
     .ilike('slug', params.slug)
     .maybeSingle();
 
-  // Title
-  const title = data
-    ? `${data.name || data.slug} — ${[data.trade, data.city].filter(Boolean).join(' • ')}`
-    : 'TradePage';
+  const site = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.tradepage.link';
 
-  // Description (short and safe)
-  const desc = data
-    ? [data.trade, data.city].filter(Boolean).join(' • ') || 'Your business in a link'
-    : 'Your business in a link';
-
-  // Absolute URL to the page
-  const url = `${SITE}/${params.slug}`;
-
-  // Absolute image URL (avatar or fallback)
+  // If there’s an avatar in the 'avatars' bucket, build a public URL; otherwise use the fallback image.
   const image =
-    data?.avatar_url && data.avatar_url.startsWith('http')
-      ? data.avatar_url
-      : data?.avatar_url
-      ? `${data.avatar_url}` // already absolute from Supabase public bucket
-      : `${SITE}/og-default.png`;
+    p?.avatar_path
+      ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(
+          p.avatar_path
+        )}`
+      : `${site}/og-default.png`;
+
+  const title = p?.name || params.slug;
+  const description =
+    [p?.trade, p?.city].filter(Boolean).join(' • ') || 'Your business in a link';
 
   return (
     <>
-      <title>{title}</title>
+      {/* Title/description for the tab and crawlers */}
+      <title>{title} — TradePage</title>
+      <meta name="description" content={description} />
 
       {/* Open Graph */}
       <meta property="og:type" content="website" />
-      <meta property="og:url" content={url} />
+      <meta property="og:site_name" content="TradePage" />
       <meta property="og:title" content={title} />
-      <meta property="og:description" content={desc} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={`${site}/${params.slug}`} />
       <meta property="og:image" content={image} />
-      <meta property="og:image:alt" content={title} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={desc} />
+      <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
-
-      <link rel="canonical" href={url} />
     </>
   );
 }
