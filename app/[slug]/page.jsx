@@ -113,6 +113,12 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
 
+  // turn free-text prices into individual lines
+  const priceLines = String(p?.prices || '')
+    .split(/\r?\n/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
   return (
     <div style={pageWrapStyle}>
       {/* Grid CSS (tiny, at top of page) */}
@@ -300,7 +306,7 @@ export default function PublicPage() {
         </div>
       )}
 
-      {/* CONTENT GRID (we’ll add more cards later) */}
+      {/* CONTENT GRID */}
       <div className="tp-grid">
         <Card title="About">
           <p
@@ -314,6 +320,19 @@ export default function PublicPage() {
             {p?.about?.trim() ||
               'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
           </p>
+        </Card>
+
+        {/* Prices card */}
+        <Card title="Prices">
+          {priceLines.length === 0 ? (
+            <div style={{ opacity: 0.7 }}>Please ask for a quote.</div>
+          ) : (
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              {priceLines.map((ln, i) => (
+                <li key={i} style={{ marginBottom: 8 }}>{ln}</li>
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
     </div>
@@ -340,16 +359,9 @@ function Card({ title, children }) {
   );
 }
 
-/* (existing constants can remain; they’re not used by the new Card) */
+/* (existing constants kept) */
 const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
-
-const headerCardStyle = {
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  gap: 16, padding: '16px 18px', borderRadius: 16,
-  border: '1px solid var(--border)',
-  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
-  marginBottom: 12,
-};
+const headerCardStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '16px 18px', borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', marginBottom: 12 };
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
 const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
 const btnBaseStyle = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
