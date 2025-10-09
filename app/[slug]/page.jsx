@@ -3,30 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import Script from 'next/script'; // kept to avoid changing imports
 
-/* ---- same THEMES + helper as dashboard ---- */
-const THEMES = {
-  /* keep exactly the same 10 themes from the dashboard file */
-  'deep-navy': { name:'Deep Navy', vars:{'--bg':'#0a0f14','--text':'#eaf2ff','--muted':'#b8ccff','--border':'#183153','--card-bg-1':'#0f213a','--card-bg-2':'#0b1524','--chip-bg':'#0c1a2e','--chip-border':'#27406e','--btn-primary-1':'#66e0b9','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#1f2937','--social-border':'#213a6b'} },
-  'midnight-teal': { name:'Midnight Teal', vars:{'--bg':'#071417','--text':'#e9fbff','--muted':'#c0e9f2','--border':'#15444a','--card-bg-1':'#0b2a31','--card-bg-2':'#0a1e24','--chip-bg':'#0a2227','--chip-border':'#1e5660','--btn-primary-1':'#51e1c2','--btn-primary-2':'#6db7ff','--btn-neutral-bg':'#122026','--social-border':'#214e56'} },
-  'royal-purple': { name:'Royal Purple', vars:{'--bg':'#0c0714','--text':'#f0e9ff','--muted':'#d7c9ff','--border':'#3b2b6a','--card-bg-1':'#1b1340','--card-bg-2':'#120e2b','--chip-bg':'#160f33','--chip-border':'#463487','--btn-primary-1':'#8f7bff','--btn-primary-2':'#c48bff','--btn-neutral-bg':'#221a3d','--social-border':'#3d2f72'} },
-  'forest-emerald': { name:'Forest Emerald', vars:{'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'} },
-  'graphite-ember': { name:'Graphite Ember', vars:{'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'} },
-  'sapphire-ice': { name:'Sapphire Ice', vars:{'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#081827','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'} },
-  'cocoa-bronze': { name:'Cocoa Bronze', vars:{'--bg':'#0f0b09','--text':'#fff3e6','--muted':'#f6dcc4','--border':'#4a2e22','--card-bg-1':'#211510','--card-bg-2':'#170f0c','--chip-bg':'#1a120f','--chip-border':'#523428','--btn-primary-1':'#ffb26b','--btn-primary-2':'#ffd07e','--btn-neutral-bg':'#241813','--social-border':'#523a2e'} },
-  'indigo-blush': { name:'Indigo Blush', vars:{'--bg':'#0c0a13','--text':'#f1eeff','--muted':'#e0d6ff','--border':'#2f2950','--card-bg-1':'#18143a','--card-bg-2':'#120f2b','--chip-bg':'#130f2f','--chip-border':'#3a3263','--btn-primary-1':'#9ea0ff','--btn-primary-2':'#ff92b0','--btn-neutral-bg':'#1b173d','--social-border':'#362f5a'} },
-  'space-plum': { name:'Space Plum', vars:{'--bg':'#0c0910','--text':'#fdeeff','--muted':'#f4d0ff','--border':'#3b2245','--card-bg-1':'#1a0f24','--card-bg-2':'#120a19','--chip-bg':'#150c1d','--chip-border':'#4c2b5a','--btn-primary-1':'#c77dff','--btn-primary-2':'#72e4ff','--btn-neutral-bg':'#1c1225','--social-border':'#4a2c59'} },
-  'ocean-umber': { name:'Ocean Umber', vars:{'--bg':'#081011','--text':'#e9faff','--muted':'#cfeef5','--border':'#254047','--card-bg-1':'#0f2327','--card-bg-2':'#0b191c','--chip-bg':'#0c1d21','--chip-border':'#2f5963','--btn-primary-1':'#78d8c3','--btn-primary-2':'#ffd384','--btn-neutral-bg':'#0f1b1e','--social-border':'#2d545e'} },
-  'ink': { name:'High-Contrast Ink', vars:{'--bg':'#070809','--text':'#ffffff','--muted':'#cfd4d9','--border':'#2a2d31','--card-bg-1':'#111316','--card-bg-2':'#0b0d10','--chip-bg':'#0e1013','--chip-border':'#32353a','--btn-primary-1':'#ffffff','--btn-primary-2':'#9ad3ff','--btn-neutral-bg':'#1a1d21','--social-border':'#32363b'} },
-};
-
-const themeVarsToStyle = (key) => {
-  const t = THEMES[key] || THEMES['deep-navy'];
-  const s = {};
-  Object.entries(t.vars).forEach(([k, v]) => (s[k] = v));
-  return s;
-};
-
+/** Small helpers */
 const toList = (value) =>
   String(value ?? '')
     .split(/[,\n]+/)
@@ -36,19 +15,45 @@ const toList = (value) =>
 const publicUrlFor = (path) =>
   path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
 
-const normalizeSocial = (type, raw) => {
+function normalizeSocial(type, raw) {
   const v = String(raw || '').trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v;
   const handle = v.replace(/^@/, '');
   switch (type) {
-    case 'facebook': return `https://facebook.com/${handle}`;
+    case 'facebook':  return `https://facebook.com/${handle}`;
     case 'instagram': return `https://instagram.com/${handle}`;
-    case 'tiktok': return `https://www.tiktok.com/@${handle}`;
-    case 'x': return `https://x.com/${handle}`;
-    default: return null;
+    case 'tiktok':    return `https://www.tiktok.com/@${handle}`;
+    case 'x':         return `https://x.com/${handle}`;
+    default:          return null;
   }
+}
+
+/* ---------- THEME MAP (same tokens as dashboard) ---------- */
+const THEMES = {
+  // DARK
+  'deep-navy':      { vars:{'--bg':'#0a0f14','--text':'#eaf2ff','--muted':'#b8ccff','--border':'#183153','--card-bg-1':'#0f213a','--card-bg-2':'#0b1524','--chip-bg':'#0c1a2e','--chip-border':'#27406e','--btn-primary-1':'#66e0b9','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#1f2937','--social-border':'#213a6b'}},
+  'midnight-teal':  { vars:{'--bg':'#071417','--text':'#e9fbff','--muted':'#c0e9f2','--border':'#15444a','--card-bg-1':'#0b2a31','--card-bg-2':'#0a1e24','--chip-bg':'#0a2227','--chip-border':'#1e5660','--btn-primary-1':'#51e1c2','--btn-primary-2':'#6db7ff','--btn-neutral-bg':'#122026','--social-border':'#214e56'}},
+  'royal-purple':   { vars:{'--bg':'#0c0714','--text':'#f0e9ff','--muted':'#d7c9ff','--border':'#3b2b6a','--card-bg-1':'#1b1340','--card-bg-2':'#120e2b','--chip-bg':'#160f33','--chip-border':'#463487','--btn-primary-1':'#8f7bff','--btn-primary-2':'#c48bff','--btn-neutral-bg':'#221a3d','--social-border':'#3d2f72'}},
+  'graphite-ember': { vars:{'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'}},
+  'sapphire-ice':   { vars:{'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#081827','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'}},
+  'forest-emerald': { vars:{'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'}},
+  // LIGHT
+  'porcelain-mint': { vars:{'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'}},
+  'paper-snow':     { vars:{'--bg':'#ffffff','--text':'#121417','--muted':'#5b6777','--border':'#e5e7ea','--card-bg-1':'#ffffff','--card-bg-2':'#f7f9fb','--chip-bg':'#f3f5f7','--chip-border':'#e5e7ea','--btn-primary-1':'#3b82f6','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#eef2f6','--social-border':'#dfe3e8'}},
+  'linen-rose':     { vars:{'--bg':'#fbf7f5','--text':'#221a16','--muted':'#6d5c54','--border':'#eaded7','--card-bg-1':'#ffffff','--card-bg-2':'#f6efeb','--chip-bg':'#f2eae6','--chip-border':'#eaded7','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#efe7e3','--social-border':'#e6d9d1'}},
+  'sandstone':      { vars:{'--bg':'#faf7f1','--text':'#191714','--muted':'#6f675f','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6f1e7','--chip-bg':'#f2ece1','--chip-border':'#eadfcd','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#efe9df','--social-border':'#e6dac7'}},
+  'cloud-blue':     { vars:{'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'}},
+  'ivory-ink':      { vars:{'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'}},
 };
+
+const applyTheme = (key) => {
+  const t = THEMES[key] || THEMES['deep-navy'];
+  Object.entries(t.vars).forEach(([k, v]) =>
+    document.documentElement.style.setProperty(k, v)
+  );
+};
+/* ------------------------------------------------------- */
 
 export default function PublicPage() {
   const { slug } = useParams();
@@ -59,9 +64,13 @@ export default function PublicPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme')
+        .select(
+          // IMPORTANT: include theme
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme'
+        )
         .ilike('slug', slug)
         .maybeSingle();
+
       if (error) console.error(error);
       if (!data) setNotFound(true);
       else setP(data);
@@ -69,13 +78,19 @@ export default function PublicPage() {
     load();
   }, [slug]);
 
+  // Apply theme once we know it
+  useEffect(() => {
+    applyTheme(p?.theme || 'deep-navy');
+  }, [p?.theme]);
+
   const areas = useMemo(() => toList(p?.areas), [p]);
   const services = useMemo(() => toList(p?.services), [p]);
   const priceLines = useMemo(
-    () => String(p?.prices ?? '')
-      .split(/\r?\n/)
-      .map((s) => s.trim())
-      .filter(Boolean),
+    () =>
+      String(p?.prices ?? '')
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
     [p]
   );
 
@@ -86,16 +101,31 @@ export default function PublicPage() {
   const waHref = p?.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
   const avatarUrl = publicUrlFor(p?.avatar_path);
 
-  const fb = normalizeSocial('facebook', p?.facebook);
+  const fb = normalizeSocial('facebook',  p?.facebook);
   const ig = normalizeSocial('instagram', p?.instagram);
-  const tk = normalizeSocial('tiktok', p?.tiktok);
-  const xx = normalizeSocial('x', p?.x);
+  const tk = normalizeSocial('tiktok',    p?.tiktok);
+  const xx = normalizeSocial('x',         p?.x);
 
-  const themeStyle = themeVarsToStyle(p?.theme || 'deep-navy');
+  const handleShare = () => {
+    const url = window.location.href;
+    const title = document.title || 'TradePage';
+    if (navigator.share) {
+      navigator.share({ title, url }).catch(() => {});
+    } else {
+      try {
+        navigator.clipboard.writeText(url).then(
+          () => alert('Link copied to clipboard'),
+          () => window.prompt('Copy this link:', url)
+        );
+      } catch {
+        window.prompt('Copy this link:', url);
+      }
+    }
+  };
 
   return (
-    <div style={{ ...themeStyle, background: 'var(--bg)', color: 'var(--text)' }}>
-      {/* HEADER */}
+    <div style={pageWrapStyle}>
+      {/* Header card (avatar inside) */}
       <div style={headerCardStyle}>
         <div style={headerLeftStyle}>
           {avatarUrl ? (
@@ -103,13 +133,8 @@ export default function PublicPage() {
               src={avatarUrl}
               alt={`${p.name || p.slug} logo`}
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
-                objectFit: 'cover',
-                border: '1px solid var(--border)',
-                background: 'var(--card-bg-2)',
-                marginRight: 10,
+                width: 48, height: 48, borderRadius: 14, objectFit: 'cover',
+                border: '1px solid var(--border)', background: 'var(--card-bg-2)',
               }}
             />
           ) : (
@@ -134,41 +159,32 @@ export default function PublicPage() {
           )}
           <button
             type="button"
-            onClick={() => {
-              const url = window.location.href;
-              const title = document.title || 'TradePage';
-              if (navigator.share) navigator.share({ title, url }).catch(() => {});
-              else navigator.clipboard?.writeText(url) ?? window.prompt('Copy this link:', url);
-            }}
-            style={{
-              ...btnBaseStyle,
-              border: '1px solid var(--social-border)',
-              background: 'transparent',
-              color: 'var(--text)',
-            }}
+            onClick={handleShare}
+            style={{ ...btnBaseStyle, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)' }}
           >
             Share
           </button>
         </div>
       </div>
 
-      {/* Social bar */}
       {(fb || ig || tk || xx) && (
         <div style={socialBarWrapStyle}>
-          {fb && <a href={fb} target="_blank" rel="noopener noreferrer" style={socialBtnStyle}><span style={socialGlyphStyle}>f</span></a>}
-          {ig && <a href={ig} target="_blank" rel="noopener noreferrer" style={socialBtnStyle}><span style={socialGlyphStyle}>IG</span></a>}
-          {tk && <a href={tk} target="_blank" rel="noopener noreferrer" style={socialBtnStyle}><span style={socialGlyphStyle}>t</span></a>}
-          {xx && <a href={xx} target="_blank" rel="noopener noreferrer" style={socialBtnStyle}><span style={socialGlyphStyle}>X</span></a>}
+          {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}><span style={socialGlyphStyle}>f</span></a>}
+          {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}><span style={socialGlyphStyle}>IG</span></a>}
+          {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={socialBtnStyle}><span style={socialGlyphStyle}>t</span></a>}
+          {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}><span style={socialGlyphStyle}>X</span></a>}
         </div>
       )}
 
-      {/* One-column sections on mobile, two on desktop */}
-      <div style={gridStyle}>
+      {/* Content grid: 1-col on mobile, 2-col on desktop */}
+      <div style={grid2Style}>
         <Card title="About">
-          <p style={pStyle}>
-            {p.about?.trim()?.length ? p.about
-              : (services[0] ? `${services[0]}. Reliable, friendly and affordable. Free quotes, no hidden fees.`
-                : 'Reliable, friendly and affordable. Free quotes, no hidden fees.')}
+          <p style={bodyP}>
+            {p.about && p.about.trim().length > 0
+              ? p.about
+              : (services[0]
+                  ? `${services[0]}. Reliable, friendly and affordable. Free quotes, no hidden fees.`
+                  : 'Reliable, friendly and affordable. Free quotes, no hidden fees.')}
           </p>
         </Card>
 
@@ -176,7 +192,9 @@ export default function PublicPage() {
           <ul style={listResetStyle}>
             {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
             {priceLines.map((ln, i) => (
-              <li key={i} style={{ marginBottom: 8 }}>{ln}</li>
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <span>{ln}</span>
+              </li>
             ))}
           </ul>
         </Card>
@@ -209,9 +227,9 @@ export default function PublicPage() {
           <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
         </Card>
 
-        {p.other_info?.trim()?.length > 0 && (
+        {p.other_info && p.other_info.trim().length > 0 && (
           <Card title="Other useful information" wide>
-            <p style={pStyle}>{p.other_info}</p>
+            <p style={{ ...bodyP, opacity: 0.95 }}>{p.other_info}</p>
           </Card>
         )}
 
@@ -233,7 +251,7 @@ export default function PublicPage() {
   );
 }
 
-/* ---------- components & styles ---------- */
+/* ---------- Components ---------- */
 function Card({ title, wide = false, children }) {
   return (
     <section style={{ ...cardStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
@@ -243,6 +261,7 @@ function Card({ title, wide = false, children }) {
   );
 }
 
+/* ---------- Styles (now all use CSS variables) ---------- */
 const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
@@ -255,102 +274,32 @@ const headerCardStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  gap: 12,
-  padding: '12px 14px',
+  gap: 16,
+  padding: '16px 18px',
   borderRadius: 16,
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
-  margin: '16px auto 8px',
-  maxWidth: 980,
+  marginBottom: 12,
 };
 
-const headerLeftStyle = { display: 'flex', alignItems: 'center' };
+const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
+
 const logoDotStyle = {
-  width: 40,
-  height: 40,
-  borderRadius: 10,
+  width: 48,
+  height: 48,
+  borderRadius: 14,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   background: 'var(--btn-primary-1)',
   color: '#0a0f1c',
   fontWeight: 800,
-  fontSize: 18,
-  marginRight: 10,
-};
-const headerNameStyle = { fontWeight: 800, fontSize: 20, lineHeight: '22px' };
-const headerSubStyle = { opacity: 0.75, fontSize: 13, marginTop: 3 };
-const ctaRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
-
-const btnBaseStyle = {
-  padding: '8px 12px',
-  borderRadius: 10,
-  border: '1px solid var(--border)',
-  textDecoration: 'none',
-  fontWeight: 700,
-  fontSize: 13,
-  cursor: 'pointer',
-};
-const btnPrimaryStyle = {
-  background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
-  color: '#08101e',
-};
-const btnNeutralStyle = {
-  background: 'var(--btn-neutral-bg)',
-  color: '#ffffff',
+  fontSize: 20,
 };
 
-const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: '1fr',
-  gap: 16,
-  margin: '16px auto',
-  maxWidth: 980,
-};
-const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
-const cardStyle = {
-  padding: 16,
-  borderRadius: 16,
-  border: '1px solid var(--border)',
-  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
-  minWidth: 0,
-};
-const pStyle = {
-  marginTop: 0,
-  marginBottom: 0,
-  whiteSpace: 'pre-wrap',
-  overflowWrap: 'anywhere',
-  wordBreak: 'break-word',
-  lineHeight: 1.5,
-};
-
-const chipStyle = {
-  padding: '6px 12px',
-  borderRadius: 999,
-  border: '1px solid var(--chip-border)',
-  background: 'var(--chip-bg)',
-  color: 'var(--text)',
-  fontSize: 13,
-};
-
-const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
-
-const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
-const galleryItemStyle = {
-  height: 220,
-  borderRadius: 14,
-  border: '1px solid var(--chip-border)',
-  background: 'var(--card-bg-2)',
-  overflow: 'hidden',
-};
-const imgPlaceholderStyle = {
-  width: '100%',
-  height: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  opacity: 0.75,
-};
+const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
+const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
 
 const socialBarWrapStyle = {
   display: 'flex',
@@ -359,6 +308,7 @@ const socialBarWrapStyle = {
   flexWrap: 'wrap',
   margin: '0 0 12px 0',
 };
+
 const socialBtnStyle = {
   width: 36,
   height: 36,
@@ -373,4 +323,80 @@ const socialBtnStyle = {
   outline: 'none',
   transition: 'transform 120ms ease, background 120ms ease, border-color 120ms ease',
 };
-const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1 };
+
+const socialGlyphStyle = {
+  fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0',
+};
+
+const btnBaseStyle = {
+  padding: '10px 16px',
+  borderRadius: 12,
+  border: '1px solid var(--border)',
+  textDecoration: 'none',
+  fontWeight: 700,
+  cursor: 'pointer',
+};
+
+const btnPrimaryStyle = {
+  background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
+  color: '#08101e',
+  border: '1px solid var(--border)',
+};
+
+const btnNeutralStyle = {
+  background: 'var(--btn-neutral-bg)',
+  color: 'var(--text)',
+};
+
+const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
+
+const cardStyle = {
+  padding: 16,
+  borderRadius: 16,
+  border: '1px solid var(--border)',
+  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
+  minWidth: 0,
+};
+
+const grid2Style = {
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  gap: 16,
+  marginTop: 16,
+};
+if (typeof window !== 'undefined') {
+  // small enhancement: widen to 2 columns on larger screens
+  const mq = window.matchMedia('(min-width: 820px)');
+  if (mq.matches) grid2Style.gridTemplateColumns = '1fr 1fr';
+}
+
+const bodyP = {
+  marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5, maxWidth: '100%'
+};
+
+const chipStyle = {
+  padding: '6px 12px',
+  borderRadius: 999,
+  border: '1px solid var(--chip-border)',
+  background: 'var(--chip-bg)',
+  color: 'var(--text)',
+  fontSize: 13,
+};
+
+const tagStyle = {
+  fontSize: 12, padding: '2px 8px', borderRadius: 999,
+  border: '1px solid var(--chip-border)', background: 'var(--chip-bg)',
+  color: 'var(--muted)',
+};
+
+const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
+
+const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
+const galleryItemStyle = {
+  height: 220, borderRadius: 14, border: '1px solid var(--chip-border)',
+  background: 'var(--chip-bg)', overflow: 'hidden',
+};
+const imgPlaceholderStyle = {
+  width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
+};
