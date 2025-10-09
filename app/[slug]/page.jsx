@@ -4,10 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-/* ---------- small helpers ---------- */
+/* ---------- helpers ---------- */
 const toList = (v) => String(v ?? '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
 const publicUrlFor = (p) => (p ? supabase.storage.from('avatars').getPublicUrl(p).data.publicUrl : null);
-
 const normalizeSocial = (t, raw) => {
   const v = String(raw || '').trim();
   if (!v) return null;
@@ -19,16 +18,16 @@ const normalizeSocial = (t, raw) => {
          t === 'x'         ? `https://x.com/${h}` : null;
 };
 
-/* ---------- THEMES (dark + light) ---------- */
+/* ---------- themes ---------- */
 const THEMES = {
-  // DARK
+  // dark
   'deep-navy':      {'--bg':'#0a0f14','--text':'#eaf2ff','--muted':'#b8ccff','--border':'#183153','--card-bg-1':'#0f213a','--card-bg-2':'#0b1524','--chip-bg':'#0c1a2e','--chip-border':'#27406e','--btn-primary-1':'#66e0b9','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#1f2937','--social-border':'#213a6b'},
   'midnight-teal':  {'--bg':'#071417','--text':'#e9fbff','--muted':'#c0e9f2','--border':'#15444a','--card-bg-1':'#0b2a31','--card-bg-2':'#0a1e24','--chip-bg':'#0a2227','--chip-border':'#1e5660','--btn-primary-1':'#51e1c2','--btn-primary-2':'#6db7ff','--btn-neutral-bg':'#122026','--social-border':'#214e56'},
   'royal-purple':   {'--bg':'#0c0714','--text':'#f0e9ff','--muted':'#d7c9ff','--border':'#3b2b6a','--card-bg-1':'#1b1340','--card-bg-2':'#120e2b','--chip-bg':'#160f33','--chip-border':'#463487','--btn-primary-1':'#8f7bff','--btn-primary-2':'#c48bff','--btn-neutral-bg':'#221a3d','--social-border':'#3d2f72'},
   'graphite-ember': {'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'},
   'sapphire-ice':   {'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#081827','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'},
   'forest-emerald': {'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'},
-  // LIGHT
+  // light
   'paper-snow':     {'--bg':'#ffffff','--text':'#121417','--muted':'#5b6777','--border':'#e5e7ea','--card-bg-1':'#ffffff','--card-bg-2':'#f7f9fb','--chip-bg':'#f3f5f7','--chip-border':'#e5e7ea','--btn-primary-1':'#3b82f6','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#eef2f6','--social-border':'#dfe3e8'},
   'porcelain-mint': {'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'},
   'linen-rose':     {'--bg':'#fbf7f5','--text':'#221a16','--muted':'#6d5c54','--border':'#eaded7','--card-bg-1':'#ffffff','--card-bg-2':'#f6efeb','--chip-bg':'#f2eae6','--chip-border':'#eaded7','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#efe7e3','--social-border':'#e6d9d1'},
@@ -37,21 +36,21 @@ const THEMES = {
   'ivory-ink':      {'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'},
 };
 
-/* Accept older friendly names too */
+/* accept friendly names from the dashboard too */
 const ALIAS = {
   'midnight': 'deep-navy',
   'cocoa-bronze': 'graphite-ember',
-  'cocoa_bronze': 'graphite-ember',
+  'cocoa bronze': 'graphite-ember',
   'ivory-sand': 'paper-snow',
-  'ivory_sand': 'paper-snow',
+  'ivory sand': 'paper-snow',
   'glacier-mist': 'cloud-blue',
-  'glacier_mist': 'cloud-blue',
+  'glacier mist': 'cloud-blue',
 };
 
 const normalizeThemeKey = (raw) => {
-  const k = String(raw || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const k = String(raw || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
   if (THEMES[k]) return k;
-  if (ALIAS[k] && THEMES[ALIAS[k]]) return ALIAS[k];
+  if (ALIAS[k]) return ALIAS[k];
   return 'deep-navy';
 };
 
@@ -61,7 +60,7 @@ const applyTheme = (key) => {
   for (const [cssVar, val] of Object.entries(vars)) r.style.setProperty(cssVar, val);
 };
 
-/* Try to produce a tel: link from multiple possible fields, with WA fallback */
+/* make a tel: href from phone or whatsapp */
 const getDialHref = (profile) => {
   const raw =
     profile?.phone ??
@@ -69,11 +68,9 @@ const getDialHref = (profile) => {
     profile?.tel ??
     profile?.whatsapp ??
     '';
-  if (!raw) return null;
-  const cleaned = String(raw).replace(/[^\d+]/g, ''); // keep + and digits
+  const cleaned = String(raw).replace(/[^\d+]/g, ''); // keep + and digits only
   const digits = cleaned.replace(/\D/g, '');
-  if (digits.length < 6) return null;
-  return `tel:${cleaned}`;
+  return digits.length >= 6 ? `tel:${cleaned}` : null;
 };
 
 /* ---------- page ---------- */
@@ -97,9 +94,9 @@ export default function PublicPage() {
     load();
   }, [slug]);
 
-  /* Apply theme when profile arrives */
+  // apply theme when data arrives
   useEffect(() => {
-    applyTheme(normalizeThemeKey(p?.theme));
+    if (p?.theme !== undefined) applyTheme(normalizeThemeKey(p.theme));
   }, [p?.theme]);
 
   if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
@@ -139,9 +136,11 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* Tiny CSS just for mobile header sizing */}
+      {/* make sure background & text follow the theme even if layout.jsx is old */}
       <style>{`
-        @media (max-width: 480px){
+        :root { background: var(--bg); color: var(--text); }
+        html,body { background: var(--bg); color: var(--text); }
+        @media (max-width:480px){
           .hdr-name{ font-size:16px; line-height:20px; }
           .hdr-sub{ font-size:12px; }
           .hdr-cta a, .hdr-cta button{ padding:6px 10px; border-radius:10px; font-size:12px; }
@@ -174,7 +173,7 @@ export default function PublicPage() {
           {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
           {waHref &&  <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
           <button type="button" onClick={handleShare}
-                  style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}>
+            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}>
             Share
           </button>
         </div>
@@ -265,7 +264,6 @@ function Card({ title, wide=false, children }) {
   );
 }
 
-/* styles using CSS variables */
 const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
 
 const headerCardStyle = {
