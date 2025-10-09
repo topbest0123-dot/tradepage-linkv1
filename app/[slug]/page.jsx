@@ -109,66 +109,67 @@ export default function PublicPage() {
 
   // Step 3 — add simple avatar block above the minimal header
   return (
-    <div style={pageWrapStyle}>
-      {/* Simple avatar block (centered). No extra CSS, no transforms */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12, marginBottom: 12 }}>
+  <div style={pageWrapStyle}>
+    <div style={headerCardStyle}>
+      {/* Left side: avatar + titles */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {avatarUrl ? (
           <img
             src={avatarUrl}
             alt={`${p.name || p.slug} logo`}
             style={{
-              width: 96,
-              height: 96,
-              borderRadius: 16,
+              width: 48,            // smaller to match the header “chip”
+              height: 48,
+              borderRadius: 14,     // same rounding used elsewhere
               objectFit: 'cover',
-              border: '1px solid #183153',
-              background: '#0b1524',
+              border: '1px solid var(--border)',
+              background: 'var(--card-bg-2)',
             }}
           />
         ) : (
           <div
             style={{
-              width: 96,
-              height: 96,
-              borderRadius: 16,
+              width: 48,
+              height: 48,
+              borderRadius: 14,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: '#63d3e0',
+              background: 'var(--btn-primary-1)',
               color: '#0a0f1c',
               fontWeight: 800,
-              fontSize: 28,
+              fontSize: 20,
             }}
           >
             ★
           </div>
         )}
-      </div>
 
-      {/* Minimal header (from Step 2) */}
-      <div style={headerCardStyle}>
         <div>
           <div style={headerNameStyle}>{p.name || p.slug}</div>
           <div style={headerSubStyle}>
             {[p.trade, p.city].filter(Boolean).join(' • ')}
           </div>
         </div>
+      </div>
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {callHref && (
-            <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
-              Call
-            </a>
-          )}
-          {waHref && (
-            <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-              WhatsApp
-            </a>
-          )}
-        </div>
+      {/* Right side: actions */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {callHref && (
+          <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+            Call
+          </a>
+        )}
+        {waHref && (
+          <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+            WhatsApp
+          </a>
+        )}
       </div>
     </div>
-  );
+  </div>
+);
+
 }
 
 /* ---------- components & styles ---------- */
