@@ -133,8 +133,8 @@ export default function PublicPage() {
       }
     }
   };
-
- return <div style={{ color: '#eaf2ff', padding: 16 }}>ok</div>;
+  return (
+      <div style={pageWrapStyle}>
       {/* make sure background & text follow the theme even if layout.jsx is old */}
 
       {/*
