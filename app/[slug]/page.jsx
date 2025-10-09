@@ -105,10 +105,47 @@ export default function PublicPage() {
   // needed for buttons in the minimal header
   const callHref = getDialHref(p);
   const waHref = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
+  const avatarUrl = publicUrlFor(p?.avatar_path); // <-- added for Step 3
 
-  // Step 2 — minimal header, no avatar/grid/style tag
+  // Step 3 — add simple avatar block above the minimal header
   return (
     <div style={pageWrapStyle}>
+      {/* Simple avatar block (centered). No extra CSS, no transforms */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12, marginBottom: 12 }}>
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={`${p.name || p.slug} logo`}
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: 16,
+              objectFit: 'cover',
+              border: '1px solid #183153',
+              background: '#0b1524',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#63d3e0',
+              color: '#0a0f1c',
+              fontWeight: 800,
+              fontSize: 28,
+            }}
+          >
+            ★
+          </div>
+        )}
+      </div>
+
+      {/* Minimal header (from Step 2) */}
       <div style={headerCardStyle}>
         <div>
           <div style={headerNameStyle}>{p.name || p.slug}</div>
