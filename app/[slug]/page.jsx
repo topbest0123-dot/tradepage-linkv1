@@ -5,55 +5,36 @@ import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import Script from 'next/script'; // kept to avoid changing imports
 
-/** Small helpers */
+/** Turn any value into a clean list of strings */
 const toList = (value) =>
   String(value ?? '')
-    .split(/[,\n]+/)
+    .split(/[,\n]+/) // commas OR new lines
     .map((s) => s.trim())
     .filter(Boolean);
 
+/** Build a public URL from a storage path in the 'avatars' bucket */
 const publicUrlFor = (path) =>
   path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
 
+/** Turn "@handle" or partial into a full URL per network */
 function normalizeSocial(type, raw) {
   const v = String(raw || '').trim();
   if (!v) return null;
-  if (/^https?:\/\//i.test(v)) return v;
+  if (/^https?:\/\//i.test(v)) return v; // already a full URL
   const handle = v.replace(/^@/, '');
   switch (type) {
-    case 'facebook':  return `https://facebook.com/${handle}`;
-    case 'instagram': return `https://instagram.com/${handle}`;
-    case 'tiktok':    return `https://www.tiktok.com/@${handle}`;
-    case 'x':         return `https://x.com/${handle}`;
-    default:          return null;
+    case 'facebook':
+      return `https://facebook.com/${handle}`;
+    case 'instagram':
+      return `https://instagram.com/${handle}`;
+    case 'tiktok':
+      return `https://www.tiktok.com/@${handle}`;
+    case 'x':
+      return `https://x.com/${handle}`;
+    default:
+      return null;
   }
 }
-
-/* ---------- THEME MAP (same tokens as dashboard) ---------- */
-const THEMES = {
-  // DARK
-  'deep-navy':      { vars:{'--bg':'#0a0f14','--text':'#eaf2ff','--muted':'#b8ccff','--border':'#183153','--card-bg-1':'#0f213a','--card-bg-2':'#0b1524','--chip-bg':'#0c1a2e','--chip-border':'#27406e','--btn-primary-1':'#66e0b9','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#1f2937','--social-border':'#213a6b'}},
-  'midnight-teal':  { vars:{'--bg':'#071417','--text':'#e9fbff','--muted':'#c0e9f2','--border':'#15444a','--card-bg-1':'#0b2a31','--card-bg-2':'#0a1e24','--chip-bg':'#0a2227','--chip-border':'#1e5660','--btn-primary-1':'#51e1c2','--btn-primary-2':'#6db7ff','--btn-neutral-bg':'#122026','--social-border':'#214e56'}},
-  'royal-purple':   { vars:{'--bg':'#0c0714','--text':'#f0e9ff','--muted':'#d7c9ff','--border':'#3b2b6a','--card-bg-1':'#1b1340','--card-bg-2':'#120e2b','--chip-bg':'#160f33','--chip-border':'#463487','--btn-primary-1':'#8f7bff','--btn-primary-2':'#c48bff','--btn-neutral-bg':'#221a3d','--social-border':'#3d2f72'}},
-  'graphite-ember': { vars:{'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'}},
-  'sapphire-ice':   { vars:{'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#081827','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'}},
-  'forest-emerald': { vars:{'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'}},
-  // LIGHT
-  'porcelain-mint': { vars:{'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'}},
-  'paper-snow':     { vars:{'--bg':'#ffffff','--text':'#121417','--muted':'#5b6777','--border':'#e5e7ea','--card-bg-1':'#ffffff','--card-bg-2':'#f7f9fb','--chip-bg':'#f3f5f7','--chip-border':'#e5e7ea','--btn-primary-1':'#3b82f6','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#eef2f6','--social-border':'#dfe3e8'}},
-  'linen-rose':     { vars:{'--bg':'#fbf7f5','--text':'#221a16','--muted':'#6d5c54','--border':'#eaded7','--card-bg-1':'#ffffff','--card-bg-2':'#f6efeb','--chip-bg':'#f2eae6','--chip-border':'#eaded7','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#efe7e3','--social-border':'#e6d9d1'}},
-  'sandstone':      { vars:{'--bg':'#faf7f1','--text':'#191714','--muted':'#6f675f','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6f1e7','--chip-bg':'#f2ece1','--chip-border':'#eadfcd','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#efe9df','--social-border':'#e6dac7'}},
-  'cloud-blue':     { vars:{'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'}},
-  'ivory-ink':      { vars:{'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'}},
-};
-
-const applyTheme = (key) => {
-  const t = THEMES[key] || THEMES['deep-navy'];
-  Object.entries(t.vars).forEach(([k, v]) =>
-    document.documentElement.style.setProperty(k, v)
-  );
-};
-/* ------------------------------------------------------- */
 
 export default function PublicPage() {
   const { slug } = useParams();
@@ -65,8 +46,7 @@ export default function PublicPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          // IMPORTANT: include theme
-          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme'
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info'
         )
         .ilike('slug', slug)
         .maybeSingle();
@@ -78,11 +58,7 @@ export default function PublicPage() {
     load();
   }, [slug]);
 
-  // Apply theme once we know it
-  useEffect(() => {
-    applyTheme(p?.theme || 'deep-navy');
-  }, [p?.theme]);
-
+  /** Safe parsed lists */
   const areas = useMemo(() => toList(p?.areas), [p]);
   const services = useMemo(() => toList(p?.services), [p]);
   const priceLines = useMemo(
@@ -101,11 +77,13 @@ export default function PublicPage() {
   const waHref = p?.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
   const avatarUrl = publicUrlFor(p?.avatar_path);
 
+  // Social links (show only if present)
   const fb = normalizeSocial('facebook',  p?.facebook);
   const ig = normalizeSocial('instagram', p?.instagram);
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
 
+  // --- Share handler ---
   const handleShare = () => {
     const url = window.location.href;
     const title = document.title || 'TradePage';
@@ -117,7 +95,7 @@ export default function PublicPage() {
           () => alert('Link copied to clipboard'),
           () => window.prompt('Copy this link:', url)
         );
-      } catch {
+      } catch (e) {
         window.prompt('Copy this link:', url);
       }
     }
@@ -125,48 +103,84 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* Header card (avatar inside) */}
-      <div style={headerCardStyle}>
-        <div style={headerLeftStyle}>
+      {/* Mobile-only header sizing tweaks (avatar + buttons) */}
+      <style>{`
+        @media (max-width: 480px) {
+          .tp-header-card { padding: 10px 12px; gap: 8px; }
+          .tp-header-left { gap: 8px; }
+          .tp-avatar-in   { width: 40px !important; height: 40px !important; border-radius: 12px !important; }
+          .tp-title       { font-size: 18px !important; line-height: 22px !important; }
+          .tp-sub         { font-size: 12px !important; opacity: .8 !important; }
+
+          .tp-ctas { width: 100%; gap: 6px; }
+          .tp-ctas .tp-btn {
+            padding: 8px 10px !important;
+            border-radius: 10px !important;
+            font-size: 13px !important;
+            line-height: 1 !important;
+          }
+        }
+
+        /* Grid layout: 1 col mobile, 2 cols desktop */
+        .tp-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+        @media (min-width: 820px) { .tp-grid { grid-template-columns: 1fr 1fr; } }
+      `}</style>
+
+      {/* HEADER CARD (avatar inside) */}
+      <div className="tp-header-card" style={headerCardStyle}>
+        <div className="tp-header-left" style={headerLeftStyle}>
           {avatarUrl ? (
             <img
+              className="tp-avatar-in"
               src={avatarUrl}
               alt={`${p.name || p.slug} logo`}
               style={{
-                width: 48, height: 48, borderRadius: 14, objectFit: 'cover',
-                border: '1px solid var(--border)', background: 'var(--card-bg-2)',
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                objectFit: 'cover',
+                border: '1px solid #183153',
+                background: '#0b1524',
               }}
             />
           ) : (
-            <div style={logoDotStyle}>★</div>
+            <div className="tp-avatar-in" style={logoDotStyle}>★</div>
           )}
+
           <div>
-            <div style={headerNameStyle}>{p.name || p.slug}</div>
-            <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
+            <div className="tp-title" style={headerNameStyle}>{p.name || p.slug}</div>
+            <div className="tp-sub" style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
           </div>
         </div>
 
-        <div style={ctaRowStyle}>
+        <div className="tp-ctas" style={ctaRowStyle}>
           {callHref && (
-            <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+            <a className="tp-btn" href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
               Call
             </a>
           )}
           {waHref && (
-            <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+            <a className="tp-btn" href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
               WhatsApp
             </a>
           )}
           <button
+            className="tp-btn"
             type="button"
             onClick={handleShare}
-            style={{ ...btnBaseStyle, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)' }}
+            style={{
+              ...btnBaseStyle,
+              border: '1px solid #213a6b',
+              background: 'transparent',
+              color: '#eaf2ff',
+            }}
           >
             Share
           </button>
         </div>
       </div>
 
+      {/* SOCIAL BAR */}
       {(fb || ig || tk || xx) && (
         <div style={socialBarWrapStyle}>
           {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}><span style={socialGlyphStyle}>f</span></a>}
@@ -176,10 +190,10 @@ export default function PublicPage() {
         </div>
       )}
 
-      {/* Content grid: 1-col on mobile, 2-col on desktop */}
-      <div style={grid2Style}>
+      {/* CONTENT GRID */}
+      <div className="tp-grid">
         <Card title="About">
-          <p style={bodyP}>
+          <p style={{ marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}>
             {p.about && p.about.trim().length > 0
               ? p.about
               : (services[0]
@@ -229,7 +243,9 @@ export default function PublicPage() {
 
         {p.other_info && p.other_info.trim().length > 0 && (
           <Card title="Other useful information" wide>
-            <p style={{ ...bodyP, opacity: 0.95 }}>{p.other_info}</p>
+            <p style={{ marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5, opacity: 0.95 }}>
+              {p.other_info}
+            </p>
           </Card>
         )}
 
@@ -261,12 +277,12 @@ function Card({ title, wide = false, children }) {
   );
 }
 
-/* ---------- Styles (now all use CSS variables) ---------- */
+/* ---------- Styles ---------- */
 const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
-  padding: '0 16px 48px',
-  color: 'var(--text)',
+  padding: '8px 16px 48px', // prevents margin-collapsing above
+  color: '#eaf2ff',
   overflowX: 'hidden',
 };
 
@@ -274,12 +290,12 @@ const headerCardStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  gap: 16,
-  padding: '16px 18px',
+  gap: 12,
+  padding: '12px 14px',
   borderRadius: 16,
-  border: '1px solid var(--border)',
-  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
-  marginBottom: 12,
+  border: '1px solid #183153',
+  background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+  marginBottom: 8,
 };
 
 const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
@@ -291,15 +307,90 @@ const logoDotStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: 'var(--btn-primary-1)',
+  background: '#63d3e0',
   color: '#0a0f1c',
   fontWeight: 800,
   fontSize: 20,
 };
 
-const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
+const headerNameStyle = {
+  fontWeight: 800,
+  fontSize: 'clamp(18px, 5vw, 22px)', // responsive
+  lineHeight: '24px',
+};
+
+const headerSubStyle = {
+  opacity: 0.75,
+  fontSize: 'clamp(12px, 3.5vw, 14px)', // responsive
+  marginTop: 4,
+};
+
+const ctaRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
+
+const btnBaseStyle = {
+  padding: 'clamp(6px, 1.2vw, 10px) clamp(10px, 2.4vw, 16px)', // responsive
+  borderRadius: 10,
+  border: '1px solid #2f3c4f',
+  textDecoration: 'none',
+  fontWeight: 700,
+  fontSize: 'clamp(12px, 3.2vw, 14px)', // responsive
+  cursor: 'pointer',
+};
+
+const btnPrimaryStyle = {
+  background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
+  color: '#08101e',
+  border: '1px solid #2d4e82',
+};
+
+const btnNeutralStyle = {
+  background: '#1f2937',
+  color: '#ffffff',
+};
+
+const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
+const cardStyle = {
+  padding: 16,
+  borderRadius: 16,
+  border: '1px solid #183153',
+  background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+  minWidth: 0,
+};
+
+const chipStyle = {
+  padding: '6px 12px',
+  borderRadius: 999,
+  border: '1px solid #27406e',
+  background: '#0c1a2e',
+  color: '#d1e1ff',
+  fontSize: 13,
+};
+const tagStyle = {
+  fontSize: 12,
+  padding: '2px 8px',
+  borderRadius: 999,
+  border: '1px solid #27406e',
+  background: '#0c1a2e',
+  color: '#b8ccff',
+};
+const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
+
+const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
+const galleryItemStyle = {
+  height: 220,
+  borderRadius: 14,
+  border: '1px solid #27406e',
+  background: '#0b1627',
+  overflow: 'hidden',
+};
+const imgPlaceholderStyle = {
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  opacity: 0.75,
+};
 
 const socialBarWrapStyle = {
   display: 'flex',
@@ -313,9 +404,9 @@ const socialBtnStyle = {
   width: 36,
   height: 36,
   borderRadius: 999,
-  border: '1px solid var(--social-border)',
+  border: '1px solid #213a6b',
   background: 'transparent',
-  color: 'var(--text)',
+  color: '#eaf2ff',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -325,78 +416,9 @@ const socialBtnStyle = {
 };
 
 const socialGlyphStyle = {
-  fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0',
-};
-
-const btnBaseStyle = {
-  padding: '10px 16px',
-  borderRadius: 12,
-  border: '1px solid var(--border)',
-  textDecoration: 'none',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
-
-const btnPrimaryStyle = {
-  background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
-  color: '#08101e',
-  border: '1px solid var(--border)',
-};
-
-const btnNeutralStyle = {
-  background: 'var(--btn-neutral-bg)',
-  color: 'var(--text)',
-};
-
-const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
-
-const cardStyle = {
-  padding: 16,
-  borderRadius: 16,
-  border: '1px solid var(--border)',
-  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
-  minWidth: 0,
-};
-
-const grid2Style = {
-  display: 'grid',
-  gridTemplateColumns: '1fr',
-  gap: 16,
-  marginTop: 16,
-};
-if (typeof window !== 'undefined') {
-  // small enhancement: widen to 2 columns on larger screens
-  const mq = window.matchMedia('(min-width: 820px)');
-  if (mq.matches) grid2Style.gridTemplateColumns = '1fr 1fr';
-}
-
-const bodyP = {
-  marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap',
-  overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5, maxWidth: '100%'
-};
-
-const chipStyle = {
-  padding: '6px 12px',
-  borderRadius: 999,
-  border: '1px solid var(--chip-border)',
-  background: 'var(--chip-bg)',
-  color: 'var(--text)',
   fontSize: 13,
-};
-
-const tagStyle = {
-  fontSize: 12, padding: '2px 8px', borderRadius: 999,
-  border: '1px solid var(--chip-border)', background: 'var(--chip-bg)',
-  color: 'var(--muted)',
-};
-
-const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
-
-const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
-const galleryItemStyle = {
-  height: 220, borderRadius: 14, border: '1px solid var(--chip-border)',
-  background: 'var(--chip-bg)', overflow: 'hidden',
-};
-const imgPlaceholderStyle = {
-  width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
+  fontWeight: 800,
+  letterSpacing: 0.2,
+  lineHeight: 1,
+  translate: '0 0',
 };
