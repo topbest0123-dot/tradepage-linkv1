@@ -8,7 +8,7 @@ import Script from 'next/script'; // kept to avoid changing imports
 /** Turn any value into a clean list of strings */
 const toList = (value) =>
   String(value ?? '')
-    .split(/[,\n]+/) // commas OR new lines
+    .split(/[,\n]+/)
     .map((s) => s.trim())
     .filter(Boolean);
 
@@ -20,30 +20,23 @@ const publicUrlFor = (path) =>
 function normalizeSocial(type, raw) {
   const v = String(raw || '').trim();
   if (!v) return null;
-  if (/^https?:\/\//i.test(v)) return v; // already a full URL
+  if (/^https?:\/\//i.test(v)) return v;
   const handle = v.replace(/^@/, '');
   switch (type) {
-    case 'facebook':
-      return `https://facebook.com/${handle}`;
-    case 'instagram':
-      return `https://instagram.com/${handle}`;
-    case 'tiktok':
-      return `https://www.tiktok.com/@${handle}`;
-    case 'x':
-      return `https://x.com/${handle}`;
-    default:
-      return null;
+    case 'facebook': return `https://facebook.com/${handle}`;
+    case 'instagram': return `https://instagram.com/${handle}`;
+    case 'tiktok': return `https://www.tiktok.com/@${handle}`;
+    case 'x': return `https://x.com/${handle}`;
+    default: return null;
   }
 }
 
 /* ---------------- THEME SYSTEM (public page) ---------------- */
 
 const normalizeThemeKey = (s) =>
-  String(s || 'Midnight')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_');
+  String(s || 'Midnight').toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
-/** CSS variables for each theme (rich contrasts, light & dark) */
+/** Rich, high-contrast palettes (light + dark) */
 const THEME_VARS = {
   midnight: {
     '--bg': '#0a0f14',
@@ -59,7 +52,6 @@ const THEME_VARS = {
     '--btn-primary-to': '#8ab4ff',
     '--btn-primary-border': '#2d4e82',
   },
-
   cocoa_bronze: {
     '--bg': '#1a1410',
     '--text': '#f7efe7',
@@ -74,7 +66,6 @@ const THEME_VARS = {
     '--btn-primary-to': '#d6b48f',
     '--btn-primary-border': '#8a674b',
   },
-
   ivory_sand: {
     '--bg': '#f4efe8',
     '--text': '#1f2430',
@@ -89,7 +80,6 @@ const THEME_VARS = {
     '--btn-primary-to': '#f0c9a7',
     '--btn-primary-border': '#9db6e6',
   },
-
   glacier_mist: {
     '--bg': '#eef5fa',
     '--text': '#18202a',
@@ -104,7 +94,6 @@ const THEME_VARS = {
     '--btn-primary-to': '#c7d2fe',
     '--btn-primary-border': '#9cc6de',
   },
-
   slate_storm: {
     '--bg': '#0e1116',
     '--text': '#e8eef8',
@@ -121,13 +110,17 @@ const THEME_VARS = {
   },
 };
 
-/** Apply vars to :root so body background also changes */
-function applyThemeVars(themeKey) {
-  const key = normalizeThemeKey(themeKey);
-  const vars = THEME_VARS[key] || THEME_VARS.midnight;
-  const root = document.documentElement;
-  Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
-}
+/** Build static CSS for all themes (so switching via data-theme Just Works™) */
+const themeCss = Object.entries(THEME_VARS)
+  .map(([key, vars]) => {
+    const lines = Object.entries(vars)
+      .map(([k, v]) => `${k}: ${v};`)
+      .join('');
+    return `:root[data-theme="${key}"]{${lines}}`;
+  })
+  .join('');
+
+/* ---------------- PAGE ---------------- */
 
 export default function PublicPage() {
   const { slug } = useParams();
@@ -139,7 +132,6 @@ export default function PublicPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          // NOTE: theme is fetched here
           'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme'
         )
         .ilike('slug', slug)
@@ -152,9 +144,10 @@ export default function PublicPage() {
     load();
   }, [slug]);
 
-  // Whenever profile or theme changes, apply theme to the whole page
+  // Apply theme to <html data-theme="..."> so background + everything update.
   useEffect(() => {
-    if (p?.theme) applyThemeVars(p.theme);
+    const key = normalizeThemeKey(p?.theme);
+    document.documentElement.setAttribute('data-theme', key);
   }, [p?.theme]);
 
   /** Safe parsed lists */
@@ -170,19 +163,24 @@ export default function PublicPage() {
   );
 
   if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
-  if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
+  if (!p) return (
+    <div style={pageWrapStyle}>
+      <style dangerouslySetInnerHTML={{ __html: themeCss }} />
+      <p>Loading…</p>
+    </div>
+  );
 
   const callHref = p?.phone ? `tel:${p.phone.replace(/\s+/g, '')}` : null;
   const waHref = p?.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
   const avatarUrl = publicUrlFor(p?.avatar_path);
 
   // Social links (show only if present)
-  const fb = normalizeSocial('facebook', p?.facebook);
+  const fb = normalizeSocial('facebook',  p?.facebook);
   const ig = normalizeSocial('instagram', p?.instagram);
-  const tk = normalizeSocial('tiktok', p?.tiktok);
-  const xx = normalizeSocial('x', p?.x);
+  const tk = normalizeSocial('tiktok',    p?.tiktok);
+  const xx = normalizeSocial('x',         p?.x);
 
-  // --- Share handler ---
+  // Share
   const handleShare = () => {
     const url = window.location.href;
     const title = document.title || 'TradePage';
@@ -194,7 +192,7 @@ export default function PublicPage() {
           () => alert('Link copied to clipboard'),
           () => window.prompt('Copy this link:', url)
         );
-      } catch (e) {
+      } catch {
         window.prompt('Copy this link:', url);
       }
     }
@@ -202,27 +200,20 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* Ensure body uses the theme background & text */}
+      {/* Inject theme CSS once */}
+      <style dangerouslySetInnerHTML={{ __html: themeCss }} />
+      {/* Mobile header tweaks */}
       <style>{`
         body { background: var(--bg); color: var(--text); }
-        /* Mobile-only header sizing tweaks (avatar + buttons) */
         @media (max-width: 480px) {
           .tp-header-card { padding: 10px 12px; gap: 8px; }
           .tp-header-left { gap: 8px; }
-          .tp-avatar-in   { width: 40px !important; height: 40px !important; border-radius: 12px !important; }
-          .tp-title       { font-size: 18px !important; line-height: 22px !important; }
-          .tp-sub         { font-size: 12px !important; opacity: .8 !important; }
-
+          .tp-avatar-in { width: 36px !important; height: 36px !important; border-radius: 10px !important; }
+          .tp-title { font-size: 16px !important; line-height: 20px !important; }
+          .tp-sub { font-size: 11px !important; opacity: .8 !important; }
           .tp-ctas { width: 100%; gap: 6px; }
-          .tp-ctas .tp-btn {
-            padding: 8px 10px !important;
-            border-radius: 10px !important;
-            font-size: 13px !important;
-            line-height: 1 !important;
-          }
+          .tp-ctas .tp-btn { padding: 6px 8px !important; border-radius: 10px !important; font-size: 12px !important; line-height: 1 !important; }
         }
-
-        /* Content grid: 1 col on mobile, 2 cols desktop */
         .tp-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
         @media (min-width: 820px) { .tp-grid { grid-template-columns: 1fr 1fr; } }
       `}</style>
@@ -236,12 +227,8 @@ export default function PublicPage() {
               src={avatarUrl}
               alt={`${p.name || p.slug} logo`}
               style={{
-                width: 48,
-                height: 48,
-                borderRadius: 14,
-                objectFit: 'cover',
-                border: '1px solid var(--border)',
-                background: 'var(--surface-to)',
+                width: 48, height: 48, borderRadius: 14, objectFit: 'cover',
+                border: '1px solid var(--border)', background: 'var(--surface-to)',
               }}
             />
           ) : (
@@ -271,12 +258,7 @@ export default function PublicPage() {
             className="tp-btn"
             type="button"
             onClick={handleShare}
-            style={{
-              ...btnBaseStyle,
-              border: '1px solid var(--border)',
-              background: 'transparent',
-              color: 'var(--text)',
-            }}
+            style={{ ...btnBaseStyle, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text)' }}
           >
             Share
           </button>
@@ -380,7 +362,7 @@ function Card({ title, wide = false, children }) {
   );
 }
 
-/* ---------- Styles (now use CSS variables) ---------- */
+/* ---------- Styles (use CSS variables) ---------- */
 const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
@@ -417,41 +399,26 @@ const logoDotStyle = {
   fontSize: 20,
 };
 
-const headerNameStyle = {
-  fontWeight: 800,
-  fontSize: 'clamp(18px, 5vw, 22px)',
-  lineHeight: '24px',
-};
-
-const headerSubStyle = {
-  opacity: 0.8,
-  fontSize: 'clamp(12px, 3.5vw, 14px)',
-  marginTop: 4,
-};
-
+const headerNameStyle = { fontWeight: 800, fontSize: 'clamp(18px, 5vw, 22px)', lineHeight: '24px' };
+const headerSubStyle = { opacity: 0.8, fontSize: 'clamp(12px, 3.5vw, 14px)', marginTop: 4 };
 const ctaRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
 
 const btnBaseStyle = {
   padding: 'clamp(6px, 1.2vw, 10px) clamp(10px, 2.4vw, 16px)',
   borderRadius: 10,
-  border: '1px solid #2f3c4f', // overridden for outline button
+  border: '1px solid #2f3c4f',
   textDecoration: 'none',
   fontWeight: 700,
   fontSize: 'clamp(12px, 3.2vw, 14px)',
   cursor: 'pointer',
   color: 'var(--text)',
 };
-
 const btnPrimaryStyle = {
   background: 'linear-gradient(135deg,var(--btn-primary-from),var(--btn-primary-to))',
   color: '#08101e',
   border: '1px solid var(--btn-primary-border)',
 };
-
-const btnNeutralStyle = {
-  background: 'var(--btn-neutral-bg)',
-  color: 'var(--btn-neutral-text)',
-};
+const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--btn-neutral-text)' };
 
 const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
 const cardStyle = {
@@ -471,16 +438,6 @@ const chipStyle = {
   color: 'var(--text)',
   fontSize: 13,
 };
-
-const tagStyle = {
-  fontSize: 12,
-  padding: '2px 8px',
-  borderRadius: 999,
-  border: '1px solid var(--chip-border)',
-  background: 'var(--chip-bg)',
-  color: 'var(--text)',
-};
-
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
 const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
@@ -500,33 +457,10 @@ const imgPlaceholderStyle = {
   opacity: 0.75,
 };
 
-const socialBarWrapStyle = {
-  display: 'flex',
-  gap: 10,
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  margin: '0 0 12px 0',
-};
-
+const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
 const socialBtnStyle = {
-  width: 36,
-  height: 36,
-  borderRadius: 999,
-  border: '1px solid var(--border)',
-  background: 'transparent',
-  color: 'var(--text)',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textDecoration: 'none',
-  outline: 'none',
-  transition: 'transform 120ms ease, background 120ms ease, border-color 120ms ease',
+  width: 36, height: 36, borderRadius: 999, border: '1px solid var(--border)', background: 'transparent',
+  color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  textDecoration: 'none', outline: 'none', transition: 'transform 120ms ease, background 120ms ease, border-color 120ms ease',
 };
-
-const socialGlyphStyle = {
-  fontSize: 13,
-  fontWeight: 800,
-  letterSpacing: 0.2,
-  lineHeight: 1,
-  translate: '0 0',
-};
+const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0' };
