@@ -36,6 +36,99 @@ function normalizeSocial(type, raw) {
   }
 }
 
+/* ---------------- THEME SYSTEM (public page) ---------------- */
+
+const normalizeThemeKey = (s) =>
+  String(s || 'Midnight')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_');
+
+/** CSS variables for each theme (rich contrasts, light & dark) */
+const THEME_VARS = {
+  midnight: {
+    '--bg': '#0a0f14',
+    '--text': '#eaf2ff',
+    '--surface-from': '#0f213a',
+    '--surface-to': '#0b1524',
+    '--border': '#183153',
+    '--chip-bg': '#0c1a2e',
+    '--chip-border': '#27406e',
+    '--btn-neutral-bg': '#1f2937',
+    '--btn-neutral-text': '#ffffff',
+    '--btn-primary-from': '#66e0b9',
+    '--btn-primary-to': '#8ab4ff',
+    '--btn-primary-border': '#2d4e82',
+  },
+
+  cocoa_bronze: {
+    '--bg': '#1a1410',
+    '--text': '#f7efe7',
+    '--surface-from': '#2a201a',
+    '--surface-to': '#211913',
+    '--border': '#4a3a2e',
+    '--chip-bg': '#241b15',
+    '--chip-border': '#584434',
+    '--btn-neutral-bg': '#3a2f26',
+    '--btn-neutral-text': '#f7efe7',
+    '--btn-primary-from': '#b8845a',
+    '--btn-primary-to': '#d6b48f',
+    '--btn-primary-border': '#8a674b',
+  },
+
+  ivory_sand: {
+    '--bg': '#f4efe8',
+    '--text': '#1f2430',
+    '--surface-from': '#ffffff',
+    '--surface-to': '#f3eee7',
+    '--border': '#e1d7c7',
+    '--chip-bg': '#ffffff',
+    '--chip-border': '#e6dccd',
+    '--btn-neutral-bg': '#ece8e2',
+    '--btn-neutral-text': '#1f2430',
+    '--btn-primary-from': '#bcd3ff',
+    '--btn-primary-to': '#f0c9a7',
+    '--btn-primary-border': '#9db6e6',
+  },
+
+  glacier_mist: {
+    '--bg': '#eef5fa',
+    '--text': '#18202a',
+    '--surface-from': '#ffffff',
+    '--surface-to': '#ebf2f9',
+    '--border': '#d7e3f0',
+    '--chip-bg': '#ffffff',
+    '--chip-border': '#dfe8f4',
+    '--btn-neutral-bg': '#e8f0f8',
+    '--btn-neutral-text': '#18202a',
+    '--btn-primary-from': '#b3e5fc',
+    '--btn-primary-to': '#c7d2fe',
+    '--btn-primary-border': '#9cc6de',
+  },
+
+  slate_storm: {
+    '--bg': '#0e1116',
+    '--text': '#e8eef8',
+    '--surface-from': '#151a22',
+    '--surface-to': '#10151d',
+    '--border': '#273246',
+    '--chip-bg': '#141a23',
+    '--chip-border': '#2c3a52',
+    '--btn-neutral-bg': '#1f2632',
+    '--btn-neutral-text': '#e8eef8',
+    '--btn-primary-from': '#6ddcc9',
+    '--btn-primary-to': '#8ab4ff',
+    '--btn-primary-border': '#2d4e82',
+  },
+};
+
+/** Apply vars to :root so body background also changes */
+function applyThemeVars(themeKey) {
+  const key = normalizeThemeKey(themeKey);
+  const vars = THEME_VARS[key] || THEME_VARS.midnight;
+  const root = document.documentElement;
+  Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
+}
+
 export default function PublicPage() {
   const { slug } = useParams();
   const [p, setP] = useState(null);
@@ -46,7 +139,8 @@ export default function PublicPage() {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info'
+          // NOTE: theme is fetched here
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme'
         )
         .ilike('slug', slug)
         .maybeSingle();
@@ -57,6 +151,11 @@ export default function PublicPage() {
     };
     load();
   }, [slug]);
+
+  // Whenever profile or theme changes, apply theme to the whole page
+  useEffect(() => {
+    if (p?.theme) applyThemeVars(p.theme);
+  }, [p?.theme]);
 
   /** Safe parsed lists */
   const areas = useMemo(() => toList(p?.areas), [p]);
@@ -78,10 +177,10 @@ export default function PublicPage() {
   const avatarUrl = publicUrlFor(p?.avatar_path);
 
   // Social links (show only if present)
-  const fb = normalizeSocial('facebook',  p?.facebook);
+  const fb = normalizeSocial('facebook', p?.facebook);
   const ig = normalizeSocial('instagram', p?.instagram);
-  const tk = normalizeSocial('tiktok',    p?.tiktok);
-  const xx = normalizeSocial('x',         p?.x);
+  const tk = normalizeSocial('tiktok', p?.tiktok);
+  const xx = normalizeSocial('x', p?.x);
 
   // --- Share handler ---
   const handleShare = () => {
@@ -103,8 +202,10 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* Mobile-only header sizing tweaks (avatar + buttons) */}
+      {/* Ensure body uses the theme background & text */}
       <style>{`
+        body { background: var(--bg); color: var(--text); }
+        /* Mobile-only header sizing tweaks (avatar + buttons) */
         @media (max-width: 480px) {
           .tp-header-card { padding: 10px 12px; gap: 8px; }
           .tp-header-left { gap: 8px; }
@@ -121,7 +222,7 @@ export default function PublicPage() {
           }
         }
 
-        /* Grid layout: 1 col mobile, 2 cols desktop */
+        /* Content grid: 1 col on mobile, 2 cols desktop */
         .tp-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
         @media (min-width: 820px) { .tp-grid { grid-template-columns: 1fr 1fr; } }
       `}</style>
@@ -139,8 +240,8 @@ export default function PublicPage() {
                 height: 48,
                 borderRadius: 14,
                 objectFit: 'cover',
-                border: '1px solid #183153',
-                background: '#0b1524',
+                border: '1px solid var(--border)',
+                background: 'var(--surface-to)',
               }}
             />
           ) : (
@@ -149,7 +250,9 @@ export default function PublicPage() {
 
           <div>
             <div className="tp-title" style={headerNameStyle}>{p.name || p.slug}</div>
-            <div className="tp-sub" style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
+            <div className="tp-sub" style={headerSubStyle}>
+              {[p.trade, p.city].filter(Boolean).join(' • ')}
+            </div>
           </div>
         </div>
 
@@ -170,9 +273,9 @@ export default function PublicPage() {
             onClick={handleShare}
             style={{
               ...btnBaseStyle,
-              border: '1px solid #213a6b',
+              border: '1px solid var(--border)',
               background: 'transparent',
-              color: '#eaf2ff',
+              color: 'var(--text)',
             }}
           >
             Share
@@ -277,12 +380,13 @@ function Card({ title, wide = false, children }) {
   );
 }
 
-/* ---------- Styles ---------- */
+/* ---------- Styles (now use CSS variables) ---------- */
 const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
-  padding: '8px 16px 48px', // prevents margin-collapsing above
-  color: '#eaf2ff',
+  padding: '8px 16px 48px',
+  color: 'var(--text)',
+  background: 'var(--bg)',
   overflowX: 'hidden',
 };
 
@@ -293,8 +397,8 @@ const headerCardStyle = {
   gap: 12,
   padding: '12px 14px',
   borderRadius: 16,
-  border: '1px solid #183153',
-  background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+  border: '1px solid var(--border)',
+  background: 'linear-gradient(180deg,var(--surface-from),var(--surface-to))',
   marginBottom: 8,
 };
 
@@ -315,72 +419,76 @@ const logoDotStyle = {
 
 const headerNameStyle = {
   fontWeight: 800,
-  fontSize: 'clamp(18px, 5vw, 22px)', // responsive
+  fontSize: 'clamp(18px, 5vw, 22px)',
   lineHeight: '24px',
 };
 
 const headerSubStyle = {
-  opacity: 0.75,
-  fontSize: 'clamp(12px, 3.5vw, 14px)', // responsive
+  opacity: 0.8,
+  fontSize: 'clamp(12px, 3.5vw, 14px)',
   marginTop: 4,
 };
 
 const ctaRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
 
 const btnBaseStyle = {
-  padding: 'clamp(6px, 1.2vw, 10px) clamp(10px, 2.4vw, 16px)', // responsive
+  padding: 'clamp(6px, 1.2vw, 10px) clamp(10px, 2.4vw, 16px)',
   borderRadius: 10,
-  border: '1px solid #2f3c4f',
+  border: '1px solid #2f3c4f', // overridden for outline button
   textDecoration: 'none',
   fontWeight: 700,
-  fontSize: 'clamp(12px, 3.2vw, 14px)', // responsive
+  fontSize: 'clamp(12px, 3.2vw, 14px)',
   cursor: 'pointer',
+  color: 'var(--text)',
 };
 
 const btnPrimaryStyle = {
-  background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
+  background: 'linear-gradient(135deg,var(--btn-primary-from),var(--btn-primary-to))',
   color: '#08101e',
-  border: '1px solid #2d4e82',
+  border: '1px solid var(--btn-primary-border)',
 };
 
 const btnNeutralStyle = {
-  background: '#1f2937',
-  color: '#ffffff',
+  background: 'var(--btn-neutral-bg)',
+  color: 'var(--btn-neutral-text)',
 };
 
 const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
 const cardStyle = {
   padding: 16,
   borderRadius: 16,
-  border: '1px solid #183153',
-  background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+  border: '1px solid var(--border)',
+  background: 'linear-gradient(180deg,var(--surface-from),var(--surface-to))',
   minWidth: 0,
+  color: 'var(--text)',
 };
 
 const chipStyle = {
   padding: '6px 12px',
   borderRadius: 999,
-  border: '1px solid #27406e',
-  background: '#0c1a2e',
-  color: '#d1e1ff',
+  border: '1px solid var(--chip-border)',
+  background: 'var(--chip-bg)',
+  color: 'var(--text)',
   fontSize: 13,
 };
+
 const tagStyle = {
   fontSize: 12,
   padding: '2px 8px',
   borderRadius: 999,
-  border: '1px solid #27406e',
-  background: '#0c1a2e',
-  color: '#b8ccff',
+  border: '1px solid var(--chip-border)',
+  background: 'var(--chip-bg)',
+  color: 'var(--text)',
 };
+
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
 const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
 const galleryItemStyle = {
   height: 220,
   borderRadius: 14,
-  border: '1px solid #27406e',
-  background: '#0b1627',
+  border: '1px solid var(--chip-border)',
+  background: 'var(--surface-to)',
   overflow: 'hidden',
 };
 const imgPlaceholderStyle = {
@@ -404,9 +512,9 @@ const socialBtnStyle = {
   width: 36,
   height: 36,
   borderRadius: 999,
-  border: '1px solid #213a6b',
+  border: '1px solid var(--border)',
   background: 'transparent',
-  color: '#eaf2ff',
+  color: 'var(--text)',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
