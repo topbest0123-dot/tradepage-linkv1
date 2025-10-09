@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-/* ---------- helpers ---------- */
+/* ---------- Helpers ---------- */
 const toList = (v) => String(v ?? '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
 const publicUrlFor = (p) => (p ? supabase.storage.from('avatars').getPublicUrl(p).data.publicUrl : null);
 const normalizeSocial = (t, raw) => {
@@ -18,7 +18,7 @@ const normalizeSocial = (t, raw) => {
          t === 'x'         ? `https://x.com/${h}` : null;
 };
 
-/* ---------- themes ---------- */
+/* ---------- Themes (same tokens as dashboard) ---------- */
 const THEMES = {
   // dark
   'deep-navy':      {'--bg':'#0a0f14','--text':'#eaf2ff','--muted':'#b8ccff','--border':'#183153','--card-bg-1':'#0f213a','--card-bg-2':'#0b1524','--chip-bg':'#0c1a2e','--chip-border':'#27406e','--btn-primary-1':'#66e0b9','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#1f2937','--social-border':'#213a6b'},
@@ -35,8 +35,6 @@ const THEMES = {
   'cloud-blue':     {'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'},
   'ivory-ink':      {'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'},
 };
-
-/* accept friendly names from the dashboard too */
 const ALIAS = {
   'midnight': 'deep-navy',
   'cocoa-bronze': 'graphite-ember',
@@ -46,39 +44,31 @@ const ALIAS = {
   'glacier-mist': 'cloud-blue',
   'glacier mist': 'cloud-blue',
 };
-
 const normalizeThemeKey = (raw) => {
   const k = String(raw || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  if (THEMES[k]) return k;
-  if (ALIAS[k]) return ALIAS[k];
-  return 'deep-navy';
+  return THEMES[k] ? k : (ALIAS[k] || 'deep-navy');
 };
-
 const applyTheme = (key) => {
   const vars = THEMES[key] || THEMES['deep-navy'];
   const r = document.documentElement;
   for (const [cssVar, val] of Object.entries(vars)) r.style.setProperty(cssVar, val);
 };
 
-/* make a tel: href from phone or whatsapp */
+/* Dial link from phone (fallback to whatsapp) */
 const getDialHref = (profile) => {
-  const raw =
-    profile?.phone ??
-    profile?.phone_number ??
-    profile?.tel ??
-    profile?.whatsapp ??
-    '';
-  const cleaned = String(raw).replace(/[^\d+]/g, ''); // keep + and digits only
+  const raw = profile?.phone ?? profile?.whatsapp ?? '';
+  const cleaned = String(raw).replace(/[^\d+]/g, '');
   const digits = cleaned.replace(/\D/g, '');
   return digits.length >= 6 ? `tel:${cleaned}` : null;
 };
 
-/* ---------- page ---------- */
+/* ---------- Page ---------- */
 export default function PublicPage() {
   const { slug } = useParams();
   const [p, setP] = useState(null);
   const [notFound, setNotFound] = useState(false);
 
+  // fetch profile (IMPORTANT: only real columns)
   useEffect(() => {
     const load = async () => {
       const { data, error } = await supabase
@@ -136,18 +126,19 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* make sure background & text follow the theme even if layout.jsx is old */}
+      {/* Ensure whole page follows theme; compact mobile header */}
       <style>{`
-        :root { background: var(--bg); color: var(--text); }
-        html,body { background: var(--bg); color: var(--text); }
+        :root, html, body { background: var(--bg); color: var(--text); }
+        .hdr { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+        .hdr-cta { display:flex; gap:10px; flex-wrap:wrap; }
         @media (max-width:480px){
-          .hdr { align-items: center; }
           .hdr-name{ font-size:16px; line-height:20px; }
           .hdr-sub{ font-size:12px; }
-          .hdr-cta{ display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; max-width:260px; }
           .hdr-cta a, .hdr-cta button{ padding:6px 10px; border-radius:10px; font-size:12px; }
-          .hdr-cta .hdr-share{ flex-basis:100%; text-align:center; padding:6px 12px; }
+          .hdr-cta{ gap:8px; }
         }
+        .grid { display:grid; grid-template-columns:1fr; gap:16px; margin-top:16px; }
+        @media (min-width:820px){ .grid{ grid-template-columns:1fr 1fr; } }
       `}</style>
 
       {/* HEADER */}
@@ -171,13 +162,10 @@ export default function PublicPage() {
           </div>
         </div>
 
-        <div className="hdr-cta" style={ctaRowStyle}>
+        <div className="hdr-cta">
           {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
           {waHref &&  <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-          <button
-            className="hdr-share"
-            type="button"
-            onClick={handleShare}
+          <button type="button" onClick={handleShare}
             style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}>
             Share
           </button>
@@ -195,7 +183,7 @@ export default function PublicPage() {
       )}
 
       {/* GRID */}
-      <div style={grid2Style}>
+      <div className="grid">
         <Card title="About">
           <p style={bodyP}>
             {p.about && p.about.trim().length > 0
@@ -259,7 +247,7 @@ export default function PublicPage() {
   );
 }
 
-/* ---------- components & styles ---------- */
+/* ---------- Components & Styles ---------- */
 function Card({ title, wide=false, children }) {
   return (
     <section style={{ ...cardStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
@@ -269,6 +257,7 @@ function Card({ title, wide=false, children }) {
   );
 }
 
+/* Base styles (use theme vars) */
 const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
 
 const headerCardStyle = {
@@ -282,7 +271,6 @@ const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
 const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
 const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
 
 const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
 const socialBtnStyle = { width: 36, height: 36, borderRadius: 999, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', outline: 'none' };
@@ -295,7 +283,6 @@ const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--tex
 const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
 const cardStyle = { padding: 16, borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', minWidth: 0 };
 
-const grid2Style = { display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginTop: 16 };
 const bodyP = { marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 };
 
 const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)', fontSize: 13 };
