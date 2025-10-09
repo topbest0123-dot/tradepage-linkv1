@@ -103,111 +103,62 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* Responsive CSS */}
-      <style>{`
-        .tp-hero {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 12px;
-          align-items: start;
-          margin-bottom: 12px;
-        }
-        .tp-avatar {
-          width: 112px;
-          height: 112px;
-          border-radius: 16px;
-          border: 1px solid #183153;
-          background: linear-gradient(180deg,#0f213a,#0b1524);
-          overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 14px auto 14px; /* centered with balanced top/bottom */
-        }
-        .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .tp-avatar-fallback {
-          width: 100%; height: 100%;
-          display: flex; align-items: center; justify-content: center;
-          background: #63d3e0; color: #0a0f1c; font-weight: 800; font-size: 28px;
-        }
-
-        /* Header responsiveness */
-        .tp-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-        .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
-
-        /* Make the header stack nicely on small screens */
-        @media (max-width: 480px) {
-          .tp-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-          .tp-cta { width: 100%; }
-          .tp-cta a, .tp-cta button {
-            flex: 1 1 0;
-            min-width: 110px;
-          }
-          /* no translateY; spacing is controlled by margins above */
-          .tp-avatar { margin: -10px auto 12px; }
-        }
-
-        /* Grid layout: 1 col mobile, 2 cols desktop */
-        .tp-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 16px;
-          margin-top: 16px;
-        }
-        @media (min-width: 820px) {
-          .tp-hero {
-            grid-template-columns: 112px 1fr;  /* avatar left, header right */
-            align-items: center;
-          }
-          .tp-avatar { margin: 0; width: 96px; height: 96px; border-radius: 14px; }
-          .tp-grid { grid-template-columns: 1fr 1fr; }
-        }
-      `}</style>
-
-      {/* HERO: avatar + header */}
-      <div className="tp-hero">
-        {/* Avatar card */}
-        <div className="tp-avatar">
+      {/* HEADER CARD — avatar inside the bar */}
+      <div style={headerCardStyle}>
+        <div style={headerLeftStyle}>
           {avatarUrl ? (
-            <img src={avatarUrl} alt={`${p.name || p.slug} logo`} />
+            <img
+              src={avatarUrl}
+              alt={`${p.name || p.slug} logo`}
+              style={avatarInlineStyle}
+            />
           ) : (
-            <div className="tp-avatar-fallback">★</div>
-          )}
-        </div>
-
-        {/* Header card */}
-        <div className="tp-header" style={headerCardStyle}>
-          <div style={headerLeftStyle}>
-            <div>
-              <div style={headerNameStyle}>{p.name || p.slug}</div>
-              <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
-            </div>
-          </div>
-
-          <div className="tp-cta" style={ctaRowStyle}>
-            {callHref && (
-              <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
-                Call
-              </a>
-            )}
-            {waHref && (
-              <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-                WhatsApp
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={handleShare}
+            <div
               style={{
-                ...btnBaseStyle,
-                border: '1px solid #213a6b',
-                background: 'transparent',
-                color: '#eaf2ff',
+                ...avatarInlineStyle,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#63d3e0',
+                color: '#0a0f1c',
+                fontWeight: 800,
+                fontSize: 18,
               }}
             >
-              Share
-            </button>
+              ★
+            </div>
+          )}
+          <div>
+            <div style={headerNameStyle}>{p.name || p.slug}</div>
+            <div style={headerSubStyle}>
+              {[p.trade, p.city].filter(Boolean).join(' • ')}
+            </div>
           </div>
+        </div>
+
+        <div style={ctaRowStyle}>
+          {callHref && (
+            <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+              Call
+            </a>
+          )}
+          {waHref && (
+            <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+              WhatsApp
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={handleShare}
+            style={{
+              ...btnBaseStyle,
+              border: '1px solid #213a6b',
+              background: 'transparent',
+              color: '#eaf2ff',
+            }}
+          >
+            Share
+          </button>
         </div>
       </div>
 
@@ -222,7 +173,7 @@ export default function PublicPage() {
       )}
 
       {/* Content grid */}
-      <div className="tp-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
         <Card title="About">
           <p style={{ marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}>
             {p.about && p.about.trim().length > 0
@@ -312,7 +263,7 @@ function Card({ title, wide = false, children }) {
 const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
-  padding: '8px 16px 48px', // was '0 16px 48px' — prevents margin-collapsing above avatar
+  padding: '8px 16px 48px',
   color: '#eaf2ff',
   overflowX: 'hidden',
 };
@@ -329,29 +280,39 @@ const headerCardStyle = {
   marginBottom: 8,
 };
 
-const headerLeftStyle = { display: 'flex', alignItems: 'center' };
+const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
+
+const avatarInlineStyle = {
+  width: 'clamp(40px, 7vw, 48px)',
+  height: 'clamp(40px, 7vw, 48px)',
+  borderRadius: 12,
+  objectFit: 'cover',
+  border: '1px solid #183153',
+  background: '#0b1524',
+  flex: '0 0 auto',
+};
 
 const headerNameStyle = {
   fontWeight: 800,
-  fontSize: 'clamp(18px, 5vw, 22px)', // responsive
+  fontSize: 'clamp(18px, 5vw, 22px)',
   lineHeight: '24px',
 };
 
 const headerSubStyle = {
   opacity: 0.75,
-  fontSize: 'clamp(12px, 3.5vw, 14px)', // responsive
+  fontSize: 'clamp(12px, 3.5vw, 14px)',
   marginTop: 4,
 };
 
 const ctaRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
 
 const btnBaseStyle = {
-  padding: 'clamp(6px, 1.2vw, 10px) clamp(10px, 2.4vw, 16px)', // responsive
+  padding: 'clamp(6px, 1.2vw, 10px) clamp(10px, 2.4vw, 16px)',
   borderRadius: 10,
   border: '1px solid #2f3c4f',
   textDecoration: 'none',
   fontWeight: 700,
-  fontSize: 'clamp(12px, 3.2vw, 14px)', // responsive
+  fontSize: 'clamp(12px, 3.2vw, 14px)',
   cursor: 'pointer',
 };
 
