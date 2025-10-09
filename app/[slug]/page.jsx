@@ -137,6 +137,8 @@ export default function PublicPage() {
   return (
     <div style={pageWrapStyle}>
       {/* make sure background & text follow the theme even if layout.jsx is old */}
+
+      {/*
       <style>{`
         :root { background: var(--bg); color: var(--text); }
         html,body { background: var(--bg); color: var(--text); }
@@ -147,6 +149,7 @@ export default function PublicPage() {
           .hdr-cta{ gap:8px; }
         }
       `}</style>
+      */}
 
       {/* HEADER */}
       <div style={headerCardStyle}>
