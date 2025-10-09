@@ -141,15 +141,17 @@ export default function PublicPage() {
         :root { background: var(--bg); color: var(--text); }
         html,body { background: var(--bg); color: var(--text); }
         @media (max-width:480px){
+          .hdr { align-items: center; }
           .hdr-name{ font-size:16px; line-height:20px; }
           .hdr-sub{ font-size:12px; }
+          .hdr-cta{ display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; max-width:260px; }
           .hdr-cta a, .hdr-cta button{ padding:6px 10px; border-radius:10px; font-size:12px; }
-          .hdr-cta{ gap:8px; }
+          .hdr-cta .hdr-share{ flex-basis:100%; text-align:center; padding:6px 12px; }
         }
       `}</style>
 
       {/* HEADER */}
-      <div style={headerCardStyle}>
+      <div className="hdr" style={headerCardStyle}>
         <div style={headerLeftStyle}>
           {avatarUrl ? (
             <img
@@ -172,7 +174,10 @@ export default function PublicPage() {
         <div className="hdr-cta" style={ctaRowStyle}>
           {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
           {waHref &&  <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-          <button type="button" onClick={handleShare}
+          <button
+            className="hdr-share"
+            type="button"
+            onClick={handleShare}
             style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}>
             Share
           </button>
