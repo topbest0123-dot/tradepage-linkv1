@@ -25,26 +25,45 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body style={{ fontFamily:'system-ui,-apple-system,Segoe UI,Roboto,Arial', margin:0, padding:0 }}>
-        <div style={{ maxWidth: 980, margin: '0 auto', padding: '0 16px' }}>
-          {/* Header with stacked tagline to leave room for action links */}
+      {/* Default (deep-navy) variables for first paint */}
+      <style>{`
+        :root{
+          --bg:#0a0f14; --text:#eaf2ff; --muted:#b8ccff;
+          --border:#183153; --card-bg-1:#0f213a; --card-bg-2:#0b1524;
+          --chip-bg:#0c1a2e; --chip-border:#27406e;
+          --btn-primary-1:#66e0b9; --btn-primary-2:#8ab4ff;
+          --btn-neutral-bg:#1f2937; --social-border:#213a6b;
+        }
+      `}</style>
+
+      <body
+        style={{
+          fontFamily: 'system-ui,-apple-system,Segoe UI,Roboto,Arial',
+          margin: 0,
+          padding: 0,
+          background: 'var(--bg)',     // was hard-coded #0a0f14
+          color: 'var(--text)',        // follow theme text
+        }}
+      >
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
           <header
             style={{
               padding: '16px 0',
-              borderBottom: '1px solid var(--social-border)',
+              borderBottom: '1px solid var(--border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 12
+              gap: 12,
             }}
           >
             <div>
-              <div style={{ fontSize: 20, fontWeight: 800, lineHeight: '22px' }}>TradePage</div>
-              <div style={{ opacity: 0.7, fontSize: 12, marginTop: 2 }}>Your business in a link</div>
+              <b>TradePage</b>
+              <div style={{ opacity: 0.7, fontSize: 12, lineHeight: '14px' }}>
+                Your business in a link
+              </div>
             </div>
             <AuthLinks />
           </header>
-
           <main style={{ paddingTop: 16 }}>{children}</main>
         </div>
       </body>
