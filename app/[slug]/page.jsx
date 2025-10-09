@@ -83,7 +83,7 @@ export default function PublicPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,')
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info')
         .ilike('slug', slug)
         .maybeSingle();
 
