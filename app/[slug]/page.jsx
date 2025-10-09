@@ -74,7 +74,7 @@ export default function PublicPage() {
   if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
 
   const callHref = p?.phone ? `tel:${p.phone.replace(/\s+/g, '')}` : null;
-  const waHref = p?.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
+  const waHref = p?.whatsapp ? `https://wa.me/${p?.whatsapp.replace(/\D/g, '')}` : null;
   const avatarUrl = publicUrlFor(p?.avatar_path);
 
   // Social links (show only if present)
@@ -103,40 +103,81 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* HEADER CARD — avatar inside the bar */}
-      <div style={headerCardStyle}>
-        <div style={headerLeftStyle}>
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={`${p.name || p.slug} logo`}
-              style={avatarInlineStyle}
-            />
-          ) : (
-            <div
-              style={{
-                ...avatarInlineStyle,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: '#63d3e0',
-                color: '#0a0f1c',
-                fontWeight: 800,
-                fontSize: 18,
-              }}
-            >
-              ★
-            </div>
-          )}
+      {/* Responsive CSS */}
+      <style>{`
+        /* Header (avatar inside) */
+        .tp-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 12px 14px;
+          border-radius: 16px;
+          border: 1px solid #183153;
+          background: linear-gradient(180deg,#0f213a,#0b1524);
+          margin-bottom: 10px;
+        }
+        .tp-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0; /* allow text to wrap if needed */
+        }
+        .tp-avatar-inbar {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          border: 1px solid #183153;
+          background: #0b1524;
+          overflow: hidden;
+          flex: 0 0 auto;
+        }
+        .tp-avatar-inbar img { width: 100%; height: 100%; object-fit: cover; }
+        .tp-name { font-weight: 800; font-size: clamp(18px, 5vw, 22px); line-height: 1.1; }
+        .tp-sub  { opacity: 0.75; font-size: clamp(12px, 3.5vw, 14px); margin-top: 4px; }
+
+        .tp-cta { display: flex; gap: 8px; flex-wrap: wrap; }
+        /* Keep buttons small even on mobile (no full-width growth) */
+
+        /* Content grid: 1 col on mobile, 2 cols on desktop */
+        .tp-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 16px;
+          margin-top: 16px;
+        }
+        @media (min-width: 820px) {
+          .tp-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Gallery internal grid: 1 col mobile, 3 cols desktop */
+        .tp-gallery {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        @media (min-width: 820px) {
+          .tp-gallery { grid-template-columns: 1fr 1fr 1fr; }
+        }
+      `}</style>
+
+      {/* HEADER (avatar inside the bar) */}
+      <div className="tp-header">
+        <div className="tp-left">
+          <div className="tp-avatar-inbar">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={`${p.name || p.slug} logo`} />
+            ) : (
+              <div style={logoDotStyle}>★</div>
+            )}
+          </div>
           <div>
-            <div style={headerNameStyle}>{p.name || p.slug}</div>
-            <div style={headerSubStyle}>
-              {[p.trade, p.city].filter(Boolean).join(' • ')}
-            </div>
+            <div className="tp-name">{p.name || p.slug}</div>
+            <div className="tp-sub">{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
           </div>
         </div>
 
-        <div style={ctaRowStyle}>
+        <div className="tp-cta" style={ctaRowStyle}>
           {callHref && (
             <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
               Call
@@ -172,8 +213,8 @@ export default function PublicPage() {
         </div>
       )}
 
-      {/* Content grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+      {/* Content grid (1 col mobile, 2 cols desktop) */}
+      <div className="tp-grid">
         <Card title="About">
           <p style={{ marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}>
             {p.about && p.about.trim().length > 0
@@ -232,7 +273,7 @@ export default function PublicPage() {
         )}
 
         <Card title="Gallery" wide>
-          <div style={galleryGridStyle}>
+          <div className="tp-gallery">
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
             <div style={galleryItemStyle}>
@@ -263,51 +304,27 @@ function Card({ title, wide = false, children }) {
 const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
-  padding: '8px 16px 48px',
+  padding: '0 16px 48px',
   color: '#eaf2ff',
   overflowX: 'hidden',
 };
 
-const headerCardStyle = {
+const logoDotStyle = {
+  width: '100%',
+  height: '100%',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 12,
-  padding: '12px 14px',
-  borderRadius: 16,
-  border: '1px solid #183153',
-  background: 'linear-gradient(180deg,#0f213a,#0b1524)',
-  marginBottom: 8,
-};
-
-const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
-
-const avatarInlineStyle = {
-  width: 'clamp(40px, 7vw, 48px)',
-  height: 'clamp(40px, 7vw, 48px)',
-  borderRadius: 12,
-  objectFit: 'cover',
-  border: '1px solid #183153',
-  background: '#0b1524',
-  flex: '0 0 auto',
-};
-
-const headerNameStyle = {
+  justifyContent: 'center',
+  background: '#63d3e0',
+  color: '#0a0f1c',
   fontWeight: 800,
-  fontSize: 'clamp(18px, 5vw, 22px)',
-  lineHeight: '24px',
-};
-
-const headerSubStyle = {
-  opacity: 0.75,
-  fontSize: 'clamp(12px, 3.5vw, 14px)',
-  marginTop: 4,
+  fontSize: 20,
 };
 
 const ctaRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap' };
 
 const btnBaseStyle = {
-  padding: 'clamp(6px, 1.2vw, 10px) clamp(10px, 2.4vw, 16px)',
+  padding: 'clamp(6px, 1.2vw, 10px) clamp(10px, 2.4vw, 16px)', // responsive but small
   borderRadius: 10,
   border: '1px solid #2f3c4f',
   textDecoration: 'none',
@@ -344,17 +361,9 @@ const chipStyle = {
   color: '#d1e1ff',
   fontSize: 13,
 };
-const tagStyle = {
-  fontSize: 12,
-  padding: '2px 8px',
-  borderRadius: 999,
-  border: '1px solid #27406e',
-  background: '#0c1a2e',
-  color: '#b8ccff',
-};
+
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
-const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
 const galleryItemStyle = {
   height: 220,
   borderRadius: 14,
@@ -362,6 +371,7 @@ const galleryItemStyle = {
   background: '#0b1627',
   overflow: 'hidden',
 };
+
 const imgPlaceholderStyle = {
   width: '100%',
   height: '100%',
@@ -369,35 +379,4 @@ const imgPlaceholderStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   opacity: 0.75,
-};
-
-const socialBarWrapStyle = {
-  display: 'flex',
-  gap: 10,
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  margin: '0 0 12px 0',
-};
-
-const socialBtnStyle = {
-  width: 36,
-  height: 36,
-  borderRadius: 999,
-  border: '1px solid #213a6b',
-  background: 'transparent',
-  color: '#eaf2ff',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textDecoration: 'none',
-  outline: 'none',
-  transition: 'transform 120ms ease, background 120ms ease, border-color 120ms ease',
-};
-
-const socialGlyphStyle = {
-  fontSize: 13,
-  fontWeight: 800,
-  letterSpacing: 0.2,
-  lineHeight: 1,
-  translate: '0 0',
 };
