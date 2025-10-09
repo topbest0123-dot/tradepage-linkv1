@@ -125,7 +125,7 @@ export default function PublicPage() {
     .map(s => s.trim())
     .filter(Boolean);
 
-  // ✅ parse services
+  // parse services
   const services = String(p?.services || '')
     .split(/[,\n]+/)
     .map(s => s.trim())
@@ -269,7 +269,7 @@ export default function PublicPage() {
           )}
         </Card>
 
-        {/* ✅ Services card */}
+        {/* Services card */}
         <Card title="Services">
           {services.length ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -293,6 +293,13 @@ export default function PublicPage() {
           ) : (
             <div style={{ opacity: 0.7 }}>No services listed yet.</div>
           )}
+        </Card>
+
+        {/* ✅ Hours card */}
+        <Card title="Hours">
+          <div style={{ whiteSpace: 'pre-wrap', opacity: 0.9 }}>
+            {p.hours || 'Mon–Sat 08:00–18:00'}
+          </div>
         </Card>
       </div>
     </div>
