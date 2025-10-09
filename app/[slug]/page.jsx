@@ -119,6 +119,12 @@ export default function PublicPage() {
     .map(s => s.trim())
     .filter(Boolean);
 
+  // ✅ parse areas
+  const areas = String(p?.areas || '')
+    .split(/[,\n]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
   return (
     <div style={pageWrapStyle}>
       {/* Grid CSS (tiny, at top of page) */}
@@ -203,122 +209,19 @@ export default function PublicPage() {
             margin: '8px 0 12px 0',
           }}
         >
-          {fb && (
-            <a
-              href={fb}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Facebook"
-              title="Facebook"
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 999,
-                border: '1px solid #213a6b',
-                background: 'transparent',
-                color: '#eaf2ff',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
-                fontWeight: 800,
-                fontSize: 13,
-              }}
-            >
-              f
-            </a>
-          )}
-          {ig && (
-            <a
-              href={ig}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-              title="Instagram"
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 999,
-                border: '1px solid #213a6b',
-                background: 'transparent',
-                color: '#eaf2ff',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
-                fontWeight: 800,
-                fontSize: 13,
-              }}
-            >
-              IG
-            </a>
-          )}
-          {tk && (
-            <a
-              href={tk}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="TikTok"
-              title="TikTok"
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 999,
-                border: '1px solid #213a6b',
-                background: 'transparent',
-                color: '#eaf2ff',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
-                fontWeight: 800,
-                fontSize: 13,
-              }}
-            >
-              t
-            </a>
-          )}
-          {xx && (
-            <a
-              href={xx}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="X (Twitter)"
-              title="X (Twitter)"
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 999,
-                border: '1px solid #213a6b',
-                background: 'transparent',
-                color: '#eaf2ff',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
-                fontWeight: 800,
-                fontSize: 13,
-              }}
-            >
-              X
-            </a>
-          )}
+          {/* ...social buttons unchanged... */}
+          {fb && (<a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={{width:36,height:36,borderRadius:999,border:'1px solid #213a6b',background:'transparent',color:'#eaf2ff',display:'inline-flex',alignItems:'center',justifyContent:'center',textDecoration:'none',fontWeight:800,fontSize:13}}>f</a>)}
+          {ig && (<a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={{width:36,height:36,borderRadius:999,border:'1px solid #213a6b',background:'transparent',color:'#eaf2ff',display:'inline-flex',alignItems:'center',justifyContent:'center',textDecoration:'none',fontWeight:800,fontSize:13}}>IG</a>)}
+          {tk && (<a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={{width:36,height:36,borderRadius:999,border:'1px solid #213a6b',background:'transparent',color:'#eaf2ff',display:'inline-flex',alignItems:'center',justifyContent:'center',textDecoration:'none',fontWeight:800,fontSize:13}}>t</a>)}
+          {xx && (<a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={{width:36,height:36,borderRadius:999,border:'1px solid #213a6b',background:'transparent',color:'#eaf2ff',display:'inline-flex',alignItems:'center',justifyContent:'center',textDecoration:'none',fontWeight:800,fontSize:13}}>X</a>)}
         </div>
       )}
 
       {/* CONTENT GRID */}
       <div className="tp-grid">
         <Card title="About">
-          <p
-            style={{
-              margin: 0,
-              whiteSpace: 'pre-wrap',
-              overflowWrap: 'anywhere',
-              lineHeight: 1.5,
-            }}
-          >
-            {p?.about?.trim() ||
-              'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
+          <p style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.5 }}>
+            {p?.about?.trim() || 'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
           </p>
         </Card>
 
@@ -332,6 +235,32 @@ export default function PublicPage() {
                 <li key={i} style={{ marginBottom: 8 }}>{ln}</li>
               ))}
             </ul>
+          )}
+        </Card>
+
+        {/* ✅ Areas we cover card */}
+        <Card title="Areas we cover">
+          {areas.length ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {areas.map((a, i) => (
+                <span
+                  key={i}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 999,
+                    border: '1px solid #27406e',
+                    background: '#0c1a2e',
+                    color: '#d1e1ff',
+                    fontSize: 13,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {a}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div style={{ opacity: 0.7 }}>No areas listed yet.</div>
           )}
         </Card>
       </div>
