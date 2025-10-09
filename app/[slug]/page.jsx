@@ -102,8 +102,36 @@ export default function PublicPage() {
   if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
   if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
 
-  // 🔧 Diagnostic: replace the big main return with a single line
-  return <div style={{ color: '#eaf2ff', padding: 16 }}>ok</div>;
+  // needed for buttons in the minimal header
+  const callHref = getDialHref(p);
+  const waHref = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
+
+  // Step 2 — minimal header, no avatar/grid/style tag
+  return (
+    <div style={pageWrapStyle}>
+      <div style={headerCardStyle}>
+        <div>
+          <div style={headerNameStyle}>{p.name || p.slug}</div>
+          <div style={headerSubStyle}>
+            {[p.trade, p.city].filter(Boolean).join(' • ')}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {callHref && (
+            <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+              Call
+            </a>
+          )}
+          {waHref && (
+            <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+              WhatsApp
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* ---------- components & styles ---------- */
