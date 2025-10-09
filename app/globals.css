@@ -1,3 +1,22 @@
+/* THEME VARIABLES — default values (Deep Navy) */
+:root{
+  --bg:#0a0f14;
+  --text:#eaf2ff;
+  --muted:#b8ccff;
+  --border:#183153;
+  --card-bg-1:#0f213a;
+  --card-bg-2:#0b1524;
+  --chip-bg:#0c1a2e;
+  --chip-border:#27406e;
+  --btn-primary-1:#66e0b9;
+  --btn-primary-2:#8ab4ff;
+  --btn-neutral-bg:#1f2937;
+  --social-border:#213a6b;
+}
+
+/* make the whole app pick up the theme */
+html,body{background:var(--bg); color:var(--text);}
+a{color:var(--text);}
 /* keep header links white in every state */
 header a,
 header a:any-link,
