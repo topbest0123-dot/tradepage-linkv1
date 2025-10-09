@@ -68,7 +68,7 @@ const getDialHref = (profile) => {
     profile?.tel ??
     profile?.whatsapp ??
     '';
-  const cleaned = String(raw).replace(/[^\d+]/g, ''); // keep + and digits only
+  const cleaned = String(raw).replace(/[^\d+]/g, '');
   const digits = cleaned.replace(/\D/g, '');
   return digits.length >= 6 ? `tel:${cleaned}` : null;
 };
@@ -102,22 +102,34 @@ export default function PublicPage() {
   if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
   if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
 
-  // needed for buttons in the minimal header
+  // buttons + avatar
   const callHref = getDialHref(p);
   const waHref = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
   const avatarUrl = publicUrlFor(p?.avatar_path);
 
-  // A) Social links (show only if present)
+  // Social links
   const fb = normalizeSocial('facebook',  p?.facebook);
   const ig = normalizeSocial('instagram', p?.instagram);
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
 
-  // Header + avatar
   return (
     <div style={pageWrapStyle}>
+      {/* Grid CSS (tiny, at top of page) */}
+      <style>{`
+        .tp-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 16px;
+          margin-top: 16px;
+        }
+        @media (min-width: 820px) {
+          .tp-grid { grid-template-columns: 1fr 1fr; }
+        }
+      `}</style>
+
       <div style={headerCardStyle}>
-        {/* Left side: avatar + titles */}
+        {/* Left: avatar + titles */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {avatarUrl ? (
             <img
@@ -159,7 +171,7 @@ export default function PublicPage() {
           </div>
         </div>
 
-        {/* Right side: actions */}
+        {/* Right: actions */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {callHref && (
             <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
@@ -174,7 +186,7 @@ export default function PublicPage() {
         </div>
       </div>
 
-      {/* B) Social bar */}
+      {/* Social bar */}
       {(fb || ig || tk || xx) && (
         <div
           style={{
@@ -287,20 +299,48 @@ export default function PublicPage() {
           )}
         </div>
       )}
+
+      {/* CONTENT GRID (we’ll add more cards later) */}
+      <div className="tp-grid">
+        <Card title="About">
+          <p
+            style={{
+              margin: 0,
+              whiteSpace: 'pre-wrap',
+              overflowWrap: 'anywhere',
+              lineHeight: 1.5,
+            }}
+          >
+            {p?.about?.trim() ||
+              'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
+          </p>
+        </Card>
+      </div>
     </div>
   );
 }
 
 /* ---------- components & styles ---------- */
-function Card({ title, wide=false, children }) {
+function Card({ title, children }) {
   return (
-    <section style={{ ...cardStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
-      {title && <h2 style={h2Style}>{title}</h2>}
+    <section
+      style={{
+        padding: 16,
+        borderRadius: 16,
+        border: '1px solid #183153',
+        background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+        minWidth: 0,
+      }}
+    >
+      {title && (
+        <h2 style={{ margin: '0 0 10px 0', fontSize: 18 }}>{title}</h2>
+      )}
       {children}
     </section>
   );
 }
 
+/* (existing constants can remain; they’re not used by the new Card) */
 const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
 
 const headerCardStyle = {
@@ -310,29 +350,8 @@ const headerCardStyle = {
   background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
   marginBottom: 12,
 };
-const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
-const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
 const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
-
-const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
-const socialBtnStyle = { width: 36, height: 36, borderRadius: 999, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', outline: 'none' };
-const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0' };
-
 const btnBaseStyle = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
 const btnPrimaryStyle = { background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color: '#08101e', border: '1px solid var(--border)' };
 const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--text)' };
-
-const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
-const cardStyle = { padding: 16, borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', minWidth: 0 };
-
-const grid2Style = { display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginTop: 16 };
-const bodyP = { marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 };
-
-const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)', fontSize: 13 };
-const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
-
-const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
-const galleryItemStyle = { height: 220, borderRadius: 14, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', overflow: 'hidden' };
-const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
