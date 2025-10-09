@@ -105,71 +105,190 @@ export default function PublicPage() {
   // needed for buttons in the minimal header
   const callHref = getDialHref(p);
   const waHref = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
-  const avatarUrl = publicUrlFor(p?.avatar_path); // <-- added for Step 3
+  const avatarUrl = publicUrlFor(p?.avatar_path);
 
-  // Step 3 — add simple avatar block above the minimal header
+  // A) Social links (show only if present)
+  const fb = normalizeSocial('facebook',  p?.facebook);
+  const ig = normalizeSocial('instagram', p?.instagram);
+  const tk = normalizeSocial('tiktok',    p?.tiktok);
+  const xx = normalizeSocial('x',         p?.x);
+
+  // Header + avatar
   return (
-  <div style={pageWrapStyle}>
-    <div style={headerCardStyle}>
-      {/* Left side: avatar + titles */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={`${p.name || p.slug} logo`}
-            style={{
-              width: 48,            // smaller to match the header “chip”
-              height: 48,
-              borderRadius: 14,     // same rounding used elsewhere
-              objectFit: 'cover',
-              border: '1px solid var(--border)',
-              background: 'var(--card-bg-2)',
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 14,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'var(--btn-primary-1)',
-              color: '#0a0f1c',
-              fontWeight: 800,
-              fontSize: 20,
-            }}
-          >
-            ★
-          </div>
-        )}
+    <div style={pageWrapStyle}>
+      <div style={headerCardStyle}>
+        {/* Left side: avatar + titles */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={`${p.name || p.slug} logo`}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                objectFit: 'cover',
+                border: '1px solid var(--border)',
+                background: 'var(--card-bg-2)',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--btn-primary-1)',
+                color: '#0a0f1c',
+                fontWeight: 800,
+                fontSize: 20,
+              }}
+            >
+              ★
+            </div>
+          )}
 
-        <div>
-          <div style={headerNameStyle}>{p.name || p.slug}</div>
-          <div style={headerSubStyle}>
-            {[p.trade, p.city].filter(Boolean).join(' • ')}
+          <div>
+            <div style={headerNameStyle}>{p.name || p.slug}</div>
+            <div style={headerSubStyle}>
+              {[p.trade, p.city].filter(Boolean).join(' • ')}
+            </div>
           </div>
+        </div>
+
+        {/* Right side: actions */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {callHref && (
+            <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+              Call
+            </a>
+          )}
+          {waHref && (
+            <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+              WhatsApp
+            </a>
+          )}
         </div>
       </div>
 
-      {/* Right side: actions */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {callHref && (
-          <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
-            Call
-          </a>
-        )}
-        {waHref && (
-          <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-            WhatsApp
-          </a>
-        )}
-      </div>
+      {/* B) Social bar */}
+      {(fb || ig || tk || xx) && (
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            margin: '8px 0 12px 0',
+          }}
+        >
+          {fb && (
+            <a
+              href={fb}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              title="Facebook"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 999,
+                border: '1px solid #213a6b',
+                background: 'transparent',
+                color: '#eaf2ff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textDecoration: 'none',
+                fontWeight: 800,
+                fontSize: 13,
+              }}
+            >
+              f
+            </a>
+          )}
+          {ig && (
+            <a
+              href={ig}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              title="Instagram"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 999,
+                border: '1px solid #213a6b',
+                background: 'transparent',
+                color: '#eaf2ff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textDecoration: 'none',
+                fontWeight: 800,
+                fontSize: 13,
+              }}
+            >
+              IG
+            </a>
+          )}
+          {tk && (
+            <a
+              href={tk}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok"
+              title="TikTok"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 999,
+                border: '1px solid #213a6b',
+                background: 'transparent',
+                color: '#eaf2ff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textDecoration: 'none',
+                fontWeight: 800,
+                fontSize: 13,
+              }}
+            >
+              t
+            </a>
+          )}
+          {xx && (
+            <a
+              href={xx}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="X (Twitter)"
+              title="X (Twitter)"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 999,
+                border: '1px solid #213a6b',
+                background: 'transparent',
+                color: '#eaf2ff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textDecoration: 'none',
+                fontWeight: 800,
+                fontSize: 13,
+              }}
+            >
+              X
+            </a>
+          )}
+        </div>
+      )}
     </div>
-  </div>
-);
-
+  );
 }
 
 /* ---------- components & styles ---------- */
