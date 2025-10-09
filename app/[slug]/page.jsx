@@ -4,20 +4,22 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-/* ---------- helpers ---------- */
-const toList = (v) => String(v ?? '').split(/[,\n]+/).map(s=>s.trim()).filter(Boolean);
-const publicUrlFor = (path) => path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
+/* ---------- small helpers ---------- */
+const toList = (v) => String(v ?? '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
+const publicUrlFor = (p) => (p ? supabase.storage.from('avatars').getPublicUrl(p).data.publicUrl : null);
+
 const normalizeSocial = (t, raw) => {
-  const v = String(raw || '').trim(); if (!v) return null;
+  const v = String(raw || '').trim();
+  if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v;
   const h = v.replace(/^@/, '');
-  return t==='facebook'?`https://facebook.com/${h}`:
-         t==='instagram'?`https://instagram.com/${h}`:
-         t==='tiktok'?`https://www.tiktok.com/@${h}`:
-         t==='x'?`https://x.com/${h}`: null;
+  return t === 'facebook'  ? `https://facebook.com/${h}` :
+         t === 'instagram' ? `https://instagram.com/${h}` :
+         t === 'tiktok'    ? `https://www.tiktok.com/@${h}` :
+         t === 'x'         ? `https://x.com/${h}` : null;
 };
 
-/* ---------- palettes (dark + light) ---------- */
+/* ---------- THEMES (dark + light) ---------- */
 const THEMES = {
   // DARK
   'deep-navy':      {'--bg':'#0a0f14','--text':'#eaf2ff','--muted':'#b8ccff','--border':'#183153','--card-bg-1':'#0f213a','--card-bg-2':'#0b1524','--chip-bg':'#0c1a2e','--chip-border':'#27406e','--btn-primary-1':'#66e0b9','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#1f2937','--social-border':'#213a6b'},
@@ -33,18 +35,9 @@ const THEMES = {
   'sandstone':      {'--bg':'#faf7f1','--text':'#191714','--muted':'#6f675f','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6f1e7','--chip-bg':'#f2ece1','--chip-border':'#eadfcd','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#efe9df','--social-border':'#e6dac7'},
   'cloud-blue':     {'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'},
   'ivory-ink':      {'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'},
-
-  /* Backward-compat names used earlier */
-  'midnight':      undefined,  // will alias below
-  'cocoa-bronze':  undefined,
-  'cocoa_bronze':  undefined,
-  'ivory-sand':    undefined,
-  'ivory_sand':    undefined,
-  'glacier-mist':  undefined,
-  'glacier_mist':  undefined,
 };
 
-/* Alias older names to closest palettes */
+/* Accept older friendly names too */
 const ALIAS = {
   'midnight': 'deep-navy',
   'cocoa-bronze': 'graphite-ember',
@@ -55,7 +48,7 @@ const ALIAS = {
   'glacier_mist': 'cloud-blue',
 };
 
-const normalizeKey = (raw) => {
+const normalizeThemeKey = (raw) => {
   const k = String(raw || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
   if (THEMES[k]) return k;
   if (ALIAS[k] && THEMES[ALIAS[k]]) return ALIAS[k];
@@ -64,9 +57,23 @@ const normalizeKey = (raw) => {
 
 const applyTheme = (key) => {
   const vars = THEMES[key] || THEMES['deep-navy'];
-  Object.entries(vars).forEach(([cssVar, val]) =>
-    document.documentElement.style.setProperty(cssVar, val)
-  );
+  const r = document.documentElement;
+  for (const [cssVar, val] of Object.entries(vars)) r.style.setProperty(cssVar, val);
+};
+
+/* Try to produce a tel: link from multiple possible fields, with WA fallback */
+const getDialHref = (profile) => {
+  const raw =
+    profile?.phone ??
+    profile?.phone_number ??
+    profile?.tel ??
+    profile?.whatsapp ??
+    '';
+  if (!raw) return null;
+  const cleaned = String(raw).replace(/[^\d+]/g, ''); // keep + and digits
+  const digits = cleaned.replace(/\D/g, '');
+  if (digits.length < 6) return null;
+  return `tel:${cleaned}`;
 };
 
 /* ---------- page ---------- */
@@ -79,7 +86,7 @@ export default function PublicPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme')
+        .select('slug,name,trade,city,phone,phone_number,tel,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme')
         .ilike('slug', slug)
         .maybeSingle();
 
@@ -90,24 +97,24 @@ export default function PublicPage() {
     load();
   }, [slug]);
 
-  // Apply theme when profile arrives
+  /* Apply theme when profile arrives */
   useEffect(() => {
-    applyTheme(normalizeKey(p?.theme));
+    applyTheme(normalizeThemeKey(p?.theme));
   }, [p?.theme]);
 
   if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
   if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
 
-  const areas   = useMemo(() => toList(p?.areas), [p]);
-  const services= useMemo(() => toList(p?.services), [p]);
+  const areas = useMemo(() => toList(p?.areas), [p]);
+  const services = useMemo(() => toList(p?.services), [p]);
   const priceLines = useMemo(
-    () => String(p?.prices ?? '').split(/\r?\n/).map(s=>s.trim()).filter(Boolean),
+    () => String(p?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
     [p]
   );
 
-  const callHref = p?.phone ? `tel:${p.phone.replace(/\s+/g, '')}` : null;
-  const waHref   = p?.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
-  const avatarUrl= publicUrlFor(p?.avatar_path);
+  const callHref = getDialHref(p);
+  const waHref = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
+  const avatarUrl = publicUrlFor(p?.avatar_path);
 
   const fb = normalizeSocial('facebook',  p?.facebook);
   const ig = normalizeSocial('instagram', p?.instagram);
@@ -117,7 +124,7 @@ export default function PublicPage() {
   const handleShare = () => {
     const url = window.location.href;
     const title = document.title || 'TradePage';
-    if (navigator.share) { navigator.share({ title, url }).catch(()=>{}); }
+    if (navigator.share) navigator.share({ title, url }).catch(() => {});
     else {
       try {
         navigator.clipboard.writeText(url).then(
@@ -132,6 +139,16 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
+      {/* Tiny CSS just for mobile header sizing */}
+      <style>{`
+        @media (max-width: 480px){
+          .hdr-name{ font-size:16px; line-height:20px; }
+          .hdr-sub{ font-size:12px; }
+          .hdr-cta a, .hdr-cta button{ padding:6px 10px; border-radius:10px; font-size:12px; }
+          .hdr-cta{ gap:8px; }
+        }
+      `}</style>
+
       {/* HEADER */}
       <div style={headerCardStyle}>
         <div style={headerLeftStyle}>
@@ -148,12 +165,12 @@ export default function PublicPage() {
             <div style={logoDotStyle}>★</div>
           )}
           <div>
-            <div style={headerNameStyle}>{p.name || p.slug}</div>
-            <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
+            <div className="hdr-name" style={headerNameStyle}>{p.name || p.slug}</div>
+            <div className="hdr-sub"  style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
           </div>
         </div>
 
-        <div style={ctaRowStyle}>
+        <div className="hdr-cta" style={ctaRowStyle}>
           {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
           {waHref &&  <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
           <button type="button" onClick={handleShare}
@@ -179,8 +196,9 @@ export default function PublicPage() {
           <p style={bodyP}>
             {p.about && p.about.trim().length > 0
               ? p.about
-              : (services[0] ? `${services[0]}. Reliable, friendly and affordable. Free quotes, no hidden fees.`
-                             : 'Reliable, friendly and affordable. Free quotes, no hidden fees.')}
+              : (services[0]
+                  ? `${services[0]}. Reliable, friendly and affordable. Free quotes, no hidden fees.`
+                  : 'Reliable, friendly and affordable. Free quotes, no hidden fees.')}
           </p>
         </Card>
 
@@ -188,7 +206,7 @@ export default function PublicPage() {
           <ul style={listResetStyle}>
             {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
             {priceLines.map((ln, i) => (
-              <li key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                 <span>{ln}</span>
               </li>
             ))}
@@ -197,18 +215,18 @@ export default function PublicPage() {
 
         <Card title="Areas we cover">
           {areas.length > 0 ? (
-            <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {areas.map((a, i) => (<span key={i} style={chipStyle}>{a}</span>))}
             </div>
-          ) : (<div style={{ opacity:0.7 }}>No areas listed yet.</div>)}
+          ) : (<div style={{ opacity: 0.7 }}>No areas listed yet.</div>)}
         </Card>
 
         <Card title="Services">
           {services.length > 0 ? (
-            <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {services.map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
             </div>
-          ) : (<div style={{ opacity:0.7 }}>No services listed yet.</div>)}
+          ) : (<div style={{ opacity: 0.7 }}>No services listed yet.</div>)}
         </Card>
 
         <Card title="Hours"><div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div></Card>
@@ -227,7 +245,7 @@ export default function PublicPage() {
               <img
                 src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
                 alt="work"
-                style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:14 }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}
               />
             </div>
           </div>
@@ -247,43 +265,39 @@ function Card({ title, wide=false, children }) {
   );
 }
 
-const pageWrapStyle = {
-  maxWidth: 980, margin: '28px auto', padding: '0 16px 48px',
-  color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden',
-};
+/* styles using CSS variables */
+const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
 
 const headerCardStyle = {
-  display:'flex', alignItems:'center', justifyContent:'space-between',
-  gap:16, padding:'16px 18px', borderRadius:16,
-  border:'1px solid var(--border)',
-  background:'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
-  marginBottom:12,
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+  gap: 16, padding: '16px 18px', borderRadius: 16,
+  border: '1px solid var(--border)',
+  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
+  marginBottom: 12,
 };
-const headerLeftStyle = { display:'flex', alignItems:'center', gap:12 };
-const logoDotStyle = { width:48,height:48,borderRadius:14,display:'flex',alignItems:'center',justifyContent:'center',
-  background:'var(--btn-primary-1)', color:'#0a0f1c', fontWeight:800, fontSize:20 };
-const headerNameStyle = { fontWeight:800, fontSize:22, lineHeight:'24px' };
-const headerSubStyle  = { opacity:0.75, fontSize:14, marginTop:4 };
-const ctaRowStyle     = { display:'flex', gap:10, flexWrap:'wrap' };
+const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
+const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
+const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
+const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
 
-const socialBarWrapStyle = { display:'flex', gap:10, alignItems:'center', flexWrap:'wrap', margin:'0 0 12px 0' };
-const socialBtnStyle = { width:36, height:36, borderRadius:999, border:'1px solid var(--social-border)', background:'transparent',
-  color:'var(--text)', display:'inline-flex', alignItems:'center', justifyContent:'center', textDecoration:'none', outline:'none' };
-const socialGlyphStyle = { fontSize:13, fontWeight:800, letterSpacing:0.2, lineHeight:1, translate:'0 0' };
+const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
+const socialBtnStyle = { width: 36, height: 36, borderRadius: 999, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', outline: 'none' };
+const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0' };
 
-const btnBaseStyle = { padding:'10px 16px', borderRadius:12, border:'1px solid var(--border)', textDecoration:'none', fontWeight:700, cursor:'pointer' };
-const btnPrimaryStyle = { background:'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color:'#08101e', border:'1px solid var(--border)' };
-const btnNeutralStyle = { background:'var(--btn-neutral-bg)', color:'var(--text)' };
+const btnBaseStyle = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
+const btnPrimaryStyle = { background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color: '#08101e', border: '1px solid var(--border)' };
+const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--text)' };
 
-const h2Style = { margin:'0 0 10px 0', fontSize:18 };
-const cardStyle = { padding:16, borderRadius:16, border:'1px solid var(--border)', background:'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', minWidth:0 };
+const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
+const cardStyle = { padding: 16, borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', minWidth: 0 };
 
-const grid2Style = { display:'grid', gridTemplateColumns:'1fr', gap:16, marginTop:16 };
-const bodyP = { marginTop:0, marginBottom:0, whiteSpace:'pre-wrap', overflowWrap:'anywhere', wordBreak:'break-word', lineHeight:1.5 };
+const grid2Style = { display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginTop: 16 };
+const bodyP = { marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 };
 
-const chipStyle = { padding:'6px 12px', borderRadius:999, border:'1px solid var(--chip-border)', background:'var(--chip-bg)', color:'var(--text)', fontSize:13 };
-const listResetStyle = { margin:0, padding:0, listStyle:'none' };
+const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)', fontSize: 13 };
+const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
-const galleryGridStyle = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:16 };
-const galleryItemStyle = { height:220, borderRadius:14, border:'1px solid var(--chip-border)', background:'var(--chip-bg)', overflow:'hidden' };
-const imgPlaceholderStyle = { width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', opacity:0.75 };
+const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
+const galleryItemStyle = { height: 220, borderRadius: 14, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', overflow: 'hidden' };
+const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
