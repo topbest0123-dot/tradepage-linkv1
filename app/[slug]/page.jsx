@@ -119,8 +119,14 @@ export default function PublicPage() {
     .map(s => s.trim())
     .filter(Boolean);
 
-  // ✅ parse areas
+  // parse areas
   const areas = String(p?.areas || '')
+    .split(/[,\n]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  // ✅ parse services
+  const services = String(p?.services || '')
     .split(/[,\n]+/)
     .map(s => s.trim())
     .filter(Boolean);
@@ -209,7 +215,6 @@ export default function PublicPage() {
             margin: '8px 0 12px 0',
           }}
         >
-          {/* ...social buttons unchanged... */}
           {fb && (<a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={{width:36,height:36,borderRadius:999,border:'1px solid #213a6b',background:'transparent',color:'#eaf2ff',display:'inline-flex',alignItems:'center',justifyContent:'center',textDecoration:'none',fontWeight:800,fontSize:13}}>f</a>)}
           {ig && (<a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={{width:36,height:36,borderRadius:999,border:'1px solid #213a6b',background:'transparent',color:'#eaf2ff',display:'inline-flex',alignItems:'center',justifyContent:'center',textDecoration:'none',fontWeight:800,fontSize:13}}>IG</a>)}
           {tk && (<a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={{width:36,height:36,borderRadius:999,border:'1px solid #213a6b',background:'transparent',color:'#eaf2ff',display:'inline-flex',alignItems:'center',justifyContent:'center',textDecoration:'none',fontWeight:800,fontSize:13}}>t</a>)}
@@ -238,7 +243,7 @@ export default function PublicPage() {
           )}
         </Card>
 
-        {/* ✅ Areas we cover card */}
+        {/* Areas we cover card */}
         <Card title="Areas we cover">
           {areas.length ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -261,6 +266,32 @@ export default function PublicPage() {
             </div>
           ) : (
             <div style={{ opacity: 0.7 }}>No areas listed yet.</div>
+          )}
+        </Card>
+
+        {/* ✅ Services card */}
+        <Card title="Services">
+          {services.length ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {services.map((s, i) => (
+                <span
+                  key={i}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 999,
+                    border: '1px solid #27406e',
+                    background: '#0c1a2e',
+                    color: '#d1e1ff',
+                    fontSize: 13,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div style={{ opacity: 0.7 }}>No services listed yet.</div>
           )}
         </Card>
       </div>
