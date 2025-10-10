@@ -113,7 +113,7 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
 
-  // memoized price lines (left as-is, even though the card is commented)
+  // memoized price lines (card is temporarily commented)
   const priceLines = useMemo(
     () =>
       String(p?.prices ?? '')
