@@ -34,23 +34,12 @@ const h2Style = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
 const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: '#eaf2ff', overflowX: 'hidden' };
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
 const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
 const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px solid #183153', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
 const btnPrimaryStyle = { background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)', color: '#08101e' };
 const btnNeutralStyle = { background: '#1f2937', color: '#fff' };
 
-// gallery styles
-const galleryGridStyle = {
-  display: 'grid',
-  gap: 16,
-  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-};
-const galleryItemStyle = {
-  height: 200,
-  borderRadius: 12,
-  border: '1px solid #27406e',
-  background: '#0b1627',
-  overflow: 'hidden',
-};
+// gallery (legacy inline helpers kept if needed for placeholders)
 const galleryPhStyle = {
   width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
 };
@@ -147,7 +136,7 @@ export default function PublicPage() {
   return (
     <div style={pageWrapStyle}>
       <style>{`
-        /* hero = avatar + header card */
+        /* hero = header card */
         .tp-hero {
           display: grid;
           grid-template-columns: 1fr;
@@ -155,22 +144,6 @@ export default function PublicPage() {
           align-items: start;
           margin: 8px 0 6px;
         }
-
-        .tp-avatar {
-          width: 96px;
-          height: 96px;
-          border-radius: 16px;
-          border: 1px solid #183153;
-          background: linear-gradient(180deg,#0f213a,#0b1524);
-          overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 4px auto;
-          transform: translateY(-6px);
-        }
-        .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .tp-avatar-fallback { font-weight: 800; font-size: 28px; color: #0a0f1c; }
 
         .tp-header {
           display:flex; align-items:center; justify-content:space-between; gap:12px;
@@ -181,6 +154,29 @@ export default function PublicPage() {
         }
         .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
         .tp-cta a, .tp-cta button { font-weight:700; }
+
+        /* inline avatar next to the heading */
+        .tp-avatar-inline{
+          width: 56px;
+          height: 56px;
+          border-radius: 14px;
+          border: 1px solid #183153;
+          background: #0b1524;
+          object-fit: cover;
+          margin-right: 12px;
+          flex: 0 0 auto;
+        }
+        .tp-avatar-inline.is-fallback{
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #63d3e0;
+          font-weight: 800;
+          font-size: 22px;
+        }
+        @media (max-width: 480px){
+          .tp-avatar-inline{ width: 48px; height: 48px; }
+        }
 
         /* social icon row */
         .tp-social { display:flex; gap:10px; align-items:center; margin: 8px 0 14px; }
@@ -195,10 +191,36 @@ export default function PublicPage() {
         /* content grid (cards) */
         .tp-grid { display:grid; grid-template-columns: 1fr; gap:16px; margin-top: 6px; }
 
+        /* Gallery layout */
+        .tp-gallery{
+          display: grid;
+          gap: 16px;
+          grid-template-columns: 1fr;        /* mobile: 1 column */
+        }
+        .tp-gallery .item{
+          height: 220px;
+          border-radius: 14px;
+          border: 1px solid #27406e;
+          background: #0b1627;
+          overflow: hidden;
+        }
+        .tp-gallery .item img{
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 14px;
+        }
+        /* tablet: 2 columns */
+        @media (min-width: 700px){
+          .tp-gallery{ grid-template-columns: repeat(2, 1fr); }
+        }
+        /* desktop: 3 columns */
+        @media (min-width: 1024px){
+          .tp-gallery{ grid-template-columns: repeat(3, 1fr); }
+        }
+
         /* desktop tweaks */
         @media (min-width: 980px) {
-          .tp-hero { grid-template-columns: 96px 1fr; align-items: center; }
-          .tp-avatar { margin: 0; width: 72px; height: 72px; transform: none; }
           .tp-grid { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
@@ -209,21 +231,20 @@ export default function PublicPage() {
 
       {row && (
         <>
-          {/* HERO: avatar + header card */}
+          {/* HERO: header card with inline avatar */}
           <div className="tp-hero">
-            <div className="tp-avatar">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={`${row.name || row.slug} logo`} />
-              ) : (
-                <div className="tp-avatar-fallback">★</div>
-              )}
-            </div>
-
             <div className="tp-header">
-              <div>
-                <div style={headerNameStyle}>{row.name || row.slug}</div>
-                <div style={headerSubStyle}>
-                  {[row.trade, row.city].filter(Boolean).join(' • ')}
+              <div style={headerLeftStyle}>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={`${row.name || row.slug} logo`} className="tp-avatar-inline" />
+                ) : (
+                  <div className="tp-avatar-inline is-fallback">★</div>
+                )}
+                <div>
+                  <div style={headerNameStyle}>{row.name || row.slug}</div>
+                  <div style={headerSubStyle}>
+                    {[row.trade, row.city].filter(Boolean).join(' • ')}
+                  </div>
                 </div>
               </div>
 
@@ -238,7 +259,6 @@ export default function PublicPage() {
                     WhatsApp
                   </a>
                 )}
-                {/* Share is back */}
                 <button
                   type="button"
                   onClick={handleShare}
@@ -386,15 +406,13 @@ export default function PublicPage() {
             {/* Gallery */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Gallery</h2>
-
-              <div style={galleryGridStyle}>
-                <div style={galleryItemStyle}><div style={galleryPhStyle}>work photo</div></div>
-                <div style={galleryItemStyle}><div style={galleryPhStyle}>work photo</div></div>
-                <div style={galleryItemStyle}>
+              <div className="tp-gallery">
+                <div className="item"><div style={galleryPhStyle}>work photo</div></div>
+                <div className="item"><div style={galleryPhStyle}>work photo</div></div>
+                <div className="item">
                   <img
                     src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
                     alt="work"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
                   />
                 </div>
               </div>
