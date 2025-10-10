@@ -113,7 +113,7 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
 
-  // 🔁 memoized price parser
+  // ✅ memoized price lines
   const priceLines = useMemo(
     () =>
       String(p?.prices ?? '')
@@ -282,4 +282,59 @@ export default function PublicPage() {
                   style={{
                     padding: '6px 12px',
                     borderRadius: 999,
-                    border: '1px solid #27406
+                    border: '1px solid #27406e',
+                    background: '#0c1a2e',
+                    color: '#d1e1ff',
+                    fontSize: 13,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div style={{ opacity: 0.7 }}>No services listed yet.</div>
+          )}
+        </Card>
+
+        {/* Hours card */}
+        <Card title="Hours">
+          <div style={{ whiteSpace: 'pre-wrap', opacity: 0.9 }}>
+            {p.hours || 'Mon–Sat 08:00–18:00'}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- components & styles ---------- */
+function Card({ title, children }) {
+  return (
+    <section
+      style={{
+        padding: 16,
+        borderRadius: 16,
+        border: '1px solid #183153',
+        background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+        minWidth: 0,
+      }}
+    >
+      {title && (
+        <h2 style={{ margin: '0 0 10px 0', fontSize: 18 }}>{title}</h2>
+      )}
+      {children}
+    </section>
+  );
+}
+
+/* (existing constants kept) */
+const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
+const headerCardStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '16px 18px', borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', marginBottom: 12 };
+const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
+const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const btnBaseStyle = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
+const btnPrimaryStyle = { background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color: '#08101e', border: '1px solid var(--border)' };
+const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--text)' };
+const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
