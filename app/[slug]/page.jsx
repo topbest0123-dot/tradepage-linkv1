@@ -47,7 +47,7 @@ export default function PublicPage() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices,areas,services,hours')
+          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices,areas,services,hours,other_info')
           .eq('slug', String(slug || ''))
           .maybeSingle();
 
@@ -256,6 +256,16 @@ export default function PublicPage() {
               {row?.hours || 'Mon–Sat 08:00–18:00'}
             </div>
           </div>
+
+          {/* Other useful information (optional) */}
+          {(row?.other_info ?? '').trim() && (
+            <div style={sectionStyle}>
+              <h2 style={h2Style}>Other useful information</h2>
+              <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                {row.other_info}
+              </p>
+            </div>
+          )}
         </>
       )}
     </div>
