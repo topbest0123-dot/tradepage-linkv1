@@ -113,7 +113,7 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
 
-  // memoized price lines (card is temporarily commented)
+  // memoized price lines
   const priceLines = useMemo(
     () =>
       String(p?.prices ?? '')
@@ -234,19 +234,20 @@ export default function PublicPage() {
           </p>
         </Card>
 
-        {/* Prices card (TEMP DISABLED to verify crash source) */}
-        {/*
+        {/* Prices card (safe snippet) */}
         <Card title="Prices">
-          <ul style={listResetStyle}>
-            {priceLines.length === 0 && (
-              <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>
-            )}
-            {priceLines.map((ln, i) => (
-              <li key={i} style={{ marginBottom: 8 }}>{ln}</li>
-            ))}
-          </ul>
+          {Array.isArray(priceLines) && priceLines.length > 0 ? (
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              {priceLines.map((ln, i) => (
+                <li key={`price-${i}`} style={{ marginBottom: 8 }}>
+                  {ln}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div style={{ opacity: 0.7 }}>Please ask for a quote.</div>
+          )}
         </Card>
-        */}
 
         {/* Areas we cover card */}
         <Card title="Areas we cover">
