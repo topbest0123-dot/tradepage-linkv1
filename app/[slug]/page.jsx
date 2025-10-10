@@ -44,10 +44,10 @@ const imgPlaceholderStyle = {
   width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
 };
 
-// minimal Card wrapper to match the example API
-function Card({ title, children/*, wide*/ }) {
+// Card wrapper with wide support (spans both grid columns)
+function Card({ title, wide = false, children }) {
   return (
-    <section style={sectionStyle}>
+    <section style={{ ...sectionStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
       {title && <h2 style={h2Style}>{title}</h2>}
       {children}
     </section>
@@ -198,28 +198,37 @@ export default function PublicPage() {
         }
         .tp-glyph { font-size: 13px; font-weight: 800; letter-spacing: .2px; }
 
-        /* content grid (cards) */
-        .tp-grid { display:grid; grid-template-columns: 1fr; gap:16px; margin-top: 6px; }
+        /* Parent grid for the cards */
+        .tp-grid{
+          display: grid;
+          grid-template-columns: 1fr;   /* mobile: single column */
+          gap: 16px;
+          margin-top: 16px;
+          grid-auto-flow: row dense;    /* allow wide items to fill rows neatly */
+        }
+        .tp-grid > * { min-width: 0; }
+
+        @media (min-width: 980px){
+          .tp-grid{ grid-template-columns: 1fr 1fr; }  /* desktop: 2 cols */
+        }
 
         /* Gallery: 1 col mobile, 2 col tablet, 3 col desktop (at 980px page width) */
         .tp-gallery{
           display: grid;
           gap: 16px;
           grid-template-columns: repeat(1, minmax(0, 1fr));
-          /* prevent children from forcing extra width */
           min-width: 0;
         }
         .tp-gallery > *{
-          min-width: 0;               /* critical: stops items pushing to a new row */
+          min-width: 0;
           box-sizing: border-box;
         }
         @media (min-width: 720px){
           .tp-gallery{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
-        @media (min-width: 980px){     /* match your pageWrap maxWidth */
+        @media (min-width: 980px){
           .tp-gallery{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
-        /* optional cosmetics */
         .tp-gallery .item{
           height: 220px;
           border-radius: 14px;
@@ -232,11 +241,6 @@ export default function PublicPage() {
           height: 100%;
           object-fit: cover;
           border-radius: 14px;
-        }
-
-        /* desktop tweaks */
-        @media (min-width: 980px) {
-          .tp-grid { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
 
@@ -418,7 +422,7 @@ export default function PublicPage() {
               </div>
             )}
 
-            {/* Gallery (now uses className grid and Card wrapper) */}
+            {/* Gallery spans both columns */}
             <Card title="Gallery" wide>
               <div className="tp-gallery">
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
