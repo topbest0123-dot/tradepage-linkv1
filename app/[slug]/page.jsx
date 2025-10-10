@@ -113,7 +113,7 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
 
-  // ✅ memoized price lines
+  // memoized price lines (left as-is, even though the card is commented)
   const priceLines = useMemo(
     () =>
       String(p?.prices ?? '')
@@ -234,7 +234,8 @@ export default function PublicPage() {
           </p>
         </Card>
 
-        {/* Prices card */}
+        {/* Prices card (TEMP DISABLED to verify crash source) */}
+        {/*
         <Card title="Prices">
           <ul style={listResetStyle}>
             {priceLines.length === 0 && (
@@ -245,6 +246,7 @@ export default function PublicPage() {
             ))}
           </ul>
         </Card>
+        */}
 
         {/* Areas we cover card */}
         <Card title="Areas we cover">
