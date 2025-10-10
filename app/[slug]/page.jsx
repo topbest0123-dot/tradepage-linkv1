@@ -30,14 +30,20 @@ const sectionStyle = {
 };
 const h2Style = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
 
+// page + header/button styles
+const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: '#eaf2ff', overflowX: 'hidden' };
+const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
+const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px solid #183153', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
+const btnPrimaryStyle = { background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)', color: '#08101e' };
+const btnNeutralStyle = { background: '#1f2937', color: '#fff' };
+
 // gallery styles
 const galleryGridStyle = {
   display: 'grid',
   gap: 16,
-  // responsive without media queries
   gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
 };
-
 const galleryItemStyle = {
   height: 200,
   borderRadius: 12,
@@ -45,14 +51,8 @@ const galleryItemStyle = {
   background: '#0b1627',
   overflow: 'hidden',
 };
-
 const galleryPhStyle = {
-  width: '100%',
-  height: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  opacity: 0.75,
+  width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
 };
 
 export default function PublicPage() {
@@ -120,11 +120,88 @@ export default function PublicPage() {
     .map(s => s.trim())
     .filter(Boolean);
 
+  // avatar (placeholder unless you add avatar_path + public URL)
+  const avatarUrl = null;
+
+  // share handler (mobile + desktop fallback)
+  const handleShare = async () => {
+    const shareData = {
+      title: row?.name || row?.slug || 'Profile',
+      text: `Check out ${row?.name || row?.slug}`,
+      url: typeof window !== 'undefined' ? window.location.href : '',
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareData.url);
+        alert('Link copied to clipboard!');
+      } else {
+        prompt('Copy this link:', shareData.url);
+      }
+    } catch {
+      /* ignore user cancel */
+    }
+  };
+
   return (
-    <div style={{ padding: 16, color: '#eaf2ff', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ opacity: 0.9, marginBottom: 12 }}>
-        <strong>Route OK</strong> — slug: <strong>{String(slug)}</strong>
-      </div>
+    <div style={pageWrapStyle}>
+      <style>{`
+        /* hero = avatar + header card */
+        .tp-hero {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 12px;
+          align-items: start;
+          margin: 8px 0 6px;
+        }
+
+        .tp-avatar {
+          width: 96px;
+          height: 96px;
+          border-radius: 16px;
+          border: 1px solid #183153;
+          background: linear-gradient(180deg,#0f213a,#0b1524);
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 4px auto;
+          transform: translateY(-6px);
+        }
+        .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .tp-avatar-fallback { font-weight: 800; font-size: 28px; color: #0a0f1c; }
+
+        .tp-header {
+          display:flex; align-items:center; justify-content:space-between; gap:12px;
+          padding: 12px 14px;
+          border-radius: 16px;
+          border: 1px solid #183153;
+          background: linear-gradient(180deg,#0f213a,#0b1524);
+        }
+        .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
+        .tp-cta a, .tp-cta button { font-weight:700; }
+
+        /* social icon row */
+        .tp-social { display:flex; gap:10px; align-items:center; margin: 8px 0 14px; }
+        .tp-social a {
+          width: 36px; height: 36px; border-radius: 999px;
+          border: 1px solid #213a6b; background: transparent; color:#eaf2ff;
+          display:inline-flex; align-items:center; justify-content:center;
+          text-decoration:none;
+        }
+        .tp-glyph { font-size: 13px; font-weight: 800; letter-spacing: .2px; }
+
+        /* content grid (cards) */
+        .tp-grid { display:grid; grid-template-columns: 1fr; gap:16px; margin-top: 6px; }
+
+        /* desktop tweaks */
+        @media (min-width: 980px) {
+          .tp-hero { grid-template-columns: 96px 1fr; align-items: center; }
+          .tp-avatar { margin: 0; width: 72px; height: 72px; transform: none; }
+          .tp-grid { grid-template-columns: 1fr 1fr; }
+        }
+      `}</style>
 
       {loading && <div style={{ opacity: 0.7 }}>Loading…</div>}
       {err && <div style={{ color: '#f88' }}>Error: {err}</div>}
@@ -132,179 +209,194 @@ export default function PublicPage() {
 
       {row && (
         <>
-          {/* Header card */}
-          <div
-            style={{
-              border: '1px solid #183153',
-              background: 'linear-gradient(180deg,#0f213a,#0b1524)',
-              borderRadius: 12,
-              padding: 14,
-              maxWidth: 720
-            }}
-          >
-            <div style={{ fontSize: 20, fontWeight: 800 }}>{row.name || row.slug}</div>
-            <div style={{ opacity: 0.8, marginTop: 4 }}>
-              {[row.trade, row.city].filter(Boolean).join(' • ')}
-            </div>
-
-            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              {callHref && (
-                <a
-                  href={callHref}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 10,
-                    border: '1px solid #2d4e82',
-                    background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
-                    color: '#08101e',
-                    fontWeight: 700,
-                    textDecoration: 'none'
-                  }}
-                >
-                  Call
-                </a>
-              )}
-              {waHref && (
-                <a
-                  href={waHref}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 10,
-                    border: '1px solid #2f3c4f',
-                    background: '#1f2937',
-                    color: '#fff',
-                    fontWeight: 700,
-                    textDecoration: 'none'
-                  }}
-                >
-                  WhatsApp
-                </a>
-              )}
-            </div>
-
-            {(fb || ig || tk || xx) && (
-              <ul style={{ marginTop: 12, paddingLeft: 18, opacity: 0.95 }}>
-                {fb && <li><a href={fb} target="_blank" rel="noopener noreferrer">Facebook</a></li>}
-                {ig && <li><a href={ig} target="_blank" rel="noopener noreferrer">Instagram</a></li>}
-                {tk && <li><a href={tk} target="_blank" rel="noopener noreferrer">TikTok</a></li>}
-                {xx && <li><a href={xx} target="_blank" rel="noopener noreferrer">X (Twitter)</a></li>}
-              </ul>
-            )}
-          </div>
-
-          {/* About */}
-          <div style={sectionStyle}>
-            <h2 style={h2Style}>About</h2>
-            <p
-              style={{
-                margin: 0,
-                whiteSpace: 'pre-wrap',
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word',
-                lineHeight: 1.5,
-              }}
-            >
-              {row?.about?.trim()
-                ? row.about
-                : 'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
-            </p>
-          </div>
-
-          {/* Prices */}
-          <div style={sectionStyle}>
-            <h2 style={h2Style}>Prices</h2>
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {priceLines.length === 0 ? (
-                <li style={{ opacity: 0.8 }}>Please ask for a quote.</li>
+          {/* HERO: avatar + header card */}
+          <div className="tp-hero">
+            <div className="tp-avatar">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={`${row.name || row.slug} logo`} />
               ) : (
-                priceLines.map((ln, i) => <li key={i}>{ln}</li>)
+                <div className="tp-avatar-fallback">★</div>
               )}
-            </ul>
-          </div>
+            </div>
 
-          {/* Areas we cover */}
-          <div style={sectionStyle}>
-            <h2 style={h2Style}>Areas we cover</h2>
-            {areas.length ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {areas.map((a, i) => (
-                  <span
-                    key={i}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: 999,
-                      border: '1px solid #27406e',
-                      background: '#0c1a2e',
-                      color: '#d1e1ff',
-                      fontSize: 13,
-                    }}
-                  >
-                    {a}
-                  </span>
-                ))}
+            <div className="tp-header">
+              <div>
+                <div style={headerNameStyle}>{row.name || row.slug}</div>
+                <div style={headerSubStyle}>
+                  {[row.trade, row.city].filter(Boolean).join(' • ')}
+                </div>
               </div>
-            ) : (
-              <div style={{ opacity: 0.8 }}>No areas listed yet.</div>
-            )}
-          </div>
 
-          {/* Services */}
-          <div style={sectionStyle}>
-            <h2 style={h2Style}>Services</h2>
-            {services.length ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {services.map((s, i) => (
-                  <span
-                    key={i}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: 999,
-                      border: '1px solid #27406e',
-                      background: '#0c1a2e',
-                      color: '#d1e1ff',
-                      fontSize: 13,
-                    }}
-                  >
-                    {s}
-                  </span>
-                ))}
+              <div className="tp-cta">
+                {callHref && (
+                  <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+                    Call
+                  </a>
+                )}
+                {waHref && (
+                  <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                    WhatsApp
+                  </a>
+                )}
+                {/* Share is back */}
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  style={{
+                    ...btnBaseStyle,
+                    border: '1px solid #213a6b',
+                    background: 'transparent',
+                    color: '#eaf2ff',
+                  }}
+                >
+                  Share
+                </button>
               </div>
-            ) : (
-              <div style={{ opacity: 0.8 }}>No services listed yet.</div>
-            )}
-          </div>
-
-          {/* Hours */}
-          <div style={sectionStyle}>
-            <h2 style={h2Style}>Hours</h2>
-            <div style={{ opacity: 0.9 }}>
-              {row?.hours || 'Mon–Sat 08:00–18:00'}
             </div>
           </div>
 
-          {/* Other useful information (optional) */}
-          {(row?.other_info ?? '').trim() && (
-            <div style={sectionStyle}>
-              <h2 style={h2Style}>Other useful information</h2>
-              <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
-                {row.other_info}
-              </p>
+          {/* Round social icons */}
+          {(fb || ig || tk || xx) && (
+            <div className="tp-social">
+              {fb && (
+                <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook">
+                  <span className="tp-glyph">f</span>
+                </a>
+              )}
+              {ig && (
+                <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram">
+                  <span className="tp-glyph">IG</span>
+                </a>
+              )}
+              {tk && (
+                <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok">
+                  <span className="tp-glyph">t</span>
+                </a>
+              )}
+              {xx && (
+                <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)">
+                  <span className="tp-glyph">X</span>
+                </a>
+              )}
             </div>
           )}
 
-          {/* Gallery */}
-          <div style={sectionStyle}>
-            <h2 style={h2Style}>Gallery</h2>
+          {/* Cards grid */}
+          <div className="tp-grid">
+            {/* About */}
+            <div style={sectionStyle}>
+              <h2 style={h2Style}>About</h2>
+              <p
+                style={{
+                  margin: 0,
+                  whiteSpace: 'pre-wrap',
+                  overflowWrap: 'anywhere',
+                  wordBreak: 'break-word',
+                  lineHeight: 1.5,
+                }}
+              >
+                {row?.about?.trim()
+                  ? row.about
+                  : 'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
+              </p>
+            </div>
 
-            <div style={galleryGridStyle}>
-              <div style={galleryItemStyle}><div style={galleryPhStyle}>work photo</div></div>
-              <div style={galleryItemStyle}><div style={galleryPhStyle}>work photo</div></div>
-              <div style={galleryItemStyle}>
-                <img
-                  src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
-                  alt="work"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
-                />
+            {/* Prices */}
+            <div style={sectionStyle}>
+              <h2 style={h2Style}>Prices</h2>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {priceLines.length === 0 ? (
+                  <li style={{ opacity: 0.8 }}>Please ask for a quote.</li>
+                ) : (
+                  priceLines.map((ln, i) => <li key={i}>{ln}</li>)
+                )}
+              </ul>
+            </div>
+
+            {/* Areas we cover */}
+            <div style={sectionStyle}>
+              <h2 style={h2Style}>Areas we cover</h2>
+              {areas.length ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {areas.map((a, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 999,
+                        border: '1px solid #27406e',
+                        background: '#0c1a2e',
+                        color: '#d1e1ff',
+                        fontSize: 13,
+                      }}
+                    >
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ opacity: 0.8 }}>No areas listed yet.</div>
+              )}
+            </div>
+
+            {/* Services */}
+            <div style={sectionStyle}>
+              <h2 style={h2Style}>Services</h2>
+              {services.length ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {services.map((s, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 999,
+                        border: '1px solid #27406e',
+                        background: '#0c1a2e',
+                        color: '#d1e1ff',
+                        fontSize: 13,
+                      }}
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ opacity: 0.8 }}>No services listed yet.</div>
+              )}
+            </div>
+
+            {/* Hours */}
+            <div style={sectionStyle}>
+              <h2 style={h2Style}>Hours</h2>
+              <div style={{ opacity: 0.9 }}>
+                {row?.hours || 'Mon–Sat 08:00–18:00'}
+              </div>
+            </div>
+
+            {/* Other useful information (optional) */}
+            {(row?.other_info ?? '').trim() && (
+              <div style={sectionStyle}>
+                <h2 style={h2Style}>Other useful information</h2>
+                <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                  {row.other_info}
+                </p>
+              </div>
+            )}
+
+            {/* Gallery */}
+            <div style={sectionStyle}>
+              <h2 style={h2Style}>Gallery</h2>
+
+              <div style={galleryGridStyle}>
+                <div style={galleryItemStyle}><div style={galleryPhStyle}>work photo</div></div>
+                <div style={galleryItemStyle}><div style={galleryPhStyle}>work photo</div></div>
+                <div style={galleryItemStyle}>
+                  <img
+                    src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
+                    alt="work"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
+                  />
+                </div>
               </div>
             </div>
           </div>
