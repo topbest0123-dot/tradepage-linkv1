@@ -19,6 +19,17 @@ function normalizeSocial(type, raw) {
   }
 }
 
+// styles for sections / headings
+const sectionStyle = {
+  border: '1px solid #183153',
+  background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+  borderRadius: 12,
+  padding: 14,
+  maxWidth: 720,
+  marginTop: 14,
+};
+const h2Style = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
+
 export default function PublicPage() {
   const { slug } = useParams();
   const [row, setRow] = useState(null);
@@ -36,7 +47,7 @@ export default function PublicPage() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x')
+          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about')
           .eq('slug', String(slug || ''))
           .maybeSingle();
 
@@ -73,45 +84,85 @@ export default function PublicPage() {
       {!loading && !err && !row && <div>No profile found.</div>}
 
       {row && (
-        <div style={{
-          border: '1px solid #183153',
-          background: 'linear-gradient(180deg,#0f213a,#0b1524)',
-          borderRadius: 12,
-          padding: 14,
-          maxWidth: 720
-        }}>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>{row.name || row.slug}</div>
-          <div style={{ opacity: 0.8, marginTop: 4 }}>
-            {[row.trade, row.city].filter(Boolean).join(' • ')}
+        <>
+          {/* Header card */}
+          <div
+            style={{
+              border: '1px solid #183153',
+              background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+              borderRadius: 12,
+              padding: 14,
+              maxWidth: 720
+            }}
+          >
+            <div style={{ fontSize: 20, fontWeight: 800 }}>{row.name || row.slug}</div>
+            <div style={{ opacity: 0.8, marginTop: 4 }}>
+              {[row.trade, row.city].filter(Boolean).join(' • ')}
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+              {callHref && (
+                <a
+                  href={callHref}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: 10,
+                    border: '1px solid #2d4e82',
+                    background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
+                    color: '#08101e',
+                    fontWeight: 700,
+                    textDecoration: 'none'
+                  }}
+                >
+                  Call
+                </a>
+              )}
+              {waHref && (
+                <a
+                  href={waHref}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: 10,
+                    border: '1px solid #2f3c4f',
+                    background: '#1f2937',
+                    color: '#fff',
+                    fontWeight: 700,
+                    textDecoration: 'none'
+                  }}
+                >
+                  WhatsApp
+                </a>
+              )}
+            </div>
+
+            {(fb || ig || tk || xx) && (
+              <ul style={{ marginTop: 12, paddingLeft: 18, opacity: 0.95 }}>
+                {fb && <li><a href={fb} target="_blank" rel="noopener noreferrer">Facebook</a></li>}
+                {ig && <li><a href={ig} target="_blank" rel="noopener noreferrer">Instagram</a></li>}
+                {tk && <li><a href={tk} target="_blank" rel="noopener noreferrer">TikTok</a></li>}
+                {xx && <li><a href={xx} target="_blank" rel="noopener noreferrer">X (Twitter)</a></li>}
+              </ul>
+            )}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-            {callHref && (
-              <a href={callHref}
-                 style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #2d4e82',
-                          background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)', color: '#08101e',
-                          fontWeight: 700, textDecoration: 'none' }}>
-                Call
-              </a>
-            )}
-            {waHref && (
-              <a href={waHref}
-                 style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #2f3c4f',
-                          background: '#1f2937', color: '#fff', fontWeight: 700, textDecoration: 'none' }}>
-                WhatsApp
-              </a>
-            )}
+          {/* About */}
+          <div style={sectionStyle}>
+            <h2 style={h2Style}>About</h2>
+            <p
+              style={{
+                margin: 0,
+                whiteSpace: 'pre-wrap',
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+                lineHeight: 1.5,
+              }}
+            >
+              {row?.about?.trim()
+                ? row.about
+                : 'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
+            </p>
           </div>
-
-          {(fb || ig || tk || xx) && (
-            <ul style={{ marginTop: 12, paddingLeft: 18, opacity: 0.95 }}>
-              {fb && <li><a href={fb} target="_blank" rel="noopener noreferrer">Facebook</a></li>}
-              {ig && <li><a href={ig} target="_blank" rel="noopener noreferrer">Instagram</a></li>}
-              {tk && <li><a href={tk} target="_blank" rel="noopener noreferrer">TikTok</a></li>}
-              {xx && <li><a href={xx} target="_blank" rel="noopener noreferrer">X (Twitter)</a></li>}
-            </ul>
-          )}
-        </div>
+        </>
       )}
     </div>
   );
