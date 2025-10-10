@@ -39,10 +39,20 @@ const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px s
 const btnPrimaryStyle = { background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)', color: '#08101e' };
 const btnNeutralStyle = { background: '#1f2937', color: '#fff' };
 
-// gallery (legacy inline helpers kept if needed for placeholders)
-const galleryPhStyle = {
+// placeholder text block for empty gallery cells
+const imgPlaceholderStyle = {
   width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
 };
+
+// minimal Card wrapper to match the example API
+function Card({ title, children/*, wide*/ }) {
+  return (
+    <section style={sectionStyle}>
+      {title && <h2 style={h2Style}>{title}</h2>}
+      {children}
+    </section>
+  );
+}
 
 export default function PublicPage() {
   const { slug } = useParams();
@@ -191,12 +201,25 @@ export default function PublicPage() {
         /* content grid (cards) */
         .tp-grid { display:grid; grid-template-columns: 1fr; gap:16px; margin-top: 6px; }
 
-        /* Gallery layout */
+        /* Gallery: 1 col mobile, 2 col tablet, 3 col desktop (at 980px page width) */
         .tp-gallery{
           display: grid;
           gap: 16px;
-          grid-template-columns: 1fr;        /* mobile: 1 column */
+          grid-template-columns: repeat(1, minmax(0, 1fr));
+          /* prevent children from forcing extra width */
+          min-width: 0;
         }
+        .tp-gallery > *{
+          min-width: 0;               /* critical: stops items pushing to a new row */
+          box-sizing: border-box;
+        }
+        @media (min-width: 720px){
+          .tp-gallery{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (min-width: 980px){     /* match your pageWrap maxWidth */
+          .tp-gallery{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        /* optional cosmetics */
         .tp-gallery .item{
           height: 220px;
           border-radius: 14px;
@@ -209,14 +232,6 @@ export default function PublicPage() {
           height: 100%;
           object-fit: cover;
           border-radius: 14px;
-        }
-        /* tablet: 2 columns */
-        @media (min-width: 700px){
-          .tp-gallery{ grid-template-columns: repeat(2, 1fr); }
-        }
-        /* desktop: 3 columns */
-        @media (min-width: 1024px){
-          .tp-gallery{ grid-template-columns: repeat(3, 1fr); }
         }
 
         /* desktop tweaks */
@@ -403,12 +418,11 @@ export default function PublicPage() {
               </div>
             )}
 
-            {/* Gallery */}
-            <div style={sectionStyle}>
-              <h2 style={h2Style}>Gallery</h2>
+            {/* Gallery (now uses className grid and Card wrapper) */}
+            <Card title="Gallery" wide>
               <div className="tp-gallery">
-                <div className="item"><div style={galleryPhStyle}>work photo</div></div>
-                <div className="item"><div style={galleryPhStyle}>work photo</div></div>
+                <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
+                <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item">
                   <img
                     src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
@@ -416,7 +430,7 @@ export default function PublicPage() {
                   />
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         </>
       )}
