@@ -30,6 +30,31 @@ const sectionStyle = {
 };
 const h2Style = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
 
+// gallery styles
+const galleryGridStyle = {
+  display: 'grid',
+  gap: 16,
+  // responsive without media queries
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+};
+
+const galleryItemStyle = {
+  height: 200,
+  borderRadius: 12,
+  border: '1px solid #27406e',
+  background: '#0b1627',
+  overflow: 'hidden',
+};
+
+const galleryPhStyle = {
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  opacity: 0.75,
+};
+
 export default function PublicPage() {
   const { slug } = useParams();
   const [row, setRow] = useState(null);
@@ -266,6 +291,23 @@ export default function PublicPage() {
               </p>
             </div>
           )}
+
+          {/* Gallery */}
+          <div style={sectionStyle}>
+            <h2 style={h2Style}>Gallery</h2>
+
+            <div style={galleryGridStyle}>
+              <div style={galleryItemStyle}><div style={galleryPhStyle}>work photo</div></div>
+              <div style={galleryItemStyle}><div style={galleryPhStyle}>work photo</div></div>
+              <div style={galleryItemStyle}>
+                <img
+                  src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
+                  alt="work"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
+                />
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>
