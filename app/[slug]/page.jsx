@@ -137,7 +137,8 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* Grid CSS (tiny, at top of page) */}
+      {/* TEMP: removed inline CSS to isolate crash */}
+      {/*
       <style>{`
         .tp-grid {
           display: grid;
@@ -149,6 +150,7 @@ export default function PublicPage() {
           .tp-grid { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
+      */}
 
       <div style={headerCardStyle}>
         {/* Left: avatar + titles */}
