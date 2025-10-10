@@ -1,5 +1,12 @@
 'use client';
 
+import { useParams } from 'next/navigation';
+
 export default function PublicPage() {
-  return <div style={{ padding: 16, color: '#eaf2ff' }}>Route OK (stub)</div>;
+  const { slug } = useParams();
+  return (
+    <div style={{ padding: 16, color: '#eaf2ff' }}>
+      Route OK — slug: <strong>{String(slug)}</strong>
+    </div>
+  );
 }
