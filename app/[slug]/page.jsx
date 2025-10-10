@@ -47,7 +47,7 @@ export default function PublicPage() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices,areas')
+          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices,areas,services')
           .eq('slug', String(slug || ''))
           .maybeSingle();
 
@@ -85,6 +85,12 @@ export default function PublicPage() {
 
   // parse areas
   const areas = String(row?.areas || '')
+    .split(/[,\n]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  // parse services
+  const services = String(row?.services || '')
     .split(/[,\n]+/)
     .map(s => s.trim())
     .filter(Boolean);
@@ -214,6 +220,32 @@ export default function PublicPage() {
               </div>
             ) : (
               <div style={{ opacity: 0.8 }}>No areas listed yet.</div>
+            )}
+          </div>
+
+          {/* Services */}
+          <div style={sectionStyle}>
+            <h2 style={h2Style}>Services</h2>
+            {services.length ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {services.map((s, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 999,
+                      border: '1px solid #27406e',
+                      background: '#0c1a2e',
+                      color: '#d1e1ff',
+                      fontSize: 13,
+                    }}
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div style={{ opacity: 0.8 }}>No services listed yet.</div>
             )}
           </div>
         </>
