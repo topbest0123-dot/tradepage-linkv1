@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -47,7 +47,7 @@ export default function PublicPage() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about')
+          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices')
           .eq('slug', String(slug || ''))
           .maybeSingle();
 
@@ -72,6 +72,16 @@ export default function PublicPage() {
   const ig = normalizeSocial('instagram', row?.instagram);
   const tk = normalizeSocial('tiktok',    row?.tiktok);
   const xx = normalizeSocial('x',         row?.x);
+
+  // prepare price lines
+  const priceLines = useMemo(
+    () =>
+      String(row?.prices ?? '')
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    [row]
+  );
 
   return (
     <div style={{ padding: 16, color: '#eaf2ff', fontFamily: 'system-ui, sans-serif' }}>
@@ -161,6 +171,18 @@ export default function PublicPage() {
                 ? row.about
                 : 'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
             </p>
+          </div>
+
+          {/* Prices */}
+          <div style={sectionStyle}>
+            <h2 style={h2Style}>Prices</h2>
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {priceLines.length === 0 ? (
+                <li style={{ opacity: 0.8 }}>Please ask for a quote.</li>
+              ) : (
+                priceLines.map((ln, i) => <li key={i}>{ln}</li>)
+              )}
+            </ul>
           </div>
         </>
       )}
