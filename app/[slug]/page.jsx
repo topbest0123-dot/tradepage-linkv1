@@ -47,7 +47,7 @@ export default function PublicPage() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices')
+          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices,areas')
           .eq('slug', String(slug || ''))
           .maybeSingle();
 
@@ -82,6 +82,12 @@ export default function PublicPage() {
         .filter(Boolean),
     [row]
   );
+
+  // parse areas
+  const areas = String(row?.areas || '')
+    .split(/[,\n]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
 
   return (
     <div style={{ padding: 16, color: '#eaf2ff', fontFamily: 'system-ui, sans-serif' }}>
@@ -183,6 +189,32 @@ export default function PublicPage() {
                 priceLines.map((ln, i) => <li key={i}>{ln}</li>)
               )}
             </ul>
+          </div>
+
+          {/* Areas we cover */}
+          <div style={sectionStyle}>
+            <h2 style={h2Style}>Areas we cover</h2>
+            {areas.length ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {areas.map((a, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 999,
+                      border: '1px solid #27406e',
+                      background: '#0c1a2e',
+                      color: '#d1e1ff',
+                      fontSize: 13,
+                    }}
+                  >
+                    {a}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div style={{ opacity: 0.8 }}>No areas listed yet.</div>
+            )}
           </div>
         </>
       )}
