@@ -53,8 +53,6 @@ const ALIAS = {
   'ivory sand': 'paper-snow',
   'glacier-mist': 'cloud-blue',
   'glacier mist': 'cloud-blue',
-
-  // common variations
   'porcelain mint': 'porcelain-mint',
   'forest emerald': 'forest-emerald',
   'royal purple': 'royal-purple',
@@ -197,7 +195,7 @@ export default function PublicPage() {
       } else {
         prompt('Copy this link:', url);
       }
-    } catch {/* user cancelled or not supported */}
+    } catch {}
   };
 
   return (
@@ -213,44 +211,29 @@ export default function PublicPage() {
           .tp-share-inline { display: inline-flex; } /* show inline button */
         }
 
-        /* ===== Topbar buttons (Dashboard / Sign out) – high contrast on light themes ===== */
-        :root {
-          --headerBtnBg: rgba(255,255,255,.06);
-          --headerBtnHoverBg: rgba(255,255,255,.12);
-          --headerBtnText: var(--text);
-          --headerBtnBorder: var(--border);
-        }
-        html[data-theme="paper-snow"], body[data-theme="paper-snow"],
-        html[data-theme="porcelain-mint"], body[data-theme="porcelain-mint"],
-        html[data-theme="linen-rose"], body[data-theme="linen-rose"],
-        html[data-theme="sandstone"], body[data-theme="sandstone"],
-        html[data-theme="cloud-blue"], body[data-theme="cloud-blue"],
-        html[data-theme="ivory-ink"], body[data-theme="ivory-ink"] {
-          --headerBtnBg: #ffffff;
-          --headerBtnHoverBg: #f3f5f7;
-          --headerBtnText: var(--text);
-          --headerBtnBorder: var(--border);
-        }
+        /* ===== Topbar buttons (Dashboard / Sign out) —
+           now use the SAME tokens as app buttons so they adapt per theme ===== */
         body[data-theme] a[href*="dashboard"],
         body[data-theme] a[href*="signout"],
         body[data-theme] a[href*="sign-out"],
         body[data-theme] a[href*="logout"] {
           padding: 10px 14px;
           border-radius: 12px;
-          background: var(--headerBtnBg);
-          color: var(--headerBtnText) !important;
-          border: 1px solid var(--headerBtnBorder);
+          background: var(--btnNeutralBg);
+          color: var(--btnNeutralText) !important;
+          border: 1px solid var(--border);
           text-decoration: none;
           line-height: 1;
           display: inline-flex;
           align-items: center;
           gap: .35rem;
+          transition: filter .12s ease, opacity .12s ease;
         }
         body[data-theme] a[href*="dashboard"]:hover,
         body[data-theme] a[href*="signout"]:hover,
         body[data-theme] a[href*="sign-out"]:hover,
         body[data-theme] a[href*="logout"]:hover {
-          background: var(--headerBtnHoverBg);
+          filter: brightness(1.06);
         }
 
         /* ========== Theme tokens (12 themes) ========== */
@@ -532,4 +515,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-                             }
+         }
