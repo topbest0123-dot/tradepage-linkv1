@@ -185,18 +185,22 @@ export default function PublicPage() {
 
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
-  const handleShare = async () => {
-    const shareData = {
-      title: row?.name || row?.slug || 'Profile',
-      text: `Check out ${row?.name || row?.slug}`,
-      url: typeof window !== 'undefined' ? window.location.href : '',
-    };
-    try {
-      if (navigator.share) await navigator.share(shareData);
-      else if (navigator.clipboard) { await navigator.clipboard.writeText(shareData.url); alert('Link copied to clipboard!'); }
-      else { prompt('Copy this link:', shareData.url); }
-    } catch {}
-  };
+  // simplified share — avoids adding extra caption text
+const handleShare = async () => {
+  const url = typeof window !== 'undefined' ? window.location.href : '';
+  try {
+    if (navigator.share) {
+      await navigator.share({ url }); // share only URL
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    } else {
+      prompt('Copy this link:', url);
+    }
+  } catch {
+    /* user cancelled or not supported */
+  }
+};
 
   return (
     <div style={pageWrapStyle}>
