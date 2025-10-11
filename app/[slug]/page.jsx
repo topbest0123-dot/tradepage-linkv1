@@ -396,4 +396,3 @@ const imgPlaceholderStyle = {
   justifyContent: 'center',
   opacity: 0.75,
 };
-
