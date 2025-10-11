@@ -52,7 +52,7 @@ const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
 const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
 
 const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
-const btnPrimaryStyle = { background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)', color: 'var(--btnPrimaryText)' };
+const btnPrimaryStyle = { background: 'var(--btnPrimaryBg)', color: 'var(--btnPrimaryText)' };
 const btnNeutralStyle = { background: 'var(--btnNeutralBg)', color: 'var(--btnNeutralText)' };
 
 const imgPlaceholderStyle = {
@@ -75,7 +75,7 @@ export default function PublicPage() {
   const { slug } = useParams();
   const [row, setRow] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState(null);
+  const [err,   setErr]     = useState(null);
 
   // fetch profile (includes `theme`)
   useEffect(() => {
@@ -115,10 +115,11 @@ export default function PublicPage() {
 
   // apply theme to <html data-theme="...">
   useEffect(() => {
-    const theme = row?.theme || DEFAULT_THEME;
+    const theme = (row?.theme || DEFAULT_THEME).trim();
     document.documentElement.setAttribute('data-theme', theme);
     return () => {
-      document.documentElement.setAttribute('data-theme', DEFAULT_THEME);
+      // leave other pages alone
+      document.documentElement.removeAttribute('data-theme');
     };
   }, [row?.theme]);
 
@@ -166,7 +167,7 @@ export default function PublicPage() {
       } else {
         prompt('Copy this link:', shareData.url);
       }
-    } catch {}
+    } catch {/* user cancelled */}
   };
 
   return (
@@ -189,6 +190,7 @@ export default function PublicPage() {
           --btnNeutralBg:   #1f2937;
           --btnNeutralText: #ffffff;
           --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#66e0b9,#8ab4ff);
 
           --glyphBorder: #213a6b;
           --glyphText:   #eaf2ff;
@@ -211,6 +213,7 @@ export default function PublicPage() {
           --btnNeutralBg:   #1f2937;
           --btnNeutralText: #ffffff;
           --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#4dd0b5,#6aa9ff);
 
           --glyphBorder: #d4cfc3;
           --glyphText:   #1d2433;
@@ -494,4 +497,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-              }
+                                                                  }
