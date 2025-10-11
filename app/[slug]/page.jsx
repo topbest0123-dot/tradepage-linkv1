@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-// ---------- helpers ----------
+/* ---------------- helpers ---------------- */
 function normalizeSocial(type, raw) {
   const v = String(raw || '').trim();
   if (!v) return null;
@@ -18,29 +18,38 @@ function normalizeSocial(type, raw) {
     default:          return null;
   }
 }
+
 // Accept either a full URL or a path in the 'avatars' bucket
 const normalizeAvatarSrc = (value) => {
   const v = String(value || '').trim();
   if (!v) return null;
-  if (/^https?:\/\//i.test(v)) return v;
+  if (/^https?:\/\//i.test(v)) return v; // already a public URL
   const { data } = supabase.storage.from('avatars').getPublicUrl(v);
   return data?.publicUrl || null;
 };
 
-// ---- THEME: keys + normalization ----
-const DEFAULT_THEME = 'deep-navy';
-const THEMES = new Set([
-  'deep-navy','ivory-ink','sandstone','porcelain-mint','ocean-teal',
-  'sunset-peach','plum-noir','slate-sky','emerald-fog','charcoal-gold'
-]);
-const normalizeTheme = (v) =>
-  String(v || '')
+// Normalize any theme label to our canonical hyphen-case
+const normalizeTheme = (t) =>
+  String(t || '')
     .trim()
     .toLowerCase()
-    .replace(/[_\s]+/g, '-')         // spaces/underscores → hyphens
-    .replace(/[^a-z0-9-]/g, '');     // safety
+    .replace(/[\s_]+/g, '-');
 
-// ---------- design tokens via CSS vars ----------
+// Supported themes (10 total)
+const THEMES = new Set([
+  'deep-navy',
+  'porcelain-mint',
+  'sandstone',
+  'slate-sky',
+  'forest-green',
+  'amber-sunset',
+  'rose-quartz',
+  'ocean-blue',
+  'graphite',
+  'ivory-ink',
+]);
+
+/* -------- shared inline styles (use CSS vars for colors) -------- */
 const sectionStyle = {
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
@@ -81,19 +90,26 @@ function Card({ title, wide = false, className, children }) {
   );
 }
 
+const DEFAULT_THEME = 'deep-navy';
+
+/* ================================ */
+/*            COMPONENT             */
+/* ================================ */
 export default function PublicPage() {
   const { slug } = useParams();
   const [row, setRow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err,   setErr]     = useState(null);
 
-  // fetch profile (includes `theme`)
+  // fetch profile (includes theme + theme_text)
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    async function run() {
       setLoading(true);
       setErr(null);
       setRow(null);
+
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -102,7 +118,7 @@ export default function PublicPage() {
             facebook,instagram,tiktok,x,
             about,prices,areas,services,hours,other_info,
             avatar_path,avatar_url,
-            theme
+            theme, theme_text
           `)
           .eq('slug', String(slug || ''))
           .maybeSingle();
@@ -115,22 +131,24 @@ export default function PublicPage() {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    }
+
+    if (slug) run();
     return () => { cancelled = true; };
   }, [slug]);
 
-  // apply theme to html + body + local wrapper
+  // compute the actual theme key (use theme || theme_text, normalize, fall back to default)
   const themeKey = (() => {
-    const n = normalizeTheme(row?.theme || DEFAULT_THEME);
+    const raw = row?.theme ?? row?.theme_text ?? DEFAULT_THEME;
+    const n = normalizeTheme(raw);
     return THEMES.has(n) ? n : DEFAULT_THEME;
   })();
 
+  // apply theme to <html data-theme="...">
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', themeKey);
-    document.body.setAttribute('data-theme', themeKey);
     return () => {
       document.documentElement.removeAttribute('data-theme');
-      document.body.removeAttribute('data-theme');
     };
   }, [themeKey]);
 
@@ -178,160 +196,381 @@ export default function PublicPage() {
       } else {
         prompt('Copy this link:', shareData.url);
       }
-    } catch {/* ignore */}
+    } catch {/* user cancelled */}
   };
 
   return (
-    <div className="tp-root" data-theme={themeKey} style={{ ...pageWrapStyle }}>
-      {/* THEME TOKENS */}
+    <div style={pageWrapStyle}>
+      {/* THEME TOKENS — all 10 themes */}
       <style>{`
-        /* Base tokens (fallback) */
-        :root {
+        :root,
+        [data-theme="deep-navy"] {
           --bg: #0b1524;
           --text: #eaf2ff;
+
           --border: #183153;
           --cardGradStart: #0f213a;
           --cardGradEnd:   #0b1524;
+
           --chipBorder: #27406e;
           --chipBg:     #0c1a2e;
           --chipText:   #d1e1ff;
+
           --btnNeutralBg:   #1f2937;
           --btnNeutralText: #ffffff;
           --btnPrimaryText: #08101e;
           --btnPrimaryBg:   linear-gradient(135deg,#66e0b9,#8ab4ff);
+
           --glyphBorder: #213a6b;
           --glyphText:   #eaf2ff;
+
           --avatarBg: #0b1524;
         }
 
-        /* Helper: scope selector for tokens (html/body/local wrapper) */
-        /* Each theme defines variables; body bg/text are forced so the whole page flips like porcelain-mint */
-        .tp-root, html, body { background: var(--bg) !important; color: var(--text) !important; }
+        [data-theme="porcelain-mint"] {
+          --bg: #f5faf7;
+          --text: #18212f;
 
-        /* === THEMES === */
-        html[data-theme="deep-navy"], body[data-theme="deep-navy"], .tp-root[data-theme="deep-navy"] {
-          --bg:#0b1524; --text:#eaf2ff; --border:#183153;
-          --cardGradStart:#0f213a; --cardGradEnd:#0b1524;
-          --chipBorder:#27406e; --chipBg:#0c1a2e; --chipText:#d1e1ff;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#66e0b9,#8ab4ff);
-          --glyphBorder:#213a6b; --glyphText:#eaf2ff; --avatarBg:#0b1524;
+          --border: #cfe7de;
+          --cardGradStart: #ffffff;
+          --cardGradEnd:   #eef7f2;
+
+          --chipBorder: #c6e1d7;
+          --chipBg:     #f3fbf7;
+          --chipText:   #1f2b3a;
+
+          --btnNeutralBg:   #1f2937;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#53e6c0,#8dbdff);
+
+          --glyphBorder: #cfe7de;
+          --glyphText:   #18212f;
+
+          --avatarBg: #ffffff;
         }
 
-        html[data-theme="ivory-ink"], body[data-theme="ivory-ink"], .tp-root[data-theme="ivory-ink"] {
-          --bg:#f9f7f2; --text:#1d2433; --border:#e6e2d9;
-          --cardGradStart:#ffffff; --cardGradEnd:#f3efe7;
-          --chipBorder:#ddd6c8; --chipBg:#faf7f1; --chipText:#24324a;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#4dd0b5,#6aa9ff);
-          --glyphBorder:#d4cfc3; --glyphText:#1d2433; --avatarBg:#ffffff;
+        [data-theme="sandstone"] {
+          --bg: #f6f1ea;
+          --text: #1f2430;
+
+          --border: #e2d6c7;
+          --cardGradStart: #ffffff;
+          --cardGradEnd:   #f2e9de;
+
+          --chipBorder: #e2d6c7;
+          --chipBg:     #fbf6ee;
+          --chipText:   #273248;
+
+          --btnNeutralBg:   #303644;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#ffd47a,#ffaf8b);
+
+          --glyphBorder: #e2d6c7;
+          --glyphText:   #1f2430;
+
+          --avatarBg: #ffffff;
         }
 
-        html[data-theme="sandstone"], body[data-theme="sandstone"], .tp-root[data-theme="sandstone"] {
-          --bg:#171411; --text:#f7efe6; --border:#3a2f27;
-          --cardGradStart:#2a221c; --cardGradEnd:#1c1713;
-          --chipBorder:#4b3c32; --chipBg:#231c17; --chipText:#f1e7db;
-          --btnNeutralBg:#2a2622; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0d0a07; --btnPrimaryBg:linear-gradient(135deg,#f3c07a,#f0a16b);
-          --glyphBorder:#4b3c32; --glyphText:#f7efe6; --avatarBg:#221c17;
+        [data-theme="slate-sky"] {
+          --bg: #0f1623;
+          --text: #e7f0ff;
+
+          --border: #203052;
+          --cardGradStart: #121b2b;
+          --cardGradEnd:   #0f1623;
+
+          --chipBorder: #314569;
+          --chipBg:     #101b2e;
+          --chipText:   #d6e6ff;
+
+          --btnNeutralBg:   #273248;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#5ed0ff,#a6b4ff);
+
+          --glyphBorder: #203052;
+          --glyphText:   #e7f0ff;
+
+          --avatarBg: #0f1623;
         }
 
-        html[data-theme="porcelain-mint"], body[data-theme="porcelain-mint"], .tp-root[data-theme="porcelain-mint"] {
-          --bg:#f6fffb; --text:#0f1a15; --border:#cfeee3;
-          --cardGradStart:#ffffff; --cardGradEnd:#eef9f4;
-          --chipBorder:#c7eadf; --chipBg:#f2fcf8; --chipText:#153126;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0d1b14; --btnPrimaryBg:linear-gradient(135deg,#7de2c3,#6cc4ff);
-          --glyphBorder:#cfeee3; --glyphText:#0f1a15; --avatarBg:#ffffff;
+        [data-theme="forest-green"] {
+          --bg: #0f1a14;
+          --text: #e7ffee;
+
+          --border: #1e3b2e;
+          --cardGradStart: #14251d;
+          --cardGradEnd:   #0f1a14;
+
+          --chipBorder: #2a5b45;
+          --chipBg:     #0f2018;
+          --chipText:   #d6ffe5;
+
+          --btnNeutralBg:   #21302a;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#6af2a8,#a6ffcc);
+
+          --glyphBorder: #1e3b2e;
+          --glyphText:   #e7ffee;
+
+          --avatarBg: #0f1a14;
         }
 
-        html[data-theme="ocean-teal"], body[data-theme="ocean-teal"], .tp-root[data-theme="ocean-teal"] {
-          --bg:#0b1616; --text:#e8fffb; --border:#103a3a;
-          --cardGradStart:#0f2626; --cardGradEnd:#0b1616;
-          --chipBorder:#174b4b; --chipBg:#0c1b1b; --chipText:#d7fffb;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#031311; --btnPrimaryBg:linear-gradient(135deg,#68e0c2,#6fb8ff);
-          --glyphBorder:#184e4e; --glyphText:#e8fffb; --avatarBg:#0f2020;
+        [data-theme="amber-sunset"] {
+          --bg: #1e1410;
+          --text: #fff3e6;
+
+          --border: #4a2a1e;
+          --cardGradStart: #2a1a13;
+          --cardGradEnd:   #1e1410;
+
+          --chipBorder: #5a3525;
+          --chipBg:     #221711;
+          --chipText:   #ffe7cf;
+
+          --btnNeutralBg:   #2f2a26;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#ffbe70,#ff8870);
+
+          --glyphBorder: #4a2a1e;
+          --glyphText:   #fff3e6;
+
+          --avatarBg: #1e1410;
         }
 
-        html[data-theme="sunset-peach"], body[data-theme="sunset-peach"], .tp-root[data-theme="sunset-peach"] {
-          --bg:#fff7f2; --text:#241a18; --border:#f3d7cc;
-          --cardGradStart:#ffffff; --cardGradEnd:#fdebe3;
-          --chipBorder:#f0c9bc; --chipBg:#fff3ec; --chipText:#2a1f1d;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#2a110d; --btnPrimaryBg:linear-gradient(135deg,#ffb199,#ffa26b);
-          --glyphBorder:#efd2c7; --glyphText:#241a18; --avatarBg:#ffffff;
+        [data-theme="rose-quartz"] {
+          --bg: #faf6f7;
+          --text: #221d23;
+
+          --border: #eedbe0;
+          --cardGradStart: #ffffff;
+          --cardGradEnd:   #f6ecef;
+
+          --chipBorder: #e8d2da;
+          --chipBg:     #fcf5f7;
+          --chipText:   #2a2230;
+
+          --btnNeutralBg:   #2f2a33;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#ffb5d1,#b7b2ff);
+
+          --glyphBorder: #e8d2da;
+          --glyphText:   #221d23;
+
+          --avatarBg: #ffffff;
         }
 
-        html[data-theme="plum-noir"], body[data-theme="plum-noir"], .tp-root[data-theme="plum-noir"] {
-          --bg:#140b16; --text:#f3e9ff; --border:#2b1633;
-          --cardGradStart:#1d0f24; --cardGradEnd:#140b16;
-          --chipBorder:#3a1d45; --chipBg:#160b1a; --chipText:#efe4ff;
-          --btnNeutralBg:#2a2230; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#180b1d; --btnPrimaryBg:linear-gradient(135deg,#c48bff,#8ea0ff);
-          --glyphBorder:#3a1d45; --glyphText:#f3e9ff; --avatarBg:#1a0e1f;
+        [data-theme="ocean-blue"] {
+          --bg: #06131f;
+          --text: #e8f4ff;
+
+          --border: #16314a;
+          --cardGradStart: #0a1d2e;
+          --cardGradEnd:   #06131f;
+
+          --chipBorder: #234a6a;
+          --chipBg:     #0a1a28;
+          --chipText:   #d6ecff;
+
+          --btnNeutralBg:   #1e2a38;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#5ed0ff,#79ffe1);
+
+          --glyphBorder: #16314a;
+          --glyphText:   #e8f4ff;
+
+          --avatarBg: #06131f;
         }
 
-        html[data-theme="slate-sky"], body[data-theme="slate-sky"], .tp-root[data-theme="slate-sky"] {
-          --bg:#0f131a; --text:#e9f2ff; --border:#1e2a3a;
-          --cardGradStart:#142033; --cardGradEnd:#0f131a;
-          --chipBorder:#293a52; --chipBg:#0f1723; --chipText:#d5e6ff;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#09111a; --btnPrimaryBg:linear-gradient(135deg,#7fb4ff,#7ee0d3);
-          --glyphBorder:#263750; --glyphText:#e9f2ff; --avatarBg:#101724;
+        [data-theme="graphite"] {
+          --bg: #0f1115;
+          --text: #eef2ff;
+
+          --border: #232736;
+          --cardGradStart: #141722;
+          --cardGradEnd:   #0f1115;
+
+          --chipBorder: #2e3550;
+          --chipBg:     #121522;
+          --chipText:   #d9e1ff;
+
+          --btnNeutralBg:   #222632;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#8ab4ff,#66e0b9);
+
+          --glyphBorder: #232736;
+          --glyphText:   #eef2ff;
+
+          --avatarBg: #0f1115;
         }
 
-        html[data-theme="emerald-fog"], body[data-theme="emerald-fog"], .tp-root[data-theme="emerald-fog"] {
-          --bg:#f3fbf4; --text:#132018; --border:#cde7d2;
-          --cardGradStart:#ffffff; --cardGradEnd:#ebf6ee;
-          --chipBorder:#c3e1c8; --chipBg:#f2faf4; --chipText:#183222;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0d1510; --btnPrimaryBg:linear-gradient(135deg,#8de3b5,#7ad1b0);
-          --glyphBorder:#cde7d2; --glyphText:#132018; --avatarBg:#ffffff;
+        [data-theme="ivory-ink"] {
+          --bg: #f9f7f2;
+          --text: #1d2433;
+
+          --border: #e6e2d9;
+          --cardGradStart: #ffffff;
+          --cardGradEnd:   #f3efe7;
+
+          --chipBorder: #ddd6c8;
+          --chipBg:     #faf7f1;
+          --chipText:   #24324a;
+
+          --btnNeutralBg:   #1f2937;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+          --btnPrimaryBg:   linear-gradient(135deg,#4dd0b5,#6aa9ff);
+
+          --glyphBorder: #d4cfc3;
+          --glyphText:   #1d2433;
+
+          --avatarBg: #ffffff;
         }
 
-        html[data-theme="charcoal-gold"], body[data-theme="charcoal-gold"], .tp-root[data-theme="charcoal-gold"] {
-          --bg:#0f0f10; --text:#f8f6ed; --border:#2b2b2d;
-          --cardGradStart:#1a1a1c; --cardGradEnd:#0f0f10;
-          --chipBorder:#3a3a3d; --chipBg:#121213; --chipText:#f2f0e6;
-          --btnNeutralBg:#2a2a2e; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#1a1403; --btnPrimaryBg:linear-gradient(135deg,#f0d274,#f2b55e);
-          --glyphBorder:#3a3a3d; --glyphText:#f8f6ed; --avatarBg:#141416;
+        body { background: var(--bg); color: var(--text); }
+
+        /* ====== Layout (unchanged) ====== */
+        .tp-hero {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 12px;
+          align-items: start;
+          margin: 8px 0 6px;
         }
 
-        /* layout bits */
-        .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
-        .tp-header { display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:16px; border:1px solid var(--border); background:linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd)); margin-bottom:8px; }
+        .tp-header {
+          display:flex; flex-direction: column; gap:10px;
+          padding: 12px 14px;
+          border-radius: 16px;
+          border: 1px solid var(--border);
+          background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
+          margin-bottom: 8px;
+        }
+
         .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
         .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
         .tp-cta a, .tp-cta button { font-weight:700; }
-        .tp-avatar-inline{ width:56px; height:56px; border-radius:14px; border:1px solid var(--border); background:var(--avatarBg); object-fit:cover; margin-right:12px; flex:0 0 auto; }
-        .tp-avatar-inline.is-fallback{ display:inline-flex; align-items:center; justify-content:center; color:#63d3e0; font-weight:800; font-size:22px; }
-        @media (max-width:480px){ .tp-avatar-inline{ width:48px; height:48px; } }
-        .tp-social { display:flex; gap:10px; align-items:center; margin:8px 0 8px; }
-        .tp-social a{ width:36px; height:36px; border-radius:999px; border:1px solid var(--glyphBorder); background:transparent; color:var(--glyphText); display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
-        .tp-glyph { font-size:13px; font-weight:800; letter-spacing:.2px; }
 
-        .tp-grid { display:grid; grid-template-columns:1fr; gap:16px; margin-top:16px; }
-        @media (min-width:820px){ .tp-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } .tp-grid > .tp-gallery-card{ grid-column:1 / -1 !important; width:100%; } }
-        .tp-grid > section{ min-width:0; }
-        .tp-gallery{ display:grid; gap:16px; }
-        @media (min-width:820px){ .tp-gallery{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
-        @media (max-width:819.98px){ .tp-gallery{ grid-template-columns:1fr; gap:12px; } }
-        .tp-gallery .item{ height:220px; border-radius:14px; border:1px solid var(--chipBorder); background:var(--chipBg); overflow:hidden; }
-        .tp-gallery .item img{ width:100%; height:100%; object-fit:cover; border-radius:14px; }
-        .tp-chip{ padding:6px 12px; border-radius:999px; border:1px solid var(--chipBorder); background:var(--chipBg); color:var(--chipText); font-size:13px; }
+        .tp-avatar-inline{
+          width: 56px;
+          height: 56px;
+          border-radius: 14px;
+          border: 1px solid var(--border);
+          background: var(--avatarBg);
+          object-fit: cover;
+          margin-right: 12px;
+          flex: 0 0 auto;
+        }
+        .tp-avatar-inline.is-fallback{
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #63d3e0;
+          font-weight: 800;
+          font-size: 22px;
+        }
+        @media (max-width: 480px){
+          .tp-avatar-inline{ width: 48px; height: 48px; }
+        }
 
-        @media (max-width:768px){
-          .tp-hero{ margin-bottom:8px; }
-          .tp-header{ padding:12px 14px !important; }
-          .tp-head-top{ flex-direction:column; align-items:flex-start; gap:8px; }
-          .tp-head-titles{ display:grid; gap:2px; }
-          .tp-cta{ gap:8px; width:100%; }
-          .tp-cta .tp-btn{ flex:1 1 0; min-width:120px; padding:8px 14px; border-radius:12px; border:1px solid var(--border); text-align:center; font-weight:700; text-decoration:none; }
-          .tp-share{ display:block; width:100%; height:36px; margin-top:10px; border-radius:12px; border:1px solid var(--glyphBorder); background:transparent; color:var(--text); font-weight:700; }
-          .tp-cta-outside, .tp-share-outside{ display:none !important; }
-          .tp-social{ margin:8px 0 12px 0; }
+        .tp-social { display:flex; gap:10px; align-items:center; margin: 8px 0 8px; }
+        .tp-social a {
+          width: 36px; height: 36px; border-radius: 999px;
+          border: 1px solid var(--glyphBorder);
+          background: transparent; color: var(--glyphText);
+          display:inline-flex; align-items:center; justify-content:center;
+          text-decoration:none;
+        }
+        .tp-glyph { font-size: 13px; font-weight: 800; letter-spacing: .2px; }
+
+        .tp-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 16px;
+          margin-top: 16px;
+        }
+        @media (min-width: 820px) {
+          .tp-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+          .tp-grid > .tp-gallery-card { grid-column: 1 / -1 !important; width: 100%; }
+        }
+        .tp-grid > section { min-width: 0; }
+
+        .tp-gallery { display: grid; gap: 16px; }
+        @media (min-width: 820px) { .tp-gallery { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+        @media (max-width: 819.98px) { .tp-gallery { grid-template-columns: 1fr; gap: 12px; } }
+
+        .tp-gallery .item{
+          height: 220px;
+          border-radius: 14px;
+          border: 1px solid var(--chipBorder);
+          background: var(--chipBg);
+          overflow: hidden;
+        }
+        .tp-gallery .item img{
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 14px;
+        }
+
+        .tp-chip {
+          padding: 6px 12px;
+          border-radius: 999px;
+          border: 1px solid var(--chipBorder);
+          background: var(--chipBg);
+          color: var(--chipText);
+          font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+          .tp-hero { grid-template-columns: 1fr; gap: 12px; align-items: start; margin-bottom: 8px; }
+
+          .tp-avatar { width: 96px; height: 96px; margin: 0 auto; border-radius: 14px; overflow: hidden; transform: translateY(-6px); }
+          .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+          .tp-header {
+            padding: 12px 14px !important;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
+          }
+
+          .tp-head-top { flex-direction: column; align-items:flex-start; gap: 8px; }
+          .tp-head-titles { display:grid; gap:2px; }
+
+          .tp-cta { gap:8px; width:100%; }
+          .tp-cta .tp-btn {
+            flex: 1 1 0;
+            min-width: 120px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+            font-weight: 700;
+            text-decoration: none;
+          }
+
+          .tp-share {
+            display: block;
+            width: 100%;
+            height: 36px;
+            margin-top: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--glyphBorder);
+            background: transparent;
+            color: var(--text);
+            font-weight: 700;
+          }
+
+          .tp-cta-outside, .tp-share-outside { display: none !important; }
+          .tp-social { margin: 8px 0 12px 0; }
         }
       `}</style>
 
@@ -360,8 +599,16 @@ export default function PublicPage() {
                 </div>
 
                 <div className="tp-cta">
-                  {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
-                  {waHref && <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
+                  {callHref && (
+                    <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+                      Call
+                    </a>
+                  )}
+                  {waHref && (
+                    <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                      WhatsApp
+                    </a>
+                  )}
                 </div>
               </div>
 
@@ -376,6 +623,7 @@ export default function PublicPage() {
             </div>
           </div>
 
+          {/* Social icons */}
           {(fb || ig || tk || xx) && (
             <div className="tp-social">
               {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><span className="tp-glyph">f</span></a>}
@@ -387,6 +635,7 @@ export default function PublicPage() {
 
           {/* Cards grid */}
           <div className="tp-grid">
+            {/* About */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>About</h2>
               <p style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}>
@@ -394,36 +643,49 @@ export default function PublicPage() {
               </p>
             </div>
 
+            {/* Prices */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Prices</h2>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {priceLines.length === 0 ? <li style={{ opacity: 0.8 }}>Please ask for a quote.</li> : priceLines.map((ln, i) => <li key={i}>{ln}</li>)}
+                {priceLines.length === 0 ? (
+                  <li style={{ opacity: 0.8 }}>Please ask for a quote.</li>
+                ) : (
+                  priceLines.map((ln, i) => <li key={i}>{ln}</li>)
+                )}
               </ul>
             </div>
 
+            {/* Areas we cover */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Areas we cover</h2>
               {areas.length ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {areas.map((a, i) => (<span key={i} className="tp-chip">{a}</span>))}
                 </div>
-              ) : (<div style={{ opacity: 0.8 }}>No areas listed yet.</div>)}
+              ) : (
+                <div style={{ opacity: 0.8 }}>No areas listed yet.</div>
+              )}
             </div>
 
+            {/* Services */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Services</h2>
               {services.length ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {services.map((s, i) => (<span key={i} className="tp-chip">{s}</span>))}
                 </div>
-              ) : (<div style={{ opacity: 0.8 }}>No services listed yet.</div>)}
+              ) : (
+                <div style={{ opacity: 0.8 }}>No services listed yet.</div>
+              )}
             </div>
 
+            {/* Hours */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Hours</h2>
               <div style={{ opacity: 0.9 }}>{row?.hours || 'Mon–Sat 08:00–18:00'}</div>
             </div>
 
+            {/* Other useful information */}
             {(row?.other_info ?? '').trim() && (
               <div style={sectionStyle}>
                 <h2 style={h2Style}>Other useful information</h2>
@@ -431,12 +693,16 @@ export default function PublicPage() {
               </div>
             )}
 
+            {/* Gallery — span both columns */}
             <Card title="Gallery" className="tp-gallery-card" wide>
               <div className="tp-gallery">
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item">
-                  <img src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop" alt="work"/>
+                  <img
+                    src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
+                    alt="work"
+                  />
                 </div>
               </div>
             </Card>
@@ -445,4 +711,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-}
+  }
