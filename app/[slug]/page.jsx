@@ -18,6 +18,7 @@ function normalizeSocial(type, raw) {
     default:          return null;
   }
 }
+
 const normalizeAvatarSrc = (value) => {
   const v = String(value || '').trim();
   if (!v) return null;
@@ -33,6 +34,7 @@ const THEME_KEYS = [
   'cloud-blue','ivory-ink',
 ];
 const THEME_SET = new Set(THEME_KEYS);
+
 const ALIAS = {
   'midnight':'deep-navy','cocoa-bronze':'graphite-ember','cocoa bronze':'graphite-ember',
   'ivory-sand':'paper-snow','ivory sand':'paper-snow','glacier-mist':'cloud-blue','glacier mist':'cloud-blue',
@@ -40,6 +42,7 @@ const ALIAS = {
   'graphite ember':'graphite-ember','sapphire ice':'sapphire-ice','paper snow':'paper-snow',
   'linen rose':'linen-rose','cloud blue':'cloud-blue','ivory ink':'ivory-ink',
 };
+
 function normalizeThemeKey(raw) {
   const k = String(raw ?? '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
   if (THEME_SET.has(k)) return k;
@@ -146,7 +149,6 @@ export default function PublicPage() {
 
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
-  // single adaptive Share
   const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     try {
@@ -161,62 +163,57 @@ export default function PublicPage() {
       <style>{`
         html, body { background: var(--bg) !important; color: var(--text) !important; }
 
-        /* ONE Share button that adapts */
-        .tp-share-btn { display: none; } /* hidden by default */
-        @media (min-width: 769px) { .tp-share-btn { display: inline-flex; } }
+        /* Single Share button: inline on desktop, full-width on mobile */
+        .tp-share-inline { display: none; }
+        @media (min-width: 769px) {
+          .tp-share-inline { display: inline-flex; }
+        }
         @media (max-width: 768px) {
-          .tp-share-btn {
-            display: block; width: 100%; height: 36px; margin-top: 10px;
-            border-radius: 12px; border: 1px solid var(--glyphBorder);
-            background: transparent; color: var(--text);
-            font-weight: 700; text-align: center;
+          .tp-share-inline {
+            display: block;
+            width: 100%;
+            height: 36px;
+            margin-top: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--glyphBorder);
+            background: transparent;
+            color: var(--text);
+            font-weight: 700;
+            text-align: center;
           }
         }
 
-        /* ---------- HEADER LINKS CONTRAST ----------
-           Desktop: theme-aware pill buttons (like WhatsApp).
-           Mobile: revert to simple text-style links to avoid crowding/misalignment.
-        */
-        @media (min-width: 769px) {
-          header a, header button,
-          [class*="topbar"] a, [class*="topbar"] button,
-          [class*="header"] a, [class*="header"] button,
-          nav[class*="top"] a, nav[class*="top"] button,
-          a[href*="dashboard"], a[href^="/dashboard"],
-          button[id*="signout"], button[id*="sign-out"], button[id*="logout"],
-          button[name*="signout"], button[name*="sign-out"], button[name*="logout"],
-          button[data-action*="signout"], button[data-action*="sign-out"], button[data-action*="logout"] {
-            background: var(--btnNeutralBg) !important;
-            color: var(--btnNeutralText) !important;
-            border: 1px solid var(--border) !important;
-            padding: 10px 14px !important;
-            border-radius: 12px !important;
-            text-decoration: none !important;
-            line-height: 1 !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            gap: .35rem !important;
-            opacity: 1 !important;
-          }
-        }
-        @media (max-width: 768px) {
-          header a, header button,
-          [class*="topbar"] a, [class*="topbar"] button,
-          [class*="header"] a, [class*="header"] button,
-          nav[class*="top"] a, nav[class*="top"] button,
-          a[href*="dashboard"], a[href^="/dashboard"],
-          button[id*="signout"], button[id*="sign-out"], button[id*="logout"],
-          button[name*="signout"], button[name*="sign-out"], button[name*="logout"],
-          button[data-action*="signout"], button[data-action*="sign-out"], button[data-action*="logout"] {
-            background: transparent !important;
-            color: var(--text) !important;
-            border: none !important;
-            padding: 0 6px !important;
-            border-radius: 8px !important;
-            text-decoration: none !important;
-            line-height: 1.2 !important;
-            opacity: .9 !important;
-          }
+        /* Top bar buttons use neutral CTA tokens for contrast */
+        header a,
+        header button,
+        [class*="topbar"] a,
+        [class*="topbar"] button,
+        [class*="header"] a,
+        [class*="header"] button,
+        nav[class*="top"] a,
+        nav[class*="top"] button,
+        a[href*="dashboard"],
+        a[href^="/dashboard"],
+        button[id*="signout"],
+        button[id*="sign-out"],
+        button[id*="logout"],
+        button[name*="signout"],
+        button[name*="sign-out"],
+        button[name*="logout"],
+        button[data-action*="signout"],
+        button[data-action*="sign-out"],
+        button[data-action*="logout"] {
+          background: var(--btnNeutralBg) !important;
+          color: var(--btnNeutralText) !important;
+          border: 1px solid var(--border) !important;
+          padding: 10px 14px !important;
+          border-radius: 12px !important;
+          text-decoration: none !important;
+          line-height: 1 !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: .35rem !important;
+          opacity: 1 !important;
         }
 
         /* ===== Theme tokens (unchanged) ===== */
@@ -317,7 +314,7 @@ export default function PublicPage() {
           --glyphBorder:#e7e2d6; --glyphText:#101112; --avatarBg:#ffffff;
         }
 
-        /* layout */
+        /* layout (unchanged) */
         .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
         .tp-header { display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:16px; border:1px solid var(--border); background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd)); margin-bottom:8px; }
         .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
@@ -373,7 +370,7 @@ export default function PublicPage() {
                   {waHref  && <a href={waHref}  className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
                   <button
                     type="button"
-                    className="tp-share-btn tp-btn"
+                    className="tp-share-inline tp-btn"
                     onClick={handleShare}
                     style={{ ...btnBaseStyle, ...btnNeutralStyle }}
                   >
@@ -384,6 +381,7 @@ export default function PublicPage() {
             </div>
           </div>
 
+          {/* Social icons */}
           {(fb || ig || tk || xx) && (
             <div className="tp-social">
               {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><span className="tp-glyph">f</span></a>}
@@ -453,4 +451,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-                         }
+    }
