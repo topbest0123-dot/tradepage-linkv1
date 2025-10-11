@@ -169,18 +169,28 @@ export default function PublicPage() {
           .tp-share-inline { display: inline-flex; }
         }
 
-        /* ===== FINAL OVERRIDE FOR TOP-RIGHT HEADER LINKS =====
-           Match ANY anchor or button whose HREF contains dashboard/signout/sign-out/logout,
-           regardless of where it lives. Uses the same tokens as the neutral CTA. */
+        /* ==== Top bar harmonization (Dashboard / Sign out) ====
+           Covers typical header/topbar/nav containers and generic logout buttons.
+           Applies neutral CTA tokens (same as WhatsApp) for guaranteed contrast. */
+        header a,
+        header button,
+        [class*="topbar"] a,
+        [class*="topbar"] button,
+        [class*="header"] a,
+        [class*="header"] button,
+        nav[class*="top"] a,
+        nav[class*="top"] button,
         a[href*="dashboard"],
-        a[href*="/dashboard"],
-        button[href*="dashboard"],
-        a[href*="signout"],
-        a[href*="sign-out"],
-        a[href*="logout"],
-        button[href*="signout"],
-        button[href*="sign-out"],
-        button[href*="logout"] {
+        a[href^="/dashboard"],
+        button[id*="signout"],
+        button[id*="sign-out"],
+        button[id*="logout"],
+        button[name*="signout"],
+        button[name*="sign-out"],
+        button[name*="logout"],
+        button[data-action*="signout"],
+        button[data-action*="sign-out"],
+        button[data-action*="logout"] {
           background: var(--btnNeutralBg) !important;
           color: var(--btnNeutralText) !important;
           border: 1px solid var(--border) !important;
@@ -192,16 +202,11 @@ export default function PublicPage() {
           align-items: center !important;
           gap: .35rem !important;
           opacity: 1 !important;
-          box-shadow: 0 0 0 0 rgba(0,0,0,0); /* keep subtle */
         }
-        a[href*="dashboard"]:hover,
-        a[href*="signout"]:hover,
-        a[href*="sign-out"]:hover,
-        a[href*="logout"]:hover,
-        button[href*="dashboard"]:hover,
-        button[href*="signout"]:hover,
-        button[href*="sign-out"]:hover,
-        button[href*="logout"]:hover {
+        header a:hover, header button:hover,
+        [class*="topbar"] a:hover, [class*="topbar"] button:hover,
+        [class*="header"] a:hover, [class*="header"] button:hover,
+        nav[class*="top"] a:hover, nav[class*="top"] button:hover {
           filter: brightness(1.06);
         }
 
