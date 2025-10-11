@@ -4,440 +4,298 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-// ---------- helpers ----------
-function normalizeSocial(type, raw) {
+/* ---------- helpers ---------- */
+const toList = (v) => String(v ?? '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
+const publicUrlFor = (p) => (p ? supabase.storage.from('avatars').getPublicUrl(p).data.publicUrl : null);
+const normalizeSocial = (t, raw) => {
   const v = String(raw || '').trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v;
   const h = v.replace(/^@/, '');
-  switch (type) {
-    case 'facebook':  return `https://facebook.com/${h}`;
-    case 'instagram': return `https://instagram.com/${h}`;
-    case 'tiktok':    return `https://www.tiktok.com/@${h}`;
-    case 'x':         return `https://x.com/${h}`;
-    default:          return null;
-  }
+  return t === 'facebook'  ? `https://facebook.com/${h}` :
+         t === 'instagram' ? `https://instagram.com/${h}` :
+         t === 'tiktok'    ? `https://www.tiktok.com/@${h}` :
+         t === 'x'         ? `https://x.com/${h}` : null;
+};
+
+/* ---------- themes ---------- */
+const THEMES = {
+  // dark
+  'deep-navy':      {'--bg':'#0a0f14','--text':'#eaf2ff','--muted':'#b8ccff','--border':'#183153','--card-bg-1':'#0f213a','--card-bg-2':'#0b1524','--chip-bg':'#0c1a2e','--chip-border':'#27406e','--btn-primary-1':'#66e0b9','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#1f2937','--social-border':'#213a6b'},
+  'midnight-teal':  {'--bg':'#071417','--text':'#e9fbff','--muted':'#c0e9f2','--border':'#15444a','--card-bg-1':'#0b2a31','--card-bg-2':'#0a1e24','--chip-bg':'#0a2227','--chip-border':'#1e5660','--btn-primary-1':'#51e1c2','--btn-primary-2':'#6db7ff','--btn-neutral-bg':'#122026','--social-border':'#214e56'},
+  'royal-purple':   {'--bg':'#0c0714','--text':'#f0e9ff','--muted':'#d7c9ff','--border':'#3b2b6a','--card-bg-1':'#1b1340','--card-bg-2':'#120e2b','--chip-bg':'#160f33','--chip-border':'#463487','--btn-primary-1':'#8f7bff','--btn-primary-2':'#c48bff','--btn-neutral-bg':'#221a3d','--social-border':'#3d2f72'},
+  'graphite-ember': {'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'},
+  'sapphire-ice':   {'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#081827','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'},
+  'forest-emerald': {'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'},
+  // light
+  'paper-snow':     {'--bg':'#ffffff','--text':'#121417','--muted':'#5b6777','--border':'#e5e7ea','--card-bg-1':'#ffffff','--card-bg-2':'#f7f9fb','--chip-bg':'#f3f5f7','--chip-border':'#e5e7ea','--btn-primary-1':'#3b82f6','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#eef2f6','--social-border':'#dfe3e8'},
+  'porcelain-mint': {'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'},
+  'linen-rose':     {'--bg':'#fbf7f5','--text':'#221a16','--muted':'#6d5c54','--border':'#eaded7','--card-bg-1':'#ffffff','--card-bg-2':'#f6efeb','--chip-bg':'#f2eae6','--chip-border':'#eaded7','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#efe7e3','--social-border':'#e6d9d1'},
+  'sandstone':      {'--bg':'#faf7f1','--text':'#191714','--muted':'#6f675f','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6f1e7','--chip-bg':'#f2ece1','--chip-border':'#eadfcd','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#efe9df','--social-border':'#e6dac7'},
+  'cloud-blue':     {'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'},
+  'ivory-ink':      {'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'},
+};
+
+/* accept friendly names from the dashboard too */
+const ALIAS = {
+  'midnight': 'deep-navy',
+  'cocoa-bronze': 'graphite-ember',
+  'cocoa bronze': 'graphite-ember',
+  'ivory-sand': 'paper-snow',
+  'ivory sand': 'paper-snow',
+  'glacier-mist': 'cloud-blue',
+  'glacier mist': 'cloud-blue',
+};
+
+const normalizeThemeKey = (raw) => {
+  const k = String(raw || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  if (THEMES[k]) return k;
+  if (ALIAS[k]) return ALIAS[k];
+  return 'deep-navy';
+};
+
+const applyTheme = (key) => {
+  const vars = THEMES[key] || THEMES['deep-navy'];
+  const r = document.documentElement;
+  for (const [cssVar, val] of Object.entries(vars)) r.style.setProperty(cssVar, val);
+};
+
+/* make a tel: href from phone or whatsapp */
+const getDialHref = (profile) => {
+  const raw =
+    profile?.phone ??
+    profile?.phone_number ??
+    profile?.tel ??
+    profile?.whatsapp ??
+    '';
+  const cleaned = String(raw).replace(/[^\d+]/g, ''); // keep + and digits only
+  const digits = cleaned.replace(/\D/g, '');
+  return digits.length >= 6 ? `tel:${cleaned}` : null;
+};
+
+/* ---------- page ---------- */
+export default function PublicPage() {
+  const { slug } = useParams();
+  const [p, setP] = useState(null);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('slug,name,trade,city,phone,phone_number,tel,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme')
+        .ilike('slug', slug)
+        .maybeSingle();
+
+      if (error) console.error(error);
+      if (!data) setNotFound(true);
+      else setP(data);
+    };
+    load();
+  }, [slug]);
+
+  // apply theme when data arrives
+  useEffect(() => {
+    if (p?.theme !== undefined) applyTheme(normalizeThemeKey(p.theme));
+  }, [p?.theme]);
+
+  if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
+  if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
+
+  const areas = useMemo(() => toList(p?.areas), [p]);
+  const services = useMemo(() => toList(p?.services), [p]);
+  const priceLines = useMemo(
+    () => String(p?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
+    [p]
+  );
+
+  const callHref = getDialHref(p);
+  const waHref = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
+  const avatarUrl = publicUrlFor(p?.avatar_path);
+
+  const fb = normalizeSocial('facebook',  p?.facebook);
+  const ig = normalizeSocial('instagram', p?.instagram);
+  const tk = normalizeSocial('tiktok',    p?.tiktok);
+  const xx = normalizeSocial('x',         p?.x);
+
+  const handleShare = () => {
+    const url = window.location.href;
+    const title = document.title || 'TradePage';
+    if (navigator.share) navigator.share({ title, url }).catch(() => {});
+    else {
+      try {
+        navigator.clipboard.writeText(url).then(
+          () => alert('Link copied to clipboard'),
+          () => window.prompt('Copy this link:', url)
+        );
+      } catch {
+        window.prompt('Copy this link:', url);
+      }
+    }
+  };
+
+  return (
+    <div style={pageWrapStyle}>
+      {/* make sure background & text follow the theme even if layout.jsx is old */}
+      <style>{`
+        :root { background: var(--bg); color: var(--text); }
+        html,body { background: var(--bg); color: var(--text); }
+        @media (max-width:480px){
+          .hdr-name{ font-size:16px; line-height:20px; }
+          .hdr-sub{ font-size:12px; }
+          .hdr-cta a, .hdr-cta button{ padding:6px 10px; border-radius:10px; font-size:12px; }
+          .hdr-cta{ gap:8px; }
+        }
+      `}</style>
+
+      {/* HEADER */}
+      <div style={headerCardStyle}>
+        <div style={headerLeftStyle}>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={`${p.name || p.slug} logo`}
+              style={{
+                width: 48, height: 48, borderRadius: 14, objectFit: 'cover',
+                border: '1px solid var(--border)', background: 'var(--card-bg-2)',
+              }}
+            />
+          ) : (
+            <div style={logoDotStyle}>★</div>
+          )}
+          <div>
+            <div className="hdr-name" style={headerNameStyle}>{p.name || p.slug}</div>
+            <div className="hdr-sub"  style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
+          </div>
+        </div>
+
+        <div className="hdr-cta" style={ctaRowStyle}>
+          {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
+          {waHref &&  <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
+          <button type="button" onClick={handleShare}
+            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}>
+            Share
+          </button>
+        </div>
+      </div>
+
+      {/* SOCIAL */}
+      {(fb || ig || tk || xx) && (
+        <div style={socialBarWrapStyle}>
+          {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}><span style={socialGlyphStyle}>f</span></a>}
+          {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}><span style={socialGlyphStyle}>IG</span></a>}
+          {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={socialBtnStyle}><span style={socialGlyphStyle}>t</span></a>}
+          {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}><span style={socialGlyphStyle}>X</span></a>}
+        </div>
+      )}
+
+      {/* GRID */}
+      <div style={grid2Style}>
+        <Card title="About">
+          <p style={bodyP}>
+            {p.about && p.about.trim().length > 0
+              ? p.about
+              : (services[0]
+                  ? `${services[0]}. Reliable, friendly and affordable. Free quotes, no hidden fees.`
+                  : 'Reliable, friendly and affordable. Free quotes, no hidden fees.')}
+          </p>
+        </Card>
+
+        <Card title="Prices">
+          <ul style={listResetStyle}>
+            {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
+            {priceLines.map((ln, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <span>{ln}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card title="Areas we cover">
+          {areas.length > 0 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {areas.map((a, i) => (<span key={i} style={chipStyle}>{a}</span>))}
+            </div>
+          ) : (<div style={{ opacity: 0.7 }}>No areas listed yet.</div>)}
+        </Card>
+
+        <Card title="Services">
+          {services.length > 0 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {services.map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
+            </div>
+          ) : (<div style={{ opacity: 0.7 }}>No services listed yet.</div>)}
+        </Card>
+
+        <Card title="Hours"><div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div></Card>
+
+        {p.other_info && p.other_info.trim().length > 0 && (
+          <Card title="Other useful information" wide>
+            <p style={{ ...bodyP, opacity: 0.95 }}>{p.other_info}</p>
+          </Card>
+        )}
+
+        <Card title="Gallery" wide>
+          <div style={galleryGridStyle}>
+            <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
+            <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
+            <div style={galleryItemStyle}>
+              <img
+                src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
+                alt="work"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
 }
 
-// Accept either a full URL or a path in the 'avatars' bucket
-const normalizeAvatarSrc = (value) => {
-  const v = String(value || '').trim();
-  if (!v) return null;
-  if (/^https?:\/\//i.test(v)) return v;
-  const { data } = supabase.storage.from('avatars').getPublicUrl(v);
-  return data?.publicUrl || null;
-};
-
-// ---------- styles using CSS variables ----------
-const sectionStyle = {
-  border: '1px solid var(--border)',
-  background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
-  borderRadius: 12,
-  padding: 14,
-  maxWidth: 720,
-  marginTop: 14,
-};
-const h2Style = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
-
-const pageWrapStyle = {
-  maxWidth: 980,
-  margin: '28px auto',
-  padding: '0 16px 48px',
-  color: 'var(--text)',
-  overflowX: 'hidden',
-};
-
-const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
-
-const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
-const btnPrimaryStyle = { background: 'var(--btnPrimaryBg)', color: 'var(--btnPrimaryText)' };
-const btnNeutralStyle = { background: 'var(--btnNeutralBg)', color: 'var(--btnNeutralText)' };
-
-const imgPlaceholderStyle = {
-  width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
-};
-
-// Card wrapper
-function Card({ title, wide = false, className, children }) {
+/* ---------- components & styles ---------- */
+function Card({ title, wide=false, children }) {
   return (
-    <section className={className} style={{ ...sectionStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
+    <section style={{ ...cardStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
       {title && <h2 style={h2Style}>{title}</h2>}
       {children}
     </section>
   );
 }
 
-const DEFAULT_THEME = 'deep-navy';
+const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
 
-// Optional: keep a whitelist to avoid typos breaking themes
-const THEMES = new Set([
-  'deep-navy','ivory-ink','sandstone','porcelain-mint','ocean-teal',
-  'sunset-peach','plum-noir','slate-sky','emerald-fog','charcoal-gold'
-]);
+const headerCardStyle = {
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+  gap: 16, padding: '16px 18px', borderRadius: 16,
+  border: '1px solid var(--border)',
+  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
+  marginBottom: 12,
+};
+const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
+const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
+const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
+const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
 
-export default function PublicPage() {
-  const { slug } = useParams();
-  const [row, setRow] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState(null);
+const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
+const socialBtnStyle = { width: 36, height: 36, borderRadius: 999, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', outline: 'none' };
+const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0' };
 
-  // fetch profile (includes theme)
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setErr(null);
-      setRow(null);
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select(`
-            slug,name,trade,city,phone,whatsapp,
-            facebook,instagram,tiktok,x,
-            about,prices,areas,services,hours,other_info,
-            avatar_path,avatar_url,
-            theme
-          `)
-          .eq('slug', String(slug || ''))
-          .maybeSingle();
-        if (cancelled) return;
-        if (error) setErr(error.message);
-        else setRow(data);
-      } catch (e) {
-        if (!cancelled) setErr(String(e?.message || e));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [slug]);
+const btnBaseStyle = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
+const btnPrimaryStyle = { background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color: '#08101e', border: '1px solid var(--border)' };
+const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--text)' };
 
-  // apply theme to html + body
-  useEffect(() => {
-    const raw = (row?.theme || DEFAULT_THEME).trim();
-    const theme = THEMES.has(raw) ? raw : DEFAULT_THEME;
-    document.documentElement.setAttribute('data-theme', theme);
-    document.body.setAttribute('data-theme', theme);
-    return () => {
-      document.documentElement.removeAttribute('data-theme');
-      document.body.removeAttribute('data-theme');
-    };
-  }, [row?.theme]);
+const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
+const cardStyle = { padding: 16, borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', minWidth: 0 };
 
-  // links
-  const callHref = row?.phone ? `tel:${String(row.phone).replace(/\s+/g, '')}` : null;
-  const waHref  = row?.whatsapp ? `https://wa.me/${String(row.whatsapp).replace(/\D/g, '')}` : null;
+const grid2Style = { display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginTop: 16 };
+const bodyP = { marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 };
 
-  const fb = normalizeSocial('facebook',  row?.facebook);
-  const ig = normalizeSocial('instagram', row?.instagram);
-  const tk = normalizeSocial('tiktok',    row?.tiktok);
-  const xx = normalizeSocial('x',         row?.x);
+const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)', fontSize: 13 };
+const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
-  // pricing lines
-  const priceLines = useMemo(
-    () => String(row?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
-    [row]
-  );
-
-  // tags
-  const areas = String(row?.areas || '').split(/[,\n]+/).map(s=>s.trim()).filter(Boolean);
-  const services = String(row?.services || '').split(/[,\n]+/).map(s=>s.trim()).filter(Boolean);
-
-  const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
-
-  const handleShare = async () => {
-    const shareData = {
-      title: row?.name || row?.slug || 'Profile',
-      text: `Check out ${row?.name || row?.slug}`,
-      url: typeof window !== 'undefined' ? window.location.href : '',
-    };
-    try {
-      if (navigator.share) await navigator.share(shareData);
-      else if (navigator.clipboard) { await navigator.clipboard.writeText(shareData.url); alert('Link copied to clipboard!'); }
-      else { prompt('Copy this link:', shareData.url); }
-    } catch {}
-  };
-
-  return (
-    <div style={pageWrapStyle}>
-      <style>{`
-        /* Base tokens (fallback to deep-navy) */
-        :root {
-          --bg: #0b1524;
-          --text: #eaf2ff;
-          --border: #183153;
-          --cardGradStart: #0f213a;
-          --cardGradEnd:   #0b1524;
-          --chipBorder: #27406e;
-          --chipBg:     #0c1a2e;
-          --chipText:   #d1e1ff;
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#66e0b9,#8ab4ff);
-          --glyphBorder: #213a6b;
-          --glyphText:   #eaf2ff;
-          --avatarBg: #0b1524;
-        }
-
-        /* Theme blocks — scoped to html/body so either attribute works */
-        html[data-theme="deep-navy"], body[data-theme="deep-navy"] {
-          --bg:#0b1524; --text:#eaf2ff; --border:#183153;
-          --cardGradStart:#0f213a; --cardGradEnd:#0b1524;
-          --chipBorder:#27406e; --chipBg:#0c1a2e; --chipText:#d1e1ff;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#66e0b9,#8ab4ff);
-          --glyphBorder:#213a6b; --glyphText:#eaf2ff; --avatarBg:#0b1524;
-        }
-
-        html[data-theme="ivory-ink"], body[data-theme="ivory-ink"] {
-          --bg:#f9f7f2; --text:#1d2433; --border:#e6e2d9;
-          --cardGradStart:#ffffff; --cardGradEnd:#f3efe7;
-          --chipBorder:#ddd6c8; --chipBg:#faf7f1; --chipText:#24324a;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#4dd0b5,#6aa9ff);
-          --glyphBorder:#d4cfc3; --glyphText:#1d2433; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="sandstone"], body[data-theme="sandstone"] {
-          --bg:#171411; --text:#f7efe6; --border:#3a2f27;
-          --cardGradStart:#2a221c; --cardGradEnd:#1c1713;
-          --chipBorder:#4b3c32; --chipBg:#231c17; --chipText:#f1e7db;
-          --btnNeutralBg:#2a2622; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0d0a07; --btnPrimaryBg:linear-gradient(135deg,#f3c07a,#f0a16b);
-          --glyphBorder:#4b3c32; --glyphText:#f7efe6; --avatarBg:#221c17;
-        }
-
-        html[data-theme="porcelain-mint"], body[data-theme="porcelain-mint"] {
-          --bg:#f6fffb; --text:#0f1a15; --border:#cfeee3;
-          --cardGradStart:#ffffff; --cardGradEnd:#eef9f4;
-          --chipBorder:#c7eadf; --chipBg:#f2fcf8; --chipText:#153126;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0d1b14; --btnPrimaryBg:linear-gradient(135deg,#7de2c3,#6cc4ff);
-          --glyphBorder:#cfeee3; --glyphText:#0f1a15; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="ocean-teal"], body[data-theme="ocean-teal"] {
-          --bg:#0b1616; --text:#e8fffb; --border:#103a3a;
-          --cardGradStart:#0f2626; --cardGradEnd:#0b1616;
-          --chipBorder:#174b4b; --chipBg:#0c1b1b; --chipText:#d7fffb;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#031311; --btnPrimaryBg:linear-gradient(135deg,#68e0c2,#6fb8ff);
-          --glyphBorder:#184e4e; --glyphText:#e8fffb; --avatarBg:#0f2020;
-        }
-
-        html[data-theme="sunset-peach"], body[data-theme="sunset-peach"] {
-          --bg:#fff7f2; --text:#241a18; --border:#f3d7cc;
-          --cardGradStart:#ffffff; --cardGradEnd:#fdebe3;
-          --chipBorder:#f0c9bc; --chipBg:#fff3ec; --chipText:#2a1f1d;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#2a110d; --btnPrimaryBg:linear-gradient(135deg,#ffb199,#ffa26b);
-          --glyphBorder:#efd2c7; --glyphText:#241a18; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="plum-noir"], body[data-theme="plum-noir"] {
-          --bg:#140b16; --text:#f3e9ff; --border:#2b1633;
-          --cardGradStart:#1d0f24; --cardGradEnd:#140b16;
-          --chipBorder:#3a1d45; --chipBg:#160b1a; --chipText:#efe4ff;
-          --btnNeutralBg:#2a2230; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#180b1d; --btnPrimaryBg:linear-gradient(135deg,#c48bff,#8ea0ff);
-          --glyphBorder:#3a1d45; --glyphText:#f3e9ff; --avatarBg:#1a0e1f;
-        }
-
-        html[data-theme="slate-sky"], body[data-theme="slate-sky"] {
-          --bg:#0f131a; --text:#e9f2ff; --border:#1e2a3a;
-          --cardGradStart:#142033; --cardGradEnd:#0f131a;
-          --chipBorder:#293a52; --chipBg:#0f1723; --chipText:#d5e6ff;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#09111a; --btnPrimaryBg:linear-gradient(135deg,#7fb4ff,#7ee0d3);
-          --glyphBorder:#263750; --glyphText:#e9f2ff; --avatarBg:#101724;
-        }
-
-        html[data-theme="emerald-fog"], body[data-theme="emerald-fog"] {
-          --bg:#f3fbf4; --text:#132018; --border:#cde7d2;
-          --cardGradStart:#ffffff; --cardGradEnd:#ebf6ee;
-          --chipBorder:#c3e1c8; --chipBg:#f2faf4; --chipText:#183222;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0d1510; --btnPrimaryBg:linear-gradient(135deg,#8de3b5,#7ad1b0);
-          --glyphBorder:#cde7d2; --glyphText:#132018; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="charcoal-gold"], body[data-theme="charcoal-gold"] {
-          --bg:#0f0f10; --text:#f8f6ed; --border:#2b2b2d;
-          --cardGradStart:#1a1a1c; --cardGradEnd:#0f0f10;
-          --chipBorder:#3a3a3d; --chipBg:#121213; --chipText:#f2f0e6;
-          --btnNeutralBg:#2a2a2e; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#1a1403; --btnPrimaryBg:linear-gradient(135deg,#f0d274,#f2b55e);
-          --glyphBorder:#3a3a3d; --glyphText:#f8f6ed; --avatarBg:#141416;
-        }
-
-        /* Force page base colors to win */
-        body { background: var(--bg) !important; color: var(--text) !important; }
-
-        .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
-        .tp-header {
-          display:flex; flex-direction:column; gap:10px; padding:12px 14px;
-          border-radius:16px; border:1px solid var(--border);
-          background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
-          margin-bottom:8px;
-        }
-        .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
-        .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
-        .tp-cta a, .tp-cta button { font-weight:700; }
-
-        .tp-avatar-inline{
-          width:56px; height:56px; border-radius:14px; border:1px solid var(--border);
-          background:var(--avatarBg); object-fit:cover; margin-right:12px; flex:0 0 auto;
-        }
-        .tp-avatar-inline.is-fallback{ display:inline-flex; align-items:center; justify-content:center; color:#63d3e0; font-weight:800; font-size:22px; }
-        @media (max-width:480px){ .tp-avatar-inline{ width:48px; height:48px; } }
-
-        .tp-social { display:flex; gap:10px; align-items:center; margin:8px 0 8px; }
-        .tp-social a{
-          width:36px; height:36px; border-radius:999px; border:1px solid var(--glyphBorder);
-          background:transparent; color:var(--glyphText); display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
-        }
-        .tp-glyph { font-size:13px; font-weight:800; letter-spacing:.2px; }
-
-        .tp-grid { display:grid; grid-template-columns:1fr; gap:16px; margin-top:16px; }
-        @media (min-width:820px){
-          .tp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-          .tp-grid > .tp-gallery-card { grid-column:1 / -1 !important; width:100%; }
-        }
-        .tp-grid > section { min-width:0; }
-
-        .tp-gallery { display:grid; gap:16px; }
-        @media (min-width:820px){ .tp-gallery { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-        @media (max-width:819.98px){ .tp-gallery { grid-template-columns:1fr; gap:12px; } }
-
-        .tp-gallery .item{
-          height:220px; border-radius:14px; border:1px solid var(--chipBorder); background:var(--chipBg); overflow:hidden;
-        }
-        .tp-gallery .item img{ width:100%; height:100%; object-fit:cover; border-radius:14px; }
-
-        .tp-chip{
-          padding:6px 12px; border-radius:999px; border:1px solid var(--chipBorder);
-          background:var(--chipBg); color:var(--chipText); font-size:13px;
-        }
-
-        @media (max-width:768px){
-          .tp-hero{ grid-template-columns:1fr; gap:12px; align-items:start; margin-bottom:8px; }
-          .tp-header{ padding:12px 14px !important; }
-          .tp-head-top{ flex-direction:column; align-items:flex-start; gap:8px; }
-          .tp-head-titles{ display:grid; gap:2px; }
-          .tp-cta{ gap:8px; width:100%; }
-          .tp-cta .tp-btn{ flex:1 1 0; min-width:120px; padding:8px 14px; border-radius:12px; border:1px solid var(--border); text-align:center; font-weight:700; text-decoration:none; }
-          .tp-share{ display:block; width:100%; height:36px; margin-top:10px; border-radius:12px; border:1px solid var(--glyphBorder); background:transparent; color:var(--text); font-weight:700; }
-          .tp-cta-outside, .tp-share-outside{ display:none !important; }
-          .tp-social{ margin:8px 0 12px 0; }
-        }
-      `}</style>
-
-      {loading && <div style={{ opacity: 0.7 }}>Loading…</div>}
-      {err && <div style={{ color: '#f88' }}>Error: {err}</div>}
-      {!loading && !err && !row && <div>No profile found.</div>}
-
-      {row && (
-        <>
-          {/* HERO */}
-          <div className="tp-hero">
-            <div className="tp-header">
-              <div className="tp-head-top">
-                <div style={headerLeftStyle}>
-                  {avatarSrc ? (
-                    <img src={avatarSrc} alt={`${row.name || row.slug} logo`} className="tp-avatar-inline" loading="lazy" />
-                  ) : (
-                    <div className="tp-avatar-inline is-fallback">★</div>
-                  )}
-                  <div className="tp-head-titles">
-                    <div style={headerNameStyle}>{row.name || row.slug}</div>
-                    <div style={headerSubStyle}>
-                      {[row.trade, row.city].filter(Boolean).join(' • ')}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="tp-cta">
-                  {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
-                  {waHref && <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-                </div>
-              </div>
-
-              <button type="button" className="tp-share" onClick={handleShare} style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}>
-                Share
-              </button>
-            </div>
-          </div>
-
-          {(fb || ig || tk || xx) && (
-            <div className="tp-social">
-              {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><span className="tp-glyph">f</span></a>}
-              {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram"><span className="tp-glyph">IG</span></a>}
-              {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok"><span className="tp-glyph">t</span></a>}
-              {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)"><span className="tp-glyph">X</span></a>}
-            </div>
-          )}
-
-          {/* Cards grid */}
-          <div className="tp-grid">
-            <div style={sectionStyle}>
-              <h2 style={h2Style}>About</h2>
-              <p style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}>
-                {row?.about?.trim() ? row.about : 'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
-              </p>
-            </div>
-
-            <div style={sectionStyle}>
-              <h2 style={h2Style}>Prices</h2>
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {priceLines.length === 0 ? <li style={{ opacity: 0.8 }}>Please ask for a quote.</li> : priceLines.map((ln, i) => <li key={i}>{ln}</li>)}
-              </ul>
-            </div>
-
-            <div style={sectionStyle}>
-              <h2 style={h2Style}>Areas we cover</h2>
-              {areas.length ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {areas.map((a, i) => (<span key={i} className="tp-chip">{a}</span>))}
-                </div>
-              ) : (<div style={{ opacity: 0.8 }}>No areas listed yet.</div>)}
-            </div>
-
-            <div style={sectionStyle}>
-              <h2 style={h2Style}>Services</h2>
-              {services.length ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {services.map((s, i) => (<span key={i} className="tp-chip">{s}</span>))}
-                </div>
-              ) : (<div style={{ opacity: 0.8 }}>No services listed yet.</div>)}
-            </div>
-
-            <div style={sectionStyle}>
-              <h2 style={h2Style}>Hours</h2>
-              <div style={{ opacity: 0.9 }}>{row?.hours || 'Mon–Sat 08:00–18:00'}</div>
-            </div>
-
-            {(row?.other_info ?? '').trim() && (
-              <div style={sectionStyle}>
-                <h2 style={h2Style}>Other useful information</h2>
-                <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{row.other_info}</p>
-              </div>
-            )}
-
-            <Card title="Gallery" className="tp-gallery-card" wide>
-              <div className="tp-gallery">
-                <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
-                <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
-                <div className="item">
-                  <img src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop" alt="work"/>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
+const galleryItemStyle = { height: 220, borderRadius: 14, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', overflow: 'hidden' };
+const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
