@@ -550,4 +550,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-    }
+}
