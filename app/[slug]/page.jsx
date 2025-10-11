@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-// tiny helper to turn handles into full URLs
-function normalizeSocial(type, raw) {
+// ---------- helpers ----------
+function normalizeSocial(type: string, raw: unknown) {
   const v = String(raw || '').trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v;
@@ -20,7 +20,7 @@ function normalizeSocial(type, raw) {
 }
 
 // Accept either a full URL or a path in the 'avatars' bucket
-const normalizeAvatarSrc = (value) => {
+const normalizeAvatarSrc = (value: unknown) => {
   const v = String(value || '').trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v; // already a public URL
@@ -28,33 +28,42 @@ const normalizeAvatarSrc = (value) => {
   return data?.publicUrl || null;
 };
 
-// styles for sections / headings
-const sectionStyle = {
-  border: '1px solid #183153',
-  background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+// ---------- design tokens via CSS vars ----------
+// Every inline style below uses var(--…) so switching themes is instant.
+const sectionStyle: React.CSSProperties = {
+  border: '1px solid var(--border)',
+  background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
   borderRadius: 12,
   padding: 14,
   maxWidth: 720,
   marginTop: 14,
 };
-const h2Style = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
+const h2Style: React.CSSProperties = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
 
-// page + header/button styles
-const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: '#eaf2ff', overflowX: 'hidden' };
-const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
-const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px solid #183153', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
-const btnPrimaryStyle = { background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)', color: '#08101e' };
-const btnNeutralStyle = { background: '#1f2937', color: '#fff' };
+const pageWrapStyle: React.CSSProperties = {
+  maxWidth: 980,
+  margin: '28px auto',
+  padding: '0 16px 48px',
+  color: 'var(--text)',
+  overflowX: 'hidden',
+};
 
-// placeholder for empty gallery cells
-const imgPlaceholderStyle = {
+const headerNameStyle: React.CSSProperties = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
+const headerSubStyle:  React.CSSProperties = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const headerLeftStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
+
+const btnBaseStyle:    React.CSSProperties = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
+const btnPrimaryStyle: React.CSSProperties = { background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)', color: 'var(--btnPrimaryText)' };
+const btnNeutralStyle: React.CSSProperties = { background: 'var(--btnNeutralBg)', color: 'var(--btnNeutralText)' };
+
+const imgPlaceholderStyle: React.CSSProperties = {
   width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
 };
 
 // Card wrapper — accepts className and supports wide spanning
-function Card({ title, wide = false, className, children }) {
+function Card({ title, wide = false, className, children }:{
+  title?: string; wide?: boolean; className?: string; children: React.ReactNode;
+}) {
   return (
     <section
       className={className}
@@ -66,12 +75,16 @@ function Card({ title, wide = false, className, children }) {
   );
 }
 
-export default function PublicPage() {
-  const { slug } = useParams();
-  const [row, setRow] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState(null);
+// ========== Component ==========
+const DEFAULT_THEME = 'deep-navy';
 
+export default function PublicPage() {
+  const { slug } = useParams<{ slug: string }>();
+  const [row, setRow] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+
+  // fetch profile (NOTE: theme is selected)
   useEffect(() => {
     let cancelled = false;
 
@@ -83,14 +96,20 @@ export default function PublicPage() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices,areas,services,hours,other_info,avatar_path,avatar_url')
+          .select(`
+            slug,name,trade,city,phone,whatsapp,
+            facebook,instagram,tiktok,x,
+            about,prices,areas,services,hours,other_info,
+            avatar_path,avatar_url,
+            theme
+          `)
           .eq('slug', String(slug || ''))
           .maybeSingle();
 
         if (cancelled) return;
         if (error) setErr(error.message);
         else setRow(data);
-      } catch (e) {
+      } catch (e: any) {
         if (!cancelled) setErr(String(e?.message || e));
       } finally {
         if (!cancelled) setLoading(false);
@@ -101,6 +120,16 @@ export default function PublicPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
+  // Apply theme to <html data-theme="…">
+  useEffect(() => {
+    const theme = (row?.theme || DEFAULT_THEME) as string;
+    document.documentElement.setAttribute('data-theme', theme);
+    return () => {
+      // restore default on unmount
+      document.documentElement.setAttribute('data-theme', DEFAULT_THEME);
+    };
+  }, [row?.theme]);
+
   const callHref = row?.phone ? `tel:${String(row.phone).replace(/\s+/g, '')}` : null;
   const waHref  = row?.whatsapp ? `https://wa.me/${String(row.whatsapp).replace(/\D/g, '')}` : null;
 
@@ -109,7 +138,6 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    row?.tiktok);
   const xx = normalizeSocial('x',         row?.x);
 
-  // prepare price lines
   const priceLines = useMemo(
     () =>
       String(row?.prices ?? '')
@@ -119,22 +147,18 @@ export default function PublicPage() {
     [row]
   );
 
-  // parse areas
   const areas = String(row?.areas || '')
     .split(/[,\n]+/)
     .map(s => s.trim())
     .filter(Boolean);
 
-  // parse services
   const services = String(row?.services || '')
     .split(/[,\n]+/)
     .map(s => s.trim())
     .filter(Boolean);
 
-  // avatar: support storage path or full URL (avatar_path OR avatar_url)
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
-  // share handler (mobile + desktop fallback)
   const handleShare = async () => {
     const shareData = {
       title: row?.name || row?.slug || 'Profile',
@@ -150,14 +174,62 @@ export default function PublicPage() {
       } else {
         prompt('Copy this link:', shareData.url);
       }
-    } catch {
-      /* ignore user cancel */
-    }
+    } catch { /* cancelled */ }
   };
 
   return (
     <div style={pageWrapStyle}>
+      {/* THEME TOKENS */}
       <style>{`
+        /* ---------- default + deep-navy ---------- */
+        :root,
+        [data-theme="deep-navy"] {
+          --bg: #0b1524;
+          --text: #eaf2ff;
+
+          --border: #183153;
+          --cardGradStart: #0f213a;
+          --cardGradEnd:   #0b1524;
+
+          --chipBorder: #27406e;
+          --chipBg:     #0c1a2e;
+          --chipText:   #d1e1ff;
+
+          --btnNeutralBg:   #1f2937;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+
+          --glyphBorder: #213a6b;
+          --glyphText:   #eaf2ff;
+
+          --avatarBg: #0b1524;
+        }
+
+        /* ---------- ivory-ink (light) ---------- */
+        [data-theme="ivory-ink"] {
+          --bg: #f9f7f2;
+          --text: #1d2433;
+
+          --border: #e6e2d9;
+          --cardGradStart: #ffffff;
+          --cardGradEnd:   #f3efe7;
+
+          --chipBorder: #ddd6c8;
+          --chipBg:     #faf7f1;
+          --chipText:   #24324a;
+
+          --btnNeutralBg:   #1f2937; /* keep strong contrast for CTA */
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #08101e;
+
+          --glyphBorder: #d4cfc3;
+          --glyphText:   #1d2433;
+
+          --avatarBg: #ffffff;
+        }
+
+        body { background: var(--bg); color: var(--text); }
+
         /* hero = header card */
         .tp-hero {
           display: grid;
@@ -171,9 +243,9 @@ export default function PublicPage() {
           display:flex; flex-direction: column; gap:10px;
           padding: 12px 14px;
           border-radius: 16px;
-          border: 1px solid #183153;
-          background: linear-gradient(180deg,#0f213a,#0b1524);
-          margin-bottom: 8px; /* ensures the 8px gap above the social row */
+          border: 1px solid var(--border);
+          background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
+          margin-bottom: 8px;
         }
 
         .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
@@ -185,8 +257,8 @@ export default function PublicPage() {
           width: 56px;
           height: 56px;
           border-radius: 14px;
-          border: 1px solid #183153;
-          background: #0b1524;
+          border: 1px solid var(--border);
+          background: var(--avatarBg);
           object-fit: cover;
           margin-right: 12px;
           flex: 0 0 auto;
@@ -203,17 +275,18 @@ export default function PublicPage() {
           .tp-avatar-inline{ width: 48px; height: 48px; }
         }
 
-        /* social icon row — centered in the space (8px above + 8px below default) */
+        /* social row */
         .tp-social { display:flex; gap:10px; align-items:center; margin: 8px 0 8px; }
         .tp-social a {
           width: 36px; height: 36px; border-radius: 999px;
-          border: 1px solid #213a6b; background: transparent; color:#eaf2ff;
+          border: 1px solid var(--glyphBorder);
+          background: transparent; color: var(--glyphText);
           display:inline-flex; align-items:center; justify-content:center;
           text-decoration:none;
         }
         .tp-glyph { font-size: 13px; font-weight: 800; letter-spacing: .2px; }
 
-        /* The page grid: 1 col mobile, 2 cols desktop */
+        /* grid */
         .tp-grid {
           display: grid;
           grid-template-columns: 1fr;
@@ -222,23 +295,20 @@ export default function PublicPage() {
         }
         @media (min-width: 820px) {
           .tp-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-          /* Force the gallery card to span both columns */
           .tp-grid > .tp-gallery-card { grid-column: 1 / -1 !important; width: 100%; }
         }
-        /* Defensive: prevent any card from shrinking weirdly */
         .tp-grid > section { min-width: 0; }
 
-        /* Tiles inside the gallery: 3 across on desktop, stack on mobile */
+        /* gallery */
         .tp-gallery { display: grid; gap: 16px; }
         @media (min-width: 820px) { .tp-gallery { grid-template-columns: repeat(3, minmax(0,1fr)); } }
         @media (max-width: 819.98px) { .tp-gallery { grid-template-columns: 1fr; gap: 12px; } }
 
-        /* gallery item cosmetics */
         .tp-gallery .item{
           height: 220px;
           border-radius: 14px;
-          border: 1px solid #27406e;
-          background: #0b1627;
+          border: 1px solid var(--chipBorder);
+          background: var(--chipBg);
           overflow: hidden;
         }
         .tp-gallery .item img{
@@ -248,92 +318,65 @@ export default function PublicPage() {
           border-radius: 14px;
         }
 
-        /* ===========================
-           MOBILE-ONLY HEADER LAYOUT
-           =========================== */
+        /* chips (areas/services) */
+        .tp-chip {
+          padding: 6px 12px;
+          border-radius: 999px;
+          border: 1px solid var(--chipBorder);
+          background: var(--chipBg);
+          color: var(--chipText);
+          font-size: 13px;
+        }
+
+        /* mobile header layout */
         @media (max-width: 768px) {
-          /* Hero container stacks vertically on mobile */
           .tp-hero {
             display: grid;
             grid-template-columns: 1fr;
             gap: 12px;
             align-items: start;
-            margin-bottom: 8px; /* small space to social icons */
+            margin-bottom: 8px;
           }
 
-          /* (Optional) If you use a standalone avatar block */
-          .tp-avatar {
-            width: 96px;
-            height: 96px;
-            margin: 0 auto;
-            border-radius: 14px;
-            overflow: hidden;
-            transform: translateY(-6px);
-          }
+          .tp-avatar { width: 96px; height: 96px; margin: 0 auto; border-radius: 14px; overflow: hidden; transform: translateY(-6px); }
           .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-          /* Header card look */
           .tp-header {
             padding: 12px 14px !important;
             border-radius: 16px;
-            border: 1px solid #183153;
-            background: linear-gradient(180deg,#0f213a,#0b1524);
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
           }
 
-          /* Top row: title/subtitle + CTAs */
-          .tp-head-top {
-            display: flex;
-            flex-direction: column;      /* stack on mobile */
-            align-items: flex-start;
-            gap: 8px;
-          }
+          .tp-head-top { display:flex; flex-direction: column; align-items:flex-start; gap: 8px; }
+          .tp-head-titles { display:grid; gap:2px; }
 
-          .tp-head-titles {
-            display: grid;
-            gap: 2px;
-          }
-
-          /* CTA pills inside the header */
-          .tp-cta {
-            display: flex;
-            gap: 8px;
-            width: 100%;
-          }
+          .tp-cta { display:flex; gap:8px; width:100%; }
           .tp-cta .tp-btn {
             flex: 1 1 0;
             min-width: 120px;
             padding: 8px 14px;
             border-radius: 12px;
-            border: 1px solid #2f3c4f;
+            border: 1px solid var(--border);
             text-align: center;
             font-weight: 700;
             text-decoration: none;
           }
 
-          /* Full-width Share bar INSIDE the header card */
           .tp-share {
             display: block;
             width: 100%;
             height: 36px;
             margin-top: 10px;
             border-radius: 12px;
-            border: 1px solid #213a6b;
+            border: 1px solid var(--glyphBorder);
             background: transparent;
-            color: #eaf2ff;
+            color: var(--text);
             font-weight: 700;
           }
 
-          /* Hide any “outer” duplicates on mobile */
-          .tp-cta-outside,
-          .tp-share-outside {
-            display: none !important;
-          }
-
-          /* Social icons row spacing so it feels centered
-             between the header and the next card */
-          .tp-social {
-            margin: 8px 0 12px 0;
-          }
+          .tp-cta-outside, .tp-share-outside { display: none !important; }
+          .tp-social { margin: 8px 0 12px 0; }
         }
       `}</style>
 
@@ -343,7 +386,7 @@ export default function PublicPage() {
 
       {row && (
         <>
-          {/* HERO: header card with inline avatar + CTAs + Share bar */}
+          {/* HERO */}
           <div className="tp-hero">
             <div className="tp-header">
               <div className="tp-head-top">
@@ -375,16 +418,15 @@ export default function PublicPage() {
                 </div>
               </div>
 
-              {/* Full-width Share bar inside the header card (mobile shows as bar) */}
               <button
                 type="button"
                 className="tp-share"
                 onClick={handleShare}
                 style={{
                   ...btnBaseStyle,
-                  border: '1px solid #213a6b',
+                  border: '1px solid var(--glyphBorder)',
                   background: 'transparent',
-                  color: '#eaf2ff',
+                  color: 'var(--text)',
                 }}
               >
                 Share
@@ -392,7 +434,7 @@ export default function PublicPage() {
             </div>
           </div>
 
-          {/* Round social icons */}
+          {/* Social icons */}
           {(fb || ig || tk || xx) && (
             <div className="tp-social">
               {fb && (
@@ -424,13 +466,7 @@ export default function PublicPage() {
             <div style={sectionStyle}>
               <h2 style={h2Style}>About</h2>
               <p
-                style={{
-                  margin: 0,
-                  whiteSpace: 'pre-wrap',
-                  overflowWrap: 'anywhere',
-                  wordBreak: 'break-word',
-                  lineHeight: 1.5,
-                }}
+                style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}
               >
                 {row?.about?.trim()
                   ? row.about
@@ -445,7 +481,7 @@ export default function PublicPage() {
                 {priceLines.length === 0 ? (
                   <li style={{ opacity: 0.8 }}>Please ask for a quote.</li>
                 ) : (
-                  priceLines.map((ln, i) => <li key={i}>{ln}</li>)
+                  priceLines.map((ln: string, i: number) => <li key={i}>{ln}</li>)
                 )}
               </ul>
             </div>
@@ -456,19 +492,7 @@ export default function PublicPage() {
               {areas.length ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {areas.map((a, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: 999,
-                        border: '1px solid #27406e',
-                        background: '#0c1a2e',
-                        color: '#d1e1ff',
-                        fontSize: 13,
-                      }}
-                    >
-                      {a}
-                    </span>
+                    <span key={i} className="tp-chip">{a}</span>
                   ))}
                 </div>
               ) : (
@@ -482,19 +506,7 @@ export default function PublicPage() {
               {services.length ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {services.map((s, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: 999,
-                        border: '1px solid #27406e',
-                        background: '#0c1a2e',
-                        color: '#d1e1ff',
-                        fontSize: 13,
-                      }}
-                    >
-                      {s}
-                    </span>
+                    <span key={i} className="tp-chip">{s}</span>
                   ))}
                 </div>
               ) : (
@@ -510,7 +522,7 @@ export default function PublicPage() {
               </div>
             </div>
 
-            {/* Other useful information (optional) */}
+            {/* Other useful information */}
             {(row?.other_info ?? '').trim() && (
               <div style={sectionStyle}>
                 <h2 style={h2Style}>Other useful information</h2>
@@ -520,8 +532,8 @@ export default function PublicPage() {
               </div>
             )}
 
-            {/* Gallery — span both columns via class on Card */}
-            <Card title="Gallery" className="tp-gallery-card">
+            {/* Gallery — span both columns */}
+            <Card title="Gallery" className="tp-gallery-card" wide>
               <div className="tp-gallery">
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
@@ -538,4 +550,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-                }
+    }
