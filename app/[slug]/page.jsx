@@ -183,6 +183,33 @@ export default function PublicPage() {
           }
         }
 
+        /* --- FIX MOBILE HEADER LAYOUT ONLY --- */
+        @media (max-width: 768px){
+          .tp-head-top{
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          .tp-head-titles{
+            display: grid;
+            gap: 2px;
+          }
+          .tp-cta{
+            gap: 8px;
+            width: 100%;
+          }
+          .tp-cta .tp-btn{
+            flex: 1 1 0;
+            min-width: 120px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+            font-weight: 700;
+            text-decoration: none;
+          }
+        }
+
         /* Top bar buttons use neutral CTA tokens for contrast */
         header a,
         header button,
@@ -441,7 +468,7 @@ export default function PublicPage() {
               <div className="tp-gallery">
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
-                <div className="item">
+                <div className="item>
                   <img src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop" alt="work" />
                 </div>
               </div>
@@ -451,4 +478,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-    }
+      }
