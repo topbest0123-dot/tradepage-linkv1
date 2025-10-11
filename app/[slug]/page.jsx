@@ -71,12 +71,18 @@ function Card({ title, wide = false, className, children }) {
 
 const DEFAULT_THEME = 'deep-navy';
 
-/** NEW: allowable theme names (fallback if unknown) */
+// 10-theme whitelist
 const THEME_WHITELIST = new Set([
   'deep-navy',
   'ivory-ink',
   'sandstone',
   'porcelain-mint',
+  'ocean-teal',
+  'sunset-peach',
+  'plum-noir',
+  'slate-sky',
+  'emerald-fog',
+  'charcoal-gold',
 ]);
 
 export default function PublicPage() {
@@ -121,15 +127,12 @@ export default function PublicPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
-  // apply theme to <html data-theme="...">
+  // apply theme to <html data-theme="..."> (with whitelist + fallback)
   useEffect(() => {
-    /** NEW: whitelist + fallback */
     const raw = (row?.theme || DEFAULT_THEME).trim();
     const theme = THEME_WHITELIST.has(raw) ? raw : DEFAULT_THEME;
-
     document.documentElement.setAttribute('data-theme', theme);
     return () => {
-      // leave other pages alone
       document.documentElement.removeAttribute('data-theme');
     };
   }, [row?.theme]);
@@ -185,6 +188,9 @@ export default function PublicPage() {
     <div style={pageWrapStyle}>
       {/* THEME TOKENS */}
       <style>{`
+        /* =========================
+           BASE / DEEP NAVY (dark)
+           ========================= */
         :root,
         [data-theme="deep-navy"] {
           --bg: #0b1524;
@@ -209,6 +215,7 @@ export default function PublicPage() {
           --avatarBg: #0b1524;
         }
 
+        /* ============== LIGHT THEMES ============== */
         [data-theme="ivory-ink"] {
           --bg: #f9f7f2;
           --text: #1d2433;
@@ -232,7 +239,76 @@ export default function PublicPage() {
           --avatarBg: #ffffff;
         }
 
-        /* NEW: warm dark “sandstone” */
+        [data-theme="porcelain-mint"] {
+          --bg: #f6fffb;
+          --text: #0f1a15;
+
+          --border: #cfeee3;
+          --cardGradStart: #ffffff;
+          --cardGradEnd:   #eef9f4;
+
+          --chipBorder: #c7eadf;
+          --chipBg:     #f2fcf8;
+          --chipText:   #153126;
+
+          --btnNeutralBg:   #1f2937;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #0d1b14;
+          --btnPrimaryBg:   linear-gradient(135deg,#7de2c3,#6cc4ff);
+
+          --glyphBorder: #cfeee3;
+          --glyphText:   #0f1a15;
+
+          --avatarBg: #ffffff;
+        }
+
+        [data-theme="sunset-peach"] {
+          --bg: #fff7f2;
+          --text: #241a18;
+
+          --border: #f3d7cc;
+          --cardGradStart: #ffffff;
+          --cardGradEnd:   #fdebe3;
+
+          --chipBorder: #f0c9bc;
+          --chipBg:     #fff3ec;
+          --chipText:   #2a1f1d;
+
+          --btnNeutralBg:   #1f2937;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #2a110d;
+          --btnPrimaryBg:   linear-gradient(135deg,#ffb199,#ffa26b);
+
+          --glyphBorder: #efd2c7;
+          --glyphText:   #241a18;
+
+          --avatarBg: #ffffff;
+        }
+
+        [data-theme="emerald-fog"] {
+          --bg: #f3fbf4;
+          --text: #132018;
+
+          --border: #cde7d2;
+          --cardGradStart: #ffffff;
+          --cardGradEnd:   #ebf6ee;
+
+          --chipBorder: #c3e1c8;
+          --chipBg:     #f2faf4;
+          --chipText:   #183222;
+
+          --btnNeutralBg:   #1f2937;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #0d1510;
+          --btnPrimaryBg:   linear-gradient(135deg,#8de3b5,#7ad1b0);
+
+          --glyphBorder: #cde7d2;
+          --glyphText:   #132018;
+
+          --avatarBg: #ffffff;
+        }
+
+        /* ============== DARK THEMES ============== */
         [data-theme="sandstone"] {
           --bg: #171411;
           --text: #f7efe6;
@@ -256,28 +332,96 @@ export default function PublicPage() {
           --avatarBg: #221c17;
         }
 
-        /* NEW: light fresh “porcelain-mint” */
-        [data-theme="porcelain-mint"] {
-          --bg: #f6fffb;
-          --text: #0f1a15;
+        [data-theme="ocean-teal"] {
+          --bg: #0b1616;
+          --text: #e8fffb;
 
-          --border: #cfeee3;
-          --cardGradStart: #ffffff;
-          --cardGradEnd:   #eef9f4;
+          --border: #103a3a;
+          --cardGradStart: #0f2626;
+          --cardGradEnd:   #0b1616;
 
-          --chipBorder: #c7eadf;
-          --chipBg:     #f2fcf8;
-          --chipText:   #153126;
+          --chipBorder: #174b4b;
+          --chipBg:     #0c1b1b;
+          --chipText:   #d7fffb;
 
           --btnNeutralBg:   #1f2937;
           --btnNeutralText: #ffffff;
-          --btnPrimaryText: #0d1b14;
-          --btnPrimaryBg:   linear-gradient(135deg,#7de2c3,#6cc4ff);
+          --btnPrimaryText: #031311;
+          --btnPrimaryBg:   linear-gradient(135deg,#68e0c2,#6fb8ff);
 
-          --glyphBorder: #cfeee3;
-          --glyphText:   #0f1a15;
+          --glyphBorder: #184e4e;
+          --glyphText:   #e8fffb;
 
-          --avatarBg: #ffffff;
+          --avatarBg: #0f2020;
+        }
+
+        [data-theme="plum-noir"] {
+          --bg: #140b16;
+          --text: #f3e9ff;
+
+          --border: #2b1633;
+          --cardGradStart: #1d0f24;
+          --cardGradEnd:   #140b16;
+
+          --chipBorder: #3a1d45;
+          --chipBg:     #160b1a;
+          --chipText:   #efe4ff;
+
+          --btnNeutralBg:   #2a2230;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #180b1d;
+          --btnPrimaryBg:   linear-gradient(135deg,#c48bff,#8ea0ff);
+
+          --glyphBorder: #3a1d45;
+          --glyphText:   #f3e9ff;
+
+          --avatarBg: #1a0e1f;
+        }
+
+        [data-theme="slate-sky"] {
+          --bg: #0f131a;
+          --text: #e9f2ff;
+
+          --border: #1e2a3a;
+          --cardGradStart: #142033;
+          --cardGradEnd:   #0f131a;
+
+          --chipBorder: #293a52;
+          --chipBg:     #0f1723;
+          --chipText:   #d5e6ff;
+
+          --btnNeutralBg:   #1f2937;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #09111a;
+          --btnPrimaryBg:   linear-gradient(135deg,#7fb4ff,#7ee0d3);
+
+          --glyphBorder: #263750;
+          --glyphText:   #e9f2ff;
+
+          --avatarBg: #101724;
+        }
+
+        [data-theme="charcoal-gold"] {
+          --bg: #0f0f10;
+          --text: #f8f6ed;
+
+          --border: #2b2b2d;
+          --cardGradStart: #1a1a1c;
+          --cardGradEnd:   #0f0f10;
+
+          --chipBorder: #3a3a3d;
+          --chipBg:     #121213;
+          --chipText:   #f2f0e6;
+
+          --btnNeutralBg:   #2a2a2e;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #1a1403;
+          --btnPrimaryBg:   linear-gradient(135deg,#f0d274,#f2b55e);
+
+          --glyphBorder: #3a3a3d;
+          --glyphText:   #f8f6ed;
+
+          --avatarBg: #141416;
         }
 
         body { background: var(--bg); color: var(--text); }
@@ -556,4 +700,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-                         }
+      }
