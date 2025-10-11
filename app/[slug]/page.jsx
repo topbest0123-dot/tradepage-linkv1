@@ -19,6 +19,15 @@ function normalizeSocial(type, raw) {
   }
 }
 
+// Accept either a full URL or a path in the 'avatars' bucket
+const normalizeAvatarSrc = (value) => {
+  const v = String(value || '').trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v; // already a public URL
+  const { data } = supabase.storage.from('avatars').getPublicUrl(v);
+  return data?.publicUrl || null;
+};
+
 // styles for sections / headings
 const sectionStyle = {
   border: '1px solid #183153',
@@ -74,7 +83,7 @@ export default function PublicPage() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices,areas,services,hours,other_info')
+          .select('slug,name,trade,city,phone,whatsapp,facebook,instagram,tiktok,x,about,prices,areas,services,hours,other_info,avatar_path,avatar_url')
           .eq('slug', String(slug || ''))
           .maybeSingle();
 
@@ -122,8 +131,8 @@ export default function PublicPage() {
     .map(s => s.trim())
     .filter(Boolean);
 
-  // avatar (placeholder unless you add avatar_path + public URL)
-  const avatarUrl = null;
+  // avatar: support storage path or full URL (avatar_path OR avatar_url)
+  const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
   // share handler (mobile + desktop fallback)
   const handleShare = async () => {
@@ -164,6 +173,7 @@ export default function PublicPage() {
           border-radius: 16px;
           border: 1px solid #183153;
           background: linear-gradient(180deg,#0f213a,#0b1524);
+          margin-bottom: 8px; /* ensures the 8px gap above the social row */
         }
         .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
         .tp-cta a, .tp-cta button { font-weight:700; }
@@ -191,8 +201,8 @@ export default function PublicPage() {
           .tp-avatar-inline{ width: 48px; height: 48px; }
         }
 
-        /* social icon row */
-        .tp-social { display:flex; gap:10px; align-items:center; margin: 8px 0 14px; }
+        /* social icon row — centered in the space (8px above + 8px below) */
+        .tp-social { display:flex; gap:10px; align-items:center; margin: 8px 0 8px; }
         .tp-social a {
           width: 36px; height: 36px; border-radius: 999px;
           border: 1px solid #213a6b; background: transparent; color:#eaf2ff;
@@ -247,8 +257,8 @@ export default function PublicPage() {
           <div className="tp-hero">
             <div className="tp-header">
               <div style={headerLeftStyle}>
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt={`${row.name || row.slug} logo`} className="tp-avatar-inline" />
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt={`${row.name || row.slug} logo`} className="tp-avatar-inline" loading="lazy" />
                 ) : (
                   <div className="tp-avatar-inline is-fallback">★</div>
                 )}
@@ -433,4 +443,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-}
+    }
