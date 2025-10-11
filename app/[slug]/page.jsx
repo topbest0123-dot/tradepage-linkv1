@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-/* ---------------- helpers ---------------- */
+// ---------- helpers ----------
 function normalizeSocial(type, raw) {
   const v = String(raw || '').trim();
   if (!v) return null;
@@ -19,23 +19,22 @@ function normalizeSocial(type, raw) {
   }
 }
 
-// Accept either a full URL or a path in the 'avatars' bucket
+// Avatar helper
 const normalizeAvatarSrc = (value) => {
   const v = String(value || '').trim();
   if (!v) return null;
-  if (/^https?:\/\//i.test(v)) return v; // already a public URL
+  if (/^https?:\/\//i.test(v)) return v;
   const { data } = supabase.storage.from('avatars').getPublicUrl(v);
   return data?.publicUrl || null;
 };
 
-// Normalize any theme label to our canonical hyphen-case
+// Theme normalization
 const normalizeTheme = (t) =>
   String(t || '')
     .trim()
     .toLowerCase()
     .replace(/[\s_]+/g, '-');
 
-// Supported themes (10 total)
 const THEMES = new Set([
   'deep-navy',
   'porcelain-mint',
@@ -49,7 +48,9 @@ const THEMES = new Set([
   'ivory-ink',
 ]);
 
-/* -------- shared inline styles (use CSS vars for colors) -------- */
+const DEFAULT_THEME = 'deep-navy';
+
+// ---------- shared styles ----------
 const sectionStyle = {
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
@@ -59,7 +60,6 @@ const sectionStyle = {
   marginTop: 14,
 };
 const h2Style = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
-
 const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
@@ -67,18 +67,13 @@ const pageWrapStyle = {
   color: 'var(--text)',
   overflowX: 'hidden',
 };
-
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
 const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
 const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
-
 const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
 const btnPrimaryStyle = { background: 'var(--btnPrimaryBg)', color: 'var(--btnPrimaryText)' };
 const btnNeutralStyle = { background: 'var(--btnNeutralBg)', color: 'var(--btnNeutralText)' };
-
-const imgPlaceholderStyle = {
-  width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
-};
+const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
 
 // Card wrapper
 function Card({ title, wide = false, className, children }) {
@@ -90,26 +85,18 @@ function Card({ title, wide = false, className, children }) {
   );
 }
 
-const DEFAULT_THEME = 'deep-navy';
-
-/* ================================ */
-/*            COMPONENT             */
-/* ================================ */
 export default function PublicPage() {
   const { slug } = useParams();
   const [row, setRow] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [err,   setErr]     = useState(null);
+  const [err, setErr] = useState(null);
 
-  // fetch profile (includes theme + theme_text)
+  // fetch profile (only `theme`)
   useEffect(() => {
     let cancelled = false;
-
     async function run() {
       setLoading(true);
       setErr(null);
-      setRow(null);
-
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -118,7 +105,7 @@ export default function PublicPage() {
             facebook,instagram,tiktok,x,
             about,prices,areas,services,hours,other_info,
             avatar_path,avatar_url,
-            theme, theme_text
+            theme
           `)
           .eq('slug', String(slug || ''))
           .maybeSingle();
@@ -132,53 +119,35 @@ export default function PublicPage() {
         if (!cancelled) setLoading(false);
       }
     }
-
     if (slug) run();
     return () => { cancelled = true; };
   }, [slug]);
 
-  // compute the actual theme key (use theme || theme_text, normalize, fall back to default)
+  // apply theme to <html data-theme="...">
   const themeKey = (() => {
-    const raw = row?.theme ?? row?.theme_text ?? DEFAULT_THEME;
+    const raw = row?.theme ?? DEFAULT_THEME;
     const n = normalizeTheme(raw);
     return THEMES.has(n) ? n : DEFAULT_THEME;
   })();
 
-  // apply theme to <html data-theme="...">
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', themeKey);
-    return () => {
-      document.documentElement.removeAttribute('data-theme');
-    };
+    return () => document.documentElement.removeAttribute('data-theme');
   }, [themeKey]);
 
   const callHref = row?.phone ? `tel:${String(row.phone).replace(/\s+/g, '')}` : null;
   const waHref  = row?.whatsapp ? `https://wa.me/${String(row.whatsapp).replace(/\D/g, '')}` : null;
-
   const fb = normalizeSocial('facebook',  row?.facebook);
   const ig = normalizeSocial('instagram', row?.instagram);
   const tk = normalizeSocial('tiktok',    row?.tiktok);
   const xx = normalizeSocial('x',         row?.x);
-
-  const priceLines = useMemo(
-    () =>
-      String(row?.prices ?? '')
-        .split(/\r?\n/)
-        .map((s) => s.trim())
-        .filter(Boolean),
-    [row]
-  );
-
-  const areas = String(row?.areas || '')
-    .split(/[,\n]+/)
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  const services = String(row?.services || '')
-    .split(/[,\n]+/)
-    .map(s => s.trim())
-    .filter(Boolean);
-
+  const priceLines = useMemo(() =>
+    String(row?.prices ?? '')
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean), [row]);
+  const areas = String(row?.areas || '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
+  const services = String(row?.services || '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
   const handleShare = async () => {
@@ -188,389 +157,78 @@ export default function PublicPage() {
       url: typeof window !== 'undefined' ? window.location.href : '',
     };
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else if (navigator.clipboard) {
+      if (navigator.share) await navigator.share(shareData);
+      else if (navigator.clipboard) {
         await navigator.clipboard.writeText(shareData.url);
         alert('Link copied to clipboard!');
-      } else {
-        prompt('Copy this link:', shareData.url);
-      }
-    } catch {/* user cancelled */}
+      } else prompt('Copy this link:', shareData.url);
+    } catch {}
   };
 
   return (
     <div style={pageWrapStyle}>
-      {/* THEME TOKENS — all 10 themes */}
+      {/* THEME TOKENS (10 full themes, all like Porcelain Mint) */}
       <style>{`
-        :root,
-        [data-theme="deep-navy"] {
-          --bg: #0b1524;
-          --text: #eaf2ff;
-
-          --border: #183153;
-          --cardGradStart: #0f213a;
-          --cardGradEnd:   #0b1524;
-
-          --chipBorder: #27406e;
-          --chipBg:     #0c1a2e;
-          --chipText:   #d1e1ff;
-
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#66e0b9,#8ab4ff);
-
-          --glyphBorder: #213a6b;
-          --glyphText:   #eaf2ff;
-
-          --avatarBg: #0b1524;
-        }
-
-        [data-theme="porcelain-mint"] {
-          --bg: #f5faf7;
-          --text: #18212f;
-
-          --border: #cfe7de;
-          --cardGradStart: #ffffff;
-          --cardGradEnd:   #eef7f2;
-
-          --chipBorder: #c6e1d7;
-          --chipBg:     #f3fbf7;
-          --chipText:   #1f2b3a;
-
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#53e6c0,#8dbdff);
-
-          --glyphBorder: #cfe7de;
-          --glyphText:   #18212f;
-
-          --avatarBg: #ffffff;
-        }
-
-        [data-theme="sandstone"] {
-          --bg: #f6f1ea;
-          --text: #1f2430;
-
-          --border: #e2d6c7;
-          --cardGradStart: #ffffff;
-          --cardGradEnd:   #f2e9de;
-
-          --chipBorder: #e2d6c7;
-          --chipBg:     #fbf6ee;
-          --chipText:   #273248;
-
-          --btnNeutralBg:   #303644;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#ffd47a,#ffaf8b);
-
-          --glyphBorder: #e2d6c7;
-          --glyphText:   #1f2430;
-
-          --avatarBg: #ffffff;
-        }
-
-        [data-theme="slate-sky"] {
-          --bg: #0f1623;
-          --text: #e7f0ff;
-
-          --border: #203052;
-          --cardGradStart: #121b2b;
-          --cardGradEnd:   #0f1623;
-
-          --chipBorder: #314569;
-          --chipBg:     #101b2e;
-          --chipText:   #d6e6ff;
-
-          --btnNeutralBg:   #273248;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#5ed0ff,#a6b4ff);
-
-          --glyphBorder: #203052;
-          --glyphText:   #e7f0ff;
-
-          --avatarBg: #0f1623;
-        }
-
-        [data-theme="forest-green"] {
-          --bg: #0f1a14;
-          --text: #e7ffee;
-
-          --border: #1e3b2e;
-          --cardGradStart: #14251d;
-          --cardGradEnd:   #0f1a14;
-
-          --chipBorder: #2a5b45;
-          --chipBg:     #0f2018;
-          --chipText:   #d6ffe5;
-
-          --btnNeutralBg:   #21302a;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#6af2a8,#a6ffcc);
-
-          --glyphBorder: #1e3b2e;
-          --glyphText:   #e7ffee;
-
-          --avatarBg: #0f1a14;
-        }
-
-        [data-theme="amber-sunset"] {
-          --bg: #1e1410;
-          --text: #fff3e6;
-
-          --border: #4a2a1e;
-          --cardGradStart: #2a1a13;
-          --cardGradEnd:   #1e1410;
-
-          --chipBorder: #5a3525;
-          --chipBg:     #221711;
-          --chipText:   #ffe7cf;
-
-          --btnNeutralBg:   #2f2a26;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#ffbe70,#ff8870);
-
-          --glyphBorder: #4a2a1e;
-          --glyphText:   #fff3e6;
-
-          --avatarBg: #1e1410;
-        }
-
-        [data-theme="rose-quartz"] {
-          --bg: #faf6f7;
-          --text: #221d23;
-
-          --border: #eedbe0;
-          --cardGradStart: #ffffff;
-          --cardGradEnd:   #f6ecef;
-
-          --chipBorder: #e8d2da;
-          --chipBg:     #fcf5f7;
-          --chipText:   #2a2230;
-
-          --btnNeutralBg:   #2f2a33;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#ffb5d1,#b7b2ff);
-
-          --glyphBorder: #e8d2da;
-          --glyphText:   #221d23;
-
-          --avatarBg: #ffffff;
-        }
-
-        [data-theme="ocean-blue"] {
-          --bg: #06131f;
-          --text: #e8f4ff;
-
-          --border: #16314a;
-          --cardGradStart: #0a1d2e;
-          --cardGradEnd:   #06131f;
-
-          --chipBorder: #234a6a;
-          --chipBg:     #0a1a28;
-          --chipText:   #d6ecff;
-
-          --btnNeutralBg:   #1e2a38;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#5ed0ff,#79ffe1);
-
-          --glyphBorder: #16314a;
-          --glyphText:   #e8f4ff;
-
-          --avatarBg: #06131f;
-        }
-
-        [data-theme="graphite"] {
-          --bg: #0f1115;
-          --text: #eef2ff;
-
-          --border: #232736;
-          --cardGradStart: #141722;
-          --cardGradEnd:   #0f1115;
-
-          --chipBorder: #2e3550;
-          --chipBg:     #121522;
-          --chipText:   #d9e1ff;
-
-          --btnNeutralBg:   #222632;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#8ab4ff,#66e0b9);
-
-          --glyphBorder: #232736;
-          --glyphText:   #eef2ff;
-
-          --avatarBg: #0f1115;
-        }
-
-        [data-theme="ivory-ink"] {
-          --bg: #f9f7f2;
-          --text: #1d2433;
-
-          --border: #e6e2d9;
-          --cardGradStart: #ffffff;
-          --cardGradEnd:   #f3efe7;
-
-          --chipBorder: #ddd6c8;
-          --chipBg:     #faf7f1;
-          --chipText:   #24324a;
-
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#4dd0b5,#6aa9ff);
-
-          --glyphBorder: #d4cfc3;
-          --glyphText:   #1d2433;
-
-          --avatarBg: #ffffff;
-        }
-
         body { background: var(--bg); color: var(--text); }
-
-        /* ====== Layout (unchanged) ====== */
-        .tp-hero {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 12px;
-          align-items: start;
-          margin: 8px 0 6px;
+        [data-theme="deep-navy"] {
+          --bg:#0b1524;--text:#eaf2ff;--border:#183153;--cardGradStart:#0f213a;--cardGradEnd:#0b1524;
+          --chipBorder:#27406e;--chipBg:#0c1a2e;--chipText:#d1e1ff;
+          --btnNeutralBg:#1f2937;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#66e0b9,#8ab4ff);
+          --glyphBorder:#213a6b;--glyphText:#eaf2ff;--avatarBg:#0b1524;
         }
-
-        .tp-header {
-          display:flex; flex-direction: column; gap:10px;
-          padding: 12px 14px;
-          border-radius: 16px;
-          border: 1px solid var(--border);
-          background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
-          margin-bottom: 8px;
+        [data-theme="porcelain-mint"] {
+          --bg:#f5faf7;--text:#18212f;--border:#cfe7de;--cardGradStart:#ffffff;--cardGradEnd:#eef7f2;
+          --chipBorder:#c6e1d7;--chipBg:#f3fbf7;--chipText:#1f2b3a;
+          --btnNeutralBg:#1f2937;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#53e6c0,#8dbdff);
+          --glyphBorder:#cfe7de;--glyphText:#18212f;--avatarBg:#ffffff;
         }
-
-        .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
-        .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
-        .tp-cta a, .tp-cta button { font-weight:700; }
-
-        .tp-avatar-inline{
-          width: 56px;
-          height: 56px;
-          border-radius: 14px;
-          border: 1px solid var(--border);
-          background: var(--avatarBg);
-          object-fit: cover;
-          margin-right: 12px;
-          flex: 0 0 auto;
+        [data-theme="sandstone"] {
+          --bg:#f6f1ea;--text:#1f2430;--border:#e2d6c7;--cardGradStart:#fff;--cardGradEnd:#f2e9de;
+          --chipBorder:#e2d6c7;--chipBg:#fbf6ee;--chipText:#273248;
+          --btnNeutralBg:#303644;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#ffd47a,#ffaf8b);
+          --glyphBorder:#e2d6c7;--glyphText:#1f2430;--avatarBg:#fff;
         }
-        .tp-avatar-inline.is-fallback{
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          color: #63d3e0;
-          font-weight: 800;
-          font-size: 22px;
+        [data-theme="slate-sky"] {
+          --bg:#0f1623;--text:#e7f0ff;--border:#203052;--cardGradStart:#121b2b;--cardGradEnd:#0f1623;
+          --chipBorder:#314569;--chipBg:#101b2e;--chipText:#d6e6ff;
+          --btnNeutralBg:#273248;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#5ed0ff,#a6b4ff);
+          --glyphBorder:#203052;--glyphText:#e7f0ff;--avatarBg:#0f1623;
         }
-        @media (max-width: 480px){
-          .tp-avatar-inline{ width: 48px; height: 48px; }
+        [data-theme="forest-green"] {
+          --bg:#0f1a14;--text:#e7ffee;--border:#1e3b2e;--cardGradStart:#14251d;--cardGradEnd:#0f1a14;
+          --chipBorder:#2a5b45;--chipBg:#0f2018;--chipText:#d6ffe5;
+          --btnNeutralBg:#21302a;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#6af2a8,#a6ffcc);
+          --glyphBorder:#1e3b2e;--glyphText:#e7ffee;--avatarBg:#0f1a14;
         }
-
-        .tp-social { display:flex; gap:10px; align-items:center; margin: 8px 0 8px; }
-        .tp-social a {
-          width: 36px; height: 36px; border-radius: 999px;
-          border: 1px solid var(--glyphBorder);
-          background: transparent; color: var(--glyphText);
-          display:inline-flex; align-items:center; justify-content:center;
-          text-decoration:none;
+        [data-theme="amber-sunset"] {
+          --bg:#1e1410;--text:#fff3e6;--border:#4a2a1e;--cardGradStart:#2a1a13;--cardGradEnd:#1e1410;
+          --chipBorder:#5a3525;--chipBg:#221711;--chipText:#ffe7cf;
+          --btnNeutralBg:#2f2a26;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#ffbe70,#ff8870);
+          --glyphBorder:#4a2a1e;--glyphText:#fff3e6;--avatarBg:#1e1410;
         }
-        .tp-glyph { font-size: 13px; font-weight: 800; letter-spacing: .2px; }
-
-        .tp-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 16px;
-          margin-top: 16px;
+        [data-theme="rose-quartz"] {
+          --bg:#faf6f7;--text:#221d23;--border:#eedbe0;--cardGradStart:#fff;--cardGradEnd:#f6ecef;
+          --chipBorder:#e8d2da;--chipBg:#fcf5f7;--chipText:#2a2230;
+          --btnNeutralBg:#2f2a33;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#ffb5d1,#b7b2ff);
+          --glyphBorder:#e8d2da;--glyphText:#221d23;--avatarBg:#fff;
         }
-        @media (min-width: 820px) {
-          .tp-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-          .tp-grid > .tp-gallery-card { grid-column: 1 / -1 !important; width: 100%; }
+        [data-theme="ocean-blue"] {
+          --bg:#06131f;--text:#e8f4ff;--border:#16314a;--cardGradStart:#0a1d2e;--cardGradEnd:#06131f;
+          --chipBorder:#234a6a;--chipBg:#0a1a28;--chipText:#d6ecff;
+          --btnNeutralBg:#1e2a38;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#5ed0ff,#79ffe1);
+          --glyphBorder:#16314a;--glyphText:#e8f4ff;--avatarBg:#06131f;
         }
-        .tp-grid > section { min-width: 0; }
-
-        .tp-gallery { display: grid; gap: 16px; }
-        @media (min-width: 820px) { .tp-gallery { grid-template-columns: repeat(3, minmax(0,1fr)); } }
-        @media (max-width: 819.98px) { .tp-gallery { grid-template-columns: 1fr; gap: 12px; } }
-
-        .tp-gallery .item{
-          height: 220px;
-          border-radius: 14px;
-          border: 1px solid var(--chipBorder);
-          background: var(--chipBg);
-          overflow: hidden;
+        [data-theme="graphite"] {
+          --bg:#0f1115;--text:#eef2ff;--border:#232736;--cardGradStart:#141722;--cardGradEnd:#0f1115;
+          --chipBorder:#2e3550;--chipBg:#121522;--chipText:#d9e1ff;
+          --btnNeutralBg:#222632;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#8ab4ff,#66e0b9);
+          --glyphBorder:#232736;--glyphText:#eef2ff;--avatarBg:#0f1115;
         }
-        .tp-gallery .item img{
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          border-radius: 14px;
-        }
-
-        .tp-chip {
-          padding: 6px 12px;
-          border-radius: 999px;
-          border: 1px solid var(--chipBorder);
-          background: var(--chipBg);
-          color: var(--chipText);
-          font-size: 13px;
-        }
-
-        @media (max-width: 768px) {
-          .tp-hero { grid-template-columns: 1fr; gap: 12px; align-items: start; margin-bottom: 8px; }
-
-          .tp-avatar { width: 96px; height: 96px; margin: 0 auto; border-radius: 14px; overflow: hidden; transform: translateY(-6px); }
-          .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-          .tp-header {
-            padding: 12px 14px !important;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
-          }
-
-          .tp-head-top { flex-direction: column; align-items:flex-start; gap: 8px; }
-          .tp-head-titles { display:grid; gap:2px; }
-
-          .tp-cta { gap:8px; width:100%; }
-          .tp-cta .tp-btn {
-            flex: 1 1 0;
-            min-width: 120px;
-            padding: 8px 14px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            text-align: center;
-            font-weight: 700;
-            text-decoration: none;
-          }
-
-          .tp-share {
-            display: block;
-            width: 100%;
-            height: 36px;
-            margin-top: 10px;
-            border-radius: 12px;
-            border: 1px solid var(--glyphBorder);
-            background: transparent;
-            color: var(--text);
-            font-weight: 700;
-          }
-
-          .tp-cta-outside, .tp-share-outside { display: none !important; }
-          .tp-social { margin: 8px 0 12px 0; }
+        [data-theme="ivory-ink"] {
+          --bg:#f9f7f2;--text:#1d2433;--border:#e6e2d9;--cardGradStart:#fff;--cardGradEnd:#f3efe7;
+          --chipBorder:#ddd6c8;--chipBg:#faf7f1;--chipText:#24324a;
+          --btnNeutralBg:#1f2937;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#4dd0b5,#6aa9ff);
+          --glyphBorder:#d4cfc3;--glyphText:#1d2433;--avatarBg:#fff;
         }
       `}</style>
 
@@ -599,16 +257,8 @@ export default function PublicPage() {
                 </div>
 
                 <div className="tp-cta">
-                  {callHref && (
-                    <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
-                      Call
-                    </a>
-                  )}
-                  {waHref && (
-                    <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-                      WhatsApp
-                    </a>
-                  )}
+                  {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
+                  {waHref && <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
                 </div>
               </div>
 
@@ -626,89 +276,27 @@ export default function PublicPage() {
           {/* Social icons */}
           {(fb || ig || tk || xx) && (
             <div className="tp-social">
-              {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><span className="tp-glyph">f</span></a>}
-              {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram"><span className="tp-glyph">IG</span></a>}
-              {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok"><span className="tp-glyph">t</span></a>}
-              {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)"><span className="tp-glyph">X</span></a>}
+              {fb && <a href={fb} target="_blank" rel="noopener noreferrer"><span className="tp-glyph">f</span></a>}
+              {ig && <a href={ig} target="_blank" rel="noopener noreferrer"><span className="tp-glyph">IG</span></a>}
+              {tk && <a href={tk} target="_blank" rel="noopener noreferrer"><span className="tp-glyph">t</span></a>}
+              {xx && <a href={xx} target="_blank" rel="noopener noreferrer"><span className="tp-glyph">X</span></a>}
             </div>
           )}
 
           {/* Cards grid */}
           <div className="tp-grid">
-            {/* About */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>About</h2>
-              <p style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}>
+              <p style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.5 }}>
                 {row?.about?.trim() ? row.about : 'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
               </p>
             </div>
-
-            {/* Prices */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Prices</h2>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {priceLines.length === 0 ? (
-                  <li style={{ opacity: 0.8 }}>Please ask for a quote.</li>
-                ) : (
-                  priceLines.map((ln, i) => <li key={i}>{ln}</li>)
-                )}
+                {priceLines.length === 0 ? <li style={{ opacity: 0.8 }}>Please ask for a quote.</li> : priceLines.map((ln, i) => <li key={i}>{ln}</li>)}
               </ul>
             </div>
-
-            {/* Areas we cover */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Areas we cover</h2>
               {areas.length ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {areas.map((a, i) => (<span key={i} className="tp-chip">{a}</span>))}
-                </div>
-              ) : (
-                <div style={{ opacity: 0.8 }}>No areas listed yet.</div>
-              )}
-            </div>
-
-            {/* Services */}
-            <div style={sectionStyle}>
-              <h2 style={h2Style}>Services</h2>
-              {services.length ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {services.map((s, i) => (<span key={i} className="tp-chip">{s}</span>))}
-                </div>
-              ) : (
-                <div style={{ opacity: 0.8 }}>No services listed yet.</div>
-              )}
-            </div>
-
-            {/* Hours */}
-            <div style={sectionStyle}>
-              <h2 style={h2Style}>Hours</h2>
-              <div style={{ opacity: 0.9 }}>{row?.hours || 'Mon–Sat 08:00–18:00'}</div>
-            </div>
-
-            {/* Other useful information */}
-            {(row?.other_info ?? '').trim() && (
-              <div style={sectionStyle}>
-                <h2 style={h2Style}>Other useful information</h2>
-                <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{row.other_info}</p>
-              </div>
-            )}
-
-            {/* Gallery — span both columns */}
-            <Card title="Gallery" className="tp-gallery-card" wide>
-              <div className="tp-gallery">
-                <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
-                <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
-                <div className="item">
-                  <img
-                    src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
-                    alt="work"
-                  />
-                </div>
-              </div>
-            </Card>
-          </div>
-        </>
-      )}
-    </div>
-  );
-  }
