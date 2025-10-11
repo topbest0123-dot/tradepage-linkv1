@@ -44,16 +44,12 @@ const imgPlaceholderStyle = {
   width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
 };
 
-// Card wrapper with wide support (spans both grid columns and stretches)
-function Card({ title, wide = false, children }) {
+// Card wrapper — now accepts className and supports wide spanning
+function Card({ title, wide = false, className, children }) {
   return (
     <section
-      style={{
-        ...sectionStyle,
-        gridColumn: wide ? '1 / -1' : 'auto',
-        width: wide ? '100%' : undefined,
-        justifySelf: wide ? 'stretch' : undefined,
-      }}
+      className={className}
+      style={{ ...sectionStyle, gridColumn: wide ? '1 / -1' : 'auto' }}
     >
       {title && <h2 style={h2Style}>{title}</h2>}
       {children}
@@ -215,11 +211,17 @@ export default function PublicPage() {
         }
         .tp-grid > * { min-width: 0; }
 
-        /* desktop: 2 cols using minmax(0,1fr), keep dense flow */
+        /* desktop rule (updated) */
         @media (min-width: 980px){
           .tp-grid{
-            grid-template-columns: minmax(0,1fr) minmax(0,1fr); /* fill the row evenly */
-            grid-auto-flow: row dense;                          /* lets wide items span cleanly */
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 16px;
+          }
+          /* force full-row span for the gallery card */
+          .tp-grid > .tp-wide{
+            grid-column: 1 / -1 !important;
+            width: 100%;
+            justify-self: stretch;
           }
         }
 
@@ -434,8 +436,8 @@ export default function PublicPage() {
               </div>
             )}
 
-            {/* Gallery spans both columns */}
-            <Card title="Gallery" wide>
+            {/* Gallery spans both columns via className */}
+            <Card title="Gallery" wide className="tp-wide">
               <div className="tp-gallery">
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
