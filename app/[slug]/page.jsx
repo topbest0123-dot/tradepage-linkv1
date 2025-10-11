@@ -204,6 +204,13 @@ export default function PublicPage() {
         /* Make sure page background & text always follow the active theme */
         html, body { background: var(--bg) !important; color: var(--text) !important; }
 
+        /* inline Share (desktop) vs full-width Share (mobile) */
+        .tp-share-inline { display: none; }
+        @media (min-width: 769px) {
+          .tp-share { display: none; }         /* hide bar on desktop */
+          .tp-share-inline { display: inline-flex; } /* show inline button */
+        }
+
         /* ========== Theme tokens (12 themes) ========== */
         html[data-theme="deep-navy"], body[data-theme="deep-navy"] {
           --bg:#0b1524; --text:#eaf2ff; --border:#183153;
@@ -389,10 +396,25 @@ export default function PublicPage() {
                 <div className="tp-cta">
                   {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
                   {waHref  && <a href={waHref}  className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
+                  {/* NEW: inline Share for DESKTOP only */}
+                  <button
+                    type="button"
+                    className="tp-share-inline tp-btn"
+                    onClick={handleShare}
+                    style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+                  >
+                    Share
+                  </button>
                 </div>
               </div>
 
-              <button type="button" className="tp-share" onClick={handleShare} style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}>
+              {/* existing full-width Share bar (MOBILE only) */}
+              <button
+                type="button"
+                className="tp-share"
+                onClick={handleShare}
+                style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}
+              >
                 Share
               </button>
             </div>
