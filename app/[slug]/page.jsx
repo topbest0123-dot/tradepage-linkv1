@@ -185,22 +185,20 @@ export default function PublicPage() {
 
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
-  // simplified share — avoids adding extra caption text
-const handleShare = async () => {
-  const url = typeof window !== 'undefined' ? window.location.href : '';
-  try {
-    if (navigator.share) {
-      await navigator.share({ url }); // share only URL
-    } else if (navigator.clipboard) {
-      await navigator.clipboard.writeText(url);
-      alert('Link copied to clipboard!');
-    } else {
-      prompt('Copy this link:', url);
-    }
-  } catch {
-    /* user cancelled or not supported */
-  }
-};
+  // simplified share — share only the URL
+  const handleShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    try {
+      if (navigator.share) {
+        await navigator.share({ url });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+      } else {
+        prompt('Copy this link:', url);
+      }
+    } catch {/* user cancelled or not supported */}
+  };
 
   return (
     <div style={pageWrapStyle}>
@@ -211,8 +209,48 @@ const handleShare = async () => {
         /* inline Share (desktop) vs full-width Share (mobile) */
         .tp-share-inline { display: none; }
         @media (min-width: 769px) {
-          .tp-share { display: none; }         /* hide bar on desktop */
+          .tp-share { display: none; }               /* hide bar on desktop */
           .tp-share-inline { display: inline-flex; } /* show inline button */
+        }
+
+        /* ===== Topbar buttons (Dashboard / Sign out) – high contrast on light themes ===== */
+        :root {
+          --headerBtnBg: rgba(255,255,255,.06);
+          --headerBtnHoverBg: rgba(255,255,255,.12);
+          --headerBtnText: var(--text);
+          --headerBtnBorder: var(--border);
+        }
+        html[data-theme="paper-snow"], body[data-theme="paper-snow"],
+        html[data-theme="porcelain-mint"], body[data-theme="porcelain-mint"],
+        html[data-theme="linen-rose"], body[data-theme="linen-rose"],
+        html[data-theme="sandstone"], body[data-theme="sandstone"],
+        html[data-theme="cloud-blue"], body[data-theme="cloud-blue"],
+        html[data-theme="ivory-ink"], body[data-theme="ivory-ink"] {
+          --headerBtnBg: #ffffff;
+          --headerBtnHoverBg: #f3f5f7;
+          --headerBtnText: var(--text);
+          --headerBtnBorder: var(--border);
+        }
+        body[data-theme] a[href*="dashboard"],
+        body[data-theme] a[href*="signout"],
+        body[data-theme] a[href*="sign-out"],
+        body[data-theme] a[href*="logout"] {
+          padding: 10px 14px;
+          border-radius: 12px;
+          background: var(--headerBtnBg);
+          color: var(--headerBtnText) !important;
+          border: 1px solid var(--headerBtnBorder);
+          text-decoration: none;
+          line-height: 1;
+          display: inline-flex;
+          align-items: center;
+          gap: .35rem;
+        }
+        body[data-theme] a[href*="dashboard"]:hover,
+        body[data-theme] a[href*="signout"]:hover,
+        body[data-theme] a[href*="sign-out"]:hover,
+        body[data-theme] a[href*="logout"]:hover {
+          background: var(--headerBtnHoverBg);
         }
 
         /* ========== Theme tokens (12 themes) ========== */
@@ -400,7 +438,7 @@ const handleShare = async () => {
                 <div className="tp-cta">
                   {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
                   {waHref  && <a href={waHref}  className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-                  {/* NEW: inline Share for DESKTOP only */}
+                  {/* Inline Share for DESKTOP only (same size) */}
                   <button
                     type="button"
                     className="tp-share-inline tp-btn"
@@ -412,7 +450,7 @@ const handleShare = async () => {
                 </div>
               </div>
 
-              {/* existing full-width Share bar (MOBILE only) */}
+              {/* Full-width Share bar (MOBILE only) */}
               <button
                 type="button"
                 className="tp-share"
@@ -494,4 +532,4 @@ const handleShare = async () => {
       )}
     </div>
   );
-  }
+                             }
