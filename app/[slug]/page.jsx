@@ -18,7 +18,6 @@ function normalizeSocial(type, raw) {
     default:          return null;
   }
 }
-
 const normalizeAvatarSrc = (value) => {
   const v = String(value || '').trim();
   if (!v) return null;
@@ -147,6 +146,7 @@ export default function PublicPage() {
 
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
+  // single adaptive Share
   const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     try {
@@ -163,9 +163,7 @@ export default function PublicPage() {
 
         /* ONE Share button that adapts */
         .tp-share-btn { display: none; } /* hidden by default */
-        @media (min-width: 769px) {
-          .tp-share-btn { display: inline-flex; }  /* inline in the CTA row on desktop */
-        }
+        @media (min-width: 769px) { .tp-share-btn { display: inline-flex; } }
         @media (max-width: 768px) {
           .tp-share-btn {
             display: block; width: 100%; height: 36px; margin-top: 10px;
@@ -175,26 +173,50 @@ export default function PublicPage() {
           }
         }
 
-        /* Theme-aware top-right header links (Dashboard / Sign out) */
-        header a, header button,
-        [class*="topbar"] a, [class*="topbar"] button,
-        [class*="header"] a, [class*="header"] button,
-        nav[class*="top"] a, nav[class*="top"] button,
-        a[href*="dashboard"], a[href^="/dashboard"],
-        button[id*="signout"], button[id*="sign-out"], button[id*="logout"],
-        button[name*="signout"], button[name*="sign-out"], button[name*="logout"],
-        button[data-action*="signout"], button[data-action*="sign-out"], button[data-action*="logout"] {
-          background: var(--btnNeutralBg) !important;
-          color: var(--btnNeutralText) !important;
-          border: 1px solid var(--border) !important;
-          padding: 10px 14px !important;
-          border-radius: 12px !important;
-          text-decoration: none !important;
-          line-height: 1 !important;
-          display: inline-flex !important;
-          align-items: center !important;
-          gap: .35rem !important;
-          opacity: 1 !important;
+        /* ---------- HEADER LINKS CONTRAST ----------
+           Desktop: theme-aware pill buttons (like WhatsApp).
+           Mobile: revert to simple text-style links to avoid crowding/misalignment.
+        */
+        @media (min-width: 769px) {
+          header a, header button,
+          [class*="topbar"] a, [class*="topbar"] button,
+          [class*="header"] a, [class*="header"] button,
+          nav[class*="top"] a, nav[class*="top"] button,
+          a[href*="dashboard"], a[href^="/dashboard"],
+          button[id*="signout"], button[id*="sign-out"], button[id*="logout"],
+          button[name*="signout"], button[name*="sign-out"], button[name*="logout"],
+          button[data-action*="signout"], button[data-action*="sign-out"], button[data-action*="logout"] {
+            background: var(--btnNeutralBg) !important;
+            color: var(--btnNeutralText) !important;
+            border: 1px solid var(--border) !important;
+            padding: 10px 14px !important;
+            border-radius: 12px !important;
+            text-decoration: none !important;
+            line-height: 1 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: .35rem !important;
+            opacity: 1 !important;
+          }
+        }
+        @media (max-width: 768px) {
+          header a, header button,
+          [class*="topbar"] a, [class*="topbar"] button,
+          [class*="header"] a, [class*="header"] button,
+          nav[class*="top"] a, nav[class*="top"] button,
+          a[href*="dashboard"], a[href^="/dashboard"],
+          button[id*="signout"], button[id*="sign-out"], button[id*="logout"],
+          button[name*="signout"], button[name*="sign-out"], button[name*="logout"],
+          button[data-action*="signout"], button[data-action*="sign-out"], button[data-action*="logout"] {
+            background: transparent !important;
+            color: var(--text) !important;
+            border: none !important;
+            padding: 0 6px !important;
+            border-radius: 8px !important;
+            text-decoration: none !important;
+            line-height: 1.2 !important;
+            opacity: .9 !important;
+          }
         }
 
         /* ===== Theme tokens (unchanged) ===== */
@@ -295,7 +317,7 @@ export default function PublicPage() {
           --glyphBorder:#e7e2d6; --glyphText:#101112; --avatarBg:#ffffff;
         }
 
-        /* -------- layout (unchanged) -------- */
+        /* layout */
         .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
         .tp-header { display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:16px; border:1px solid var(--border); background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd)); margin-bottom:8px; }
         .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
@@ -349,7 +371,6 @@ export default function PublicPage() {
                 <div className="tp-cta">
                   {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
                   {waHref  && <a href={waHref}  className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-                  {/* SINGLE adaptive Share button */}
                   <button
                     type="button"
                     className="tp-share-btn tp-btn"
@@ -363,7 +384,6 @@ export default function PublicPage() {
             </div>
           </div>
 
-          {/* Social icons */}
           {(fb || ig || tk || xx) && (
             <div className="tp-social">
               {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><span className="tp-glyph">f</span></a>}
@@ -433,4 +453,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-    }
+                         }
