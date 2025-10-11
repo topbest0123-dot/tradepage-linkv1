@@ -44,10 +44,17 @@ const imgPlaceholderStyle = {
   width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
 };
 
-// Card wrapper with wide support (spans both grid columns)
+// Card wrapper with wide support (spans both grid columns and stretches)
 function Card({ title, wide = false, children }) {
   return (
-    <section style={{ ...sectionStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
+    <section
+      style={{
+        ...sectionStyle,
+        gridColumn: wide ? '1 / -1' : 'auto',
+        width: wide ? '100%' : undefined,
+        justifySelf: wide ? 'stretch' : undefined,
+      }}
+    >
       {title && <h2 style={h2Style}>{title}</h2>}
       {children}
     </section>
@@ -208,8 +215,12 @@ export default function PublicPage() {
         }
         .tp-grid > * { min-width: 0; }
 
+        /* desktop: 2 cols using minmax(0,1fr), keep dense flow */
         @media (min-width: 980px){
-          .tp-grid{ grid-template-columns: 1fr 1fr; }  /* desktop: 2 cols */
+          .tp-grid{
+            grid-template-columns: minmax(0,1fr) minmax(0,1fr); /* fill the row evenly */
+            grid-auto-flow: row dense;                          /* lets wide items span cleanly */
+          }
         }
 
         /* Gallery: 1 col mobile, 2 col tablet, 3 col desktop (at 980px page width) */
@@ -218,6 +229,7 @@ export default function PublicPage() {
           gap: 16px;
           grid-template-columns: repeat(1, minmax(0, 1fr));
           min-width: 0;
+          width: 100%;
         }
         .tp-gallery > *{
           min-width: 0;
