@@ -4,6 +4,59 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import Script from 'next/script'; // kept to avoid changing imports
+import { createClient } from '@supabase/supabase-js';
+
+/* ──────────────────────────────────────────────────────────────
+   DYNAMIC OG/TWITTER METADATA (runs on the server)
+   ────────────────────────────────────────────────────────────── */
+
+export const revalidate = 60;           // refresh metadata at most once per minute
+export const dynamic = 'force-static';  // good default for ISR-style pages
+
+export async function generateMetadata({ params }) {
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const { data: p } = await sb
+    .from('profiles')
+    .select('slug,name,trade,city,avatar_path')
+    .ilike('slug', params.slug)
+    .maybeSingle();
+
+  const title = p?.name || params.slug;
+  const sub = [p?.trade, p?.city].filter(Boolean).join(' • ');
+  const description = sub || 'Your business in a link';
+
+  // Build a public URL for the avatar (or fall back to a default OG image)
+  const avatarUrl = p?.avatar_path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(p.avatar_path)}`
+    : '/og-default.png';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `/${params.slug}`,
+      siteName: 'TradePage',
+      images: [avatarUrl], // relative works because you set metadataBase in layout
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [avatarUrl],
+    },
+  };
+}
+
+/* ──────────────────────────────────────────────────────────────
+   CLIENT PAGE (your original component)
+   ────────────────────────────────────────────────────────────── */
 
 /** Small helper: turn any value into a clean list of strings */
 const toList = (value) =>
