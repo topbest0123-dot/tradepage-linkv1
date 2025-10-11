@@ -201,28 +201,27 @@ export default function PublicPage() {
         }
         .tp-glyph { font-size: 13px; font-weight: 800; letter-spacing: .2px; }
 
-        /* Parent grid for the cards */
-        .tp-grid{
+        /* The page grid: 1 col mobile, 2 cols desktop */
+        .tp-grid {
           display: grid;
-          grid-template-columns: 1fr;   /* mobile: single column */
+          grid-template-columns: 1fr;
           gap: 16px;
           margin-top: 16px;
-          grid-auto-flow: row dense;
         }
-        .tp-grid > * { min-width: 0; }
+        @media (min-width: 820px) {
+          .tp-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+          /* Force the gallery card to span both columns */
+          .tp-grid > .tp-gallery-card { grid-column: 1 / -1 !important; width: 100%; }
+        }
+        /* Defensive: prevent any card from shrinking weirdly */
+        .tp-grid > section { min-width: 0; }
 
-        /* Gallery base */
-        .tp-gallery{
-          display: grid;
-          gap: 16px;
-          grid-template-columns: 1fr;
-          min-width: 0;
-          width: 100%;
-        }
-        .tp-gallery > *{
-          min-width: 0;
-          box-sizing: border-box;
-        }
+        /* Tiles inside the gallery: 3 across on desktop, stack on mobile */
+        .tp-gallery { display: grid; gap: 16px; }
+        @media (min-width: 820px) { .tp-gallery { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+        @media (max-width: 819.98px) { .tp-gallery { grid-template-columns: 1fr; gap: 12px; } }
+
+        /* gallery item cosmetics */
         .tp-gallery .item{
           height: 220px;
           border-radius: 14px;
@@ -235,19 +234,6 @@ export default function PublicPage() {
           height: 100%;
           object-fit: cover;
           border-radius: 14px;
-        }
-
-        /* Desktop: 2 cols, Gallery spans both */
-        @media (min-width: 820px) {
-          .tp-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
-          .tp-grid > .tp-gallery-card { grid-column: 1 / -1 !important; } /* <- full width */
-          .tp-gallery { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
-        }
-
-        /* Mobile: stack */
-        @media (max-width: 819.98px) {
-          .tp-grid { grid-template-columns: 1fr; }
-          .tp-gallery { display: grid; grid-template-columns: 1fr; gap: 12px; }
         }
       `}</style>
 
@@ -429,7 +415,7 @@ export default function PublicPage() {
               </div>
             )}
 
-            {/* Gallery — one-liner with class for spanning */}
+            {/* Gallery — span both columns via class on Card */}
             <Card title="Gallery" className="tp-gallery-card">
               <div className="tp-gallery">
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
