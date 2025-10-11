@@ -23,12 +23,12 @@ function normalizeSocial(type, raw) {
 const normalizeAvatarSrc = (value) => {
   const v = String(value || '').trim();
   if (!v) return null;
-  if (/^https?:\/\//i.test(v)) return v; // already a public URL
+  if (/^https?:\/\//i.test(v)) return v;
   const { data } = supabase.storage.from('avatars').getPublicUrl(v);
   return data?.publicUrl || null;
 };
 
-// ---------- design tokens via CSS vars ----------
+// ---------- styles using CSS variables ----------
 const sectionStyle = {
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
@@ -71,35 +71,25 @@ function Card({ title, wide = false, className, children }) {
 
 const DEFAULT_THEME = 'deep-navy';
 
-// 10-theme whitelist
-const THEME_WHITELIST = new Set([
-  'deep-navy',
-  'ivory-ink',
-  'sandstone',
-  'porcelain-mint',
-  'ocean-teal',
-  'sunset-peach',
-  'plum-noir',
-  'slate-sky',
-  'emerald-fog',
-  'charcoal-gold',
+// Optional: keep a whitelist to avoid typos breaking themes
+const THEMES = new Set([
+  'deep-navy','ivory-ink','sandstone','porcelain-mint','ocean-teal',
+  'sunset-peach','plum-noir','slate-sky','emerald-fog','charcoal-gold'
 ]);
 
 export default function PublicPage() {
   const { slug } = useParams();
   const [row, setRow] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [err,   setErr]     = useState(null);
+  const [err, setErr] = useState(null);
 
-  // fetch profile (includes `theme`)
+  // fetch profile (includes theme)
   useEffect(() => {
     let cancelled = false;
-
-    async function run() {
+    (async () => {
       setLoading(true);
       setErr(null);
       setRow(null);
-
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -112,7 +102,6 @@ export default function PublicPage() {
           `)
           .eq('slug', String(slug || ''))
           .maybeSingle();
-
         if (cancelled) return;
         if (error) setErr(error.message);
         else setRow(data);
@@ -121,22 +110,23 @@ export default function PublicPage() {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    }
-
-    if (slug) run();
+    })();
     return () => { cancelled = true; };
   }, [slug]);
 
-  // apply theme to <html data-theme="..."> (with whitelist + fallback)
+  // apply theme to html + body
   useEffect(() => {
     const raw = (row?.theme || DEFAULT_THEME).trim();
-    const theme = THEME_WHITELIST.has(raw) ? raw : DEFAULT_THEME;
+    const theme = THEMES.has(raw) ? raw : DEFAULT_THEME;
     document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
     return () => {
       document.documentElement.removeAttribute('data-theme');
+      document.body.removeAttribute('data-theme');
     };
   }, [row?.theme]);
 
+  // links
   const callHref = row?.phone ? `tel:${String(row.phone).replace(/\s+/g, '')}` : null;
   const waHref  = row?.whatsapp ? `https://wa.me/${String(row.whatsapp).replace(/\D/g, '')}` : null;
 
@@ -145,24 +135,15 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    row?.tiktok);
   const xx = normalizeSocial('x',         row?.x);
 
+  // pricing lines
   const priceLines = useMemo(
-    () =>
-      String(row?.prices ?? '')
-        .split(/\r?\n/)
-        .map((s) => s.trim())
-        .filter(Boolean),
+    () => String(row?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
     [row]
   );
 
-  const areas = String(row?.areas || '')
-    .split(/[,\n]+/)
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  const services = String(row?.services || '')
-    .split(/[,\n]+/)
-    .map(s => s.trim())
-    .filter(Boolean);
+  // tags
+  const areas = String(row?.areas || '').split(/[,\n]+/).map(s=>s.trim()).filter(Boolean);
+  const services = String(row?.services || '').split(/[,\n]+/).map(s=>s.trim()).filter(Boolean);
 
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
@@ -173,393 +154,184 @@ export default function PublicPage() {
       url: typeof window !== 'undefined' ? window.location.href : '',
     };
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(shareData.url);
-        alert('Link copied to clipboard!');
-      } else {
-        prompt('Copy this link:', shareData.url);
-      }
-    } catch {/* user cancelled */}
+      if (navigator.share) await navigator.share(shareData);
+      else if (navigator.clipboard) { await navigator.clipboard.writeText(shareData.url); alert('Link copied to clipboard!'); }
+      else { prompt('Copy this link:', shareData.url); }
+    } catch {}
   };
 
   return (
     <div style={pageWrapStyle}>
-      {/* THEME TOKENS */}
       <style>{`
-        /* =========================
-           BASE / DEEP NAVY (dark)
-           ========================= */
-        :root,
-        [data-theme="deep-navy"] {
+        /* Base tokens (fallback to deep-navy) */
+        :root {
           --bg: #0b1524;
           --text: #eaf2ff;
-
           --border: #183153;
           --cardGradStart: #0f213a;
           --cardGradEnd:   #0b1524;
-
           --chipBorder: #27406e;
           --chipBg:     #0c1a2e;
           --chipText:   #d1e1ff;
-
           --btnNeutralBg:   #1f2937;
           --btnNeutralText: #ffffff;
           --btnPrimaryText: #08101e;
           --btnPrimaryBg:   linear-gradient(135deg,#66e0b9,#8ab4ff);
-
           --glyphBorder: #213a6b;
           --glyphText:   #eaf2ff;
-
           --avatarBg: #0b1524;
         }
 
-        /* ============== LIGHT THEMES ============== */
-        [data-theme="ivory-ink"] {
-          --bg: #f9f7f2;
-          --text: #1d2433;
-
-          --border: #e6e2d9;
-          --cardGradStart: #ffffff;
-          --cardGradEnd:   #f3efe7;
-
-          --chipBorder: #ddd6c8;
-          --chipBg:     #faf7f1;
-          --chipText:   #24324a;
-
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e;
-          --btnPrimaryBg:   linear-gradient(135deg,#4dd0b5,#6aa9ff);
-
-          --glyphBorder: #d4cfc3;
-          --glyphText:   #1d2433;
-
-          --avatarBg: #ffffff;
+        /* Theme blocks — scoped to html/body so either attribute works */
+        html[data-theme="deep-navy"], body[data-theme="deep-navy"] {
+          --bg:#0b1524; --text:#eaf2ff; --border:#183153;
+          --cardGradStart:#0f213a; --cardGradEnd:#0b1524;
+          --chipBorder:#27406e; --chipBg:#0c1a2e; --chipText:#d1e1ff;
+          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#66e0b9,#8ab4ff);
+          --glyphBorder:#213a6b; --glyphText:#eaf2ff; --avatarBg:#0b1524;
         }
 
-        [data-theme="porcelain-mint"] {
-          --bg: #f6fffb;
-          --text: #0f1a15;
-
-          --border: #cfeee3;
-          --cardGradStart: #ffffff;
-          --cardGradEnd:   #eef9f4;
-
-          --chipBorder: #c7eadf;
-          --chipBg:     #f2fcf8;
-          --chipText:   #153126;
-
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #0d1b14;
-          --btnPrimaryBg:   linear-gradient(135deg,#7de2c3,#6cc4ff);
-
-          --glyphBorder: #cfeee3;
-          --glyphText:   #0f1a15;
-
-          --avatarBg: #ffffff;
+        html[data-theme="ivory-ink"], body[data-theme="ivory-ink"] {
+          --bg:#f9f7f2; --text:#1d2433; --border:#e6e2d9;
+          --cardGradStart:#ffffff; --cardGradEnd:#f3efe7;
+          --chipBorder:#ddd6c8; --chipBg:#faf7f1; --chipText:#24324a;
+          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#4dd0b5,#6aa9ff);
+          --glyphBorder:#d4cfc3; --glyphText:#1d2433; --avatarBg:#ffffff;
         }
 
-        [data-theme="sunset-peach"] {
-          --bg: #fff7f2;
-          --text: #241a18;
-
-          --border: #f3d7cc;
-          --cardGradStart: #ffffff;
-          --cardGradEnd:   #fdebe3;
-
-          --chipBorder: #f0c9bc;
-          --chipBg:     #fff3ec;
-          --chipText:   #2a1f1d;
-
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #2a110d;
-          --btnPrimaryBg:   linear-gradient(135deg,#ffb199,#ffa26b);
-
-          --glyphBorder: #efd2c7;
-          --glyphText:   #241a18;
-
-          --avatarBg: #ffffff;
+        html[data-theme="sandstone"], body[data-theme="sandstone"] {
+          --bg:#171411; --text:#f7efe6; --border:#3a2f27;
+          --cardGradStart:#2a221c; --cardGradEnd:#1c1713;
+          --chipBorder:#4b3c32; --chipBg:#231c17; --chipText:#f1e7db;
+          --btnNeutralBg:#2a2622; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#0d0a07; --btnPrimaryBg:linear-gradient(135deg,#f3c07a,#f0a16b);
+          --glyphBorder:#4b3c32; --glyphText:#f7efe6; --avatarBg:#221c17;
         }
 
-        [data-theme="emerald-fog"] {
-          --bg: #f3fbf4;
-          --text: #132018;
-
-          --border: #cde7d2;
-          --cardGradStart: #ffffff;
-          --cardGradEnd:   #ebf6ee;
-
-          --chipBorder: #c3e1c8;
-          --chipBg:     #f2faf4;
-          --chipText:   #183222;
-
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #0d1510;
-          --btnPrimaryBg:   linear-gradient(135deg,#8de3b5,#7ad1b0);
-
-          --glyphBorder: #cde7d2;
-          --glyphText:   #132018;
-
-          --avatarBg: #ffffff;
+        html[data-theme="porcelain-mint"], body[data-theme="porcelain-mint"] {
+          --bg:#f6fffb; --text:#0f1a15; --border:#cfeee3;
+          --cardGradStart:#ffffff; --cardGradEnd:#eef9f4;
+          --chipBorder:#c7eadf; --chipBg:#f2fcf8; --chipText:#153126;
+          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#0d1b14; --btnPrimaryBg:linear-gradient(135deg,#7de2c3,#6cc4ff);
+          --glyphBorder:#cfeee3; --glyphText:#0f1a15; --avatarBg:#ffffff;
         }
 
-        /* ============== DARK THEMES ============== */
-        [data-theme="sandstone"] {
-          --bg: #171411;
-          --text: #f7efe6;
-
-          --border: #3a2f27;
-          --cardGradStart: #2a221c;
-          --cardGradEnd:   #1c1713;
-
-          --chipBorder: #4b3c32;
-          --chipBg:     #231c17;
-          --chipText:   #f1e7db;
-
-          --btnNeutralBg:   #2a2622;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #0d0a07;
-          --btnPrimaryBg:   linear-gradient(135deg,#f3c07a,#f0a16b);
-
-          --glyphBorder: #4b3c32;
-          --glyphText:   #f7efe6;
-
-          --avatarBg: #221c17;
+        html[data-theme="ocean-teal"], body[data-theme="ocean-teal"] {
+          --bg:#0b1616; --text:#e8fffb; --border:#103a3a;
+          --cardGradStart:#0f2626; --cardGradEnd:#0b1616;
+          --chipBorder:#174b4b; --chipBg:#0c1b1b; --chipText:#d7fffb;
+          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#031311; --btnPrimaryBg:linear-gradient(135deg,#68e0c2,#6fb8ff);
+          --glyphBorder:#184e4e; --glyphText:#e8fffb; --avatarBg:#0f2020;
         }
 
-        [data-theme="ocean-teal"] {
-          --bg: #0b1616;
-          --text: #e8fffb;
-
-          --border: #103a3a;
-          --cardGradStart: #0f2626;
-          --cardGradEnd:   #0b1616;
-
-          --chipBorder: #174b4b;
-          --chipBg:     #0c1b1b;
-          --chipText:   #d7fffb;
-
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #031311;
-          --btnPrimaryBg:   linear-gradient(135deg,#68e0c2,#6fb8ff);
-
-          --glyphBorder: #184e4e;
-          --glyphText:   #e8fffb;
-
-          --avatarBg: #0f2020;
+        html[data-theme="sunset-peach"], body[data-theme="sunset-peach"] {
+          --bg:#fff7f2; --text:#241a18; --border:#f3d7cc;
+          --cardGradStart:#ffffff; --cardGradEnd:#fdebe3;
+          --chipBorder:#f0c9bc; --chipBg:#fff3ec; --chipText:#2a1f1d;
+          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#2a110d; --btnPrimaryBg:linear-gradient(135deg,#ffb199,#ffa26b);
+          --glyphBorder:#efd2c7; --glyphText:#241a18; --avatarBg:#ffffff;
         }
 
-        [data-theme="plum-noir"] {
-          --bg: #140b16;
-          --text: #f3e9ff;
-
-          --border: #2b1633;
-          --cardGradStart: #1d0f24;
-          --cardGradEnd:   #140b16;
-
-          --chipBorder: #3a1d45;
-          --chipBg:     #160b1a;
-          --chipText:   #efe4ff;
-
-          --btnNeutralBg:   #2a2230;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #180b1d;
-          --btnPrimaryBg:   linear-gradient(135deg,#c48bff,#8ea0ff);
-
-          --glyphBorder: #3a1d45;
-          --glyphText:   #f3e9ff;
-
-          --avatarBg: #1a0e1f;
+        html[data-theme="plum-noir"], body[data-theme="plum-noir"] {
+          --bg:#140b16; --text:#f3e9ff; --border:#2b1633;
+          --cardGradStart:#1d0f24; --cardGradEnd:#140b16;
+          --chipBorder:#3a1d45; --chipBg:#160b1a; --chipText:#efe4ff;
+          --btnNeutralBg:#2a2230; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#180b1d; --btnPrimaryBg:linear-gradient(135deg,#c48bff,#8ea0ff);
+          --glyphBorder:#3a1d45; --glyphText:#f3e9ff; --avatarBg:#1a0e1f;
         }
 
-        [data-theme="slate-sky"] {
-          --bg: #0f131a;
-          --text: #e9f2ff;
-
-          --border: #1e2a3a;
-          --cardGradStart: #142033;
-          --cardGradEnd:   #0f131a;
-
-          --chipBorder: #293a52;
-          --chipBg:     #0f1723;
-          --chipText:   #d5e6ff;
-
-          --btnNeutralBg:   #1f2937;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #09111a;
-          --btnPrimaryBg:   linear-gradient(135deg,#7fb4ff,#7ee0d3);
-
-          --glyphBorder: #263750;
-          --glyphText:   #e9f2ff;
-
-          --avatarBg: #101724;
+        html[data-theme="slate-sky"], body[data-theme="slate-sky"] {
+          --bg:#0f131a; --text:#e9f2ff; --border:#1e2a3a;
+          --cardGradStart:#142033; --cardGradEnd:#0f131a;
+          --chipBorder:#293a52; --chipBg:#0f1723; --chipText:#d5e6ff;
+          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#09111a; --btnPrimaryBg:linear-gradient(135deg,#7fb4ff,#7ee0d3);
+          --glyphBorder:#263750; --glyphText:#e9f2ff; --avatarBg:#101724;
         }
 
-        [data-theme="charcoal-gold"] {
-          --bg: #0f0f10;
-          --text: #f8f6ed;
-
-          --border: #2b2b2d;
-          --cardGradStart: #1a1a1c;
-          --cardGradEnd:   #0f0f10;
-
-          --chipBorder: #3a3a3d;
-          --chipBg:     #121213;
-          --chipText:   #f2f0e6;
-
-          --btnNeutralBg:   #2a2a2e;
-          --btnNeutralText: #ffffff;
-          --btnPrimaryText: #1a1403;
-          --btnPrimaryBg:   linear-gradient(135deg,#f0d274,#f2b55e);
-
-          --glyphBorder: #3a3a3d;
-          --glyphText:   #f8f6ed;
-
-          --avatarBg: #141416;
+        html[data-theme="emerald-fog"], body[data-theme="emerald-fog"] {
+          --bg:#f3fbf4; --text:#132018; --border:#cde7d2;
+          --cardGradStart:#ffffff; --cardGradEnd:#ebf6ee;
+          --chipBorder:#c3e1c8; --chipBg:#f2faf4; --chipText:#183222;
+          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#0d1510; --btnPrimaryBg:linear-gradient(135deg,#8de3b5,#7ad1b0);
+          --glyphBorder:#cde7d2; --glyphText:#132018; --avatarBg:#ffffff;
         }
 
-        body { background: var(--bg); color: var(--text); }
-
-        .tp-hero {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 12px;
-          align-items: start;
-          margin: 8px 0 6px;
+        html[data-theme="charcoal-gold"], body[data-theme="charcoal-gold"] {
+          --bg:#0f0f10; --text:#f8f6ed; --border:#2b2b2d;
+          --cardGradStart:#1a1a1c; --cardGradEnd:#0f0f10;
+          --chipBorder:#3a3a3d; --chipBg:#121213; --chipText:#f2f0e6;
+          --btnNeutralBg:#2a2a2e; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#1a1403; --btnPrimaryBg:linear-gradient(135deg,#f0d274,#f2b55e);
+          --glyphBorder:#3a3a3d; --glyphText:#f8f6ed; --avatarBg:#141416;
         }
 
+        /* Force page base colors to win */
+        body { background: var(--bg) !important; color: var(--text) !important; }
+
+        .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
         .tp-header {
-          display:flex; flex-direction: column; gap:10px;
-          padding: 12px 14px;
-          border-radius: 16px;
-          border: 1px solid var(--border);
+          display:flex; flex-direction:column; gap:10px; padding:12px 14px;
+          border-radius:16px; border:1px solid var(--border);
           background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
-          margin-bottom: 8px;
+          margin-bottom:8px;
         }
-
         .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
         .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
         .tp-cta a, .tp-cta button { font-weight:700; }
 
         .tp-avatar-inline{
-          width: 56px;
-          height: 56px;
-          border-radius: 14px;
-          border: 1px solid var(--border);
-          background: var(--avatarBg);
-          object-fit: cover;
-          margin-right: 12px;
-          flex: 0 0 auto;
+          width:56px; height:56px; border-radius:14px; border:1px solid var(--border);
+          background:var(--avatarBg); object-fit:cover; margin-right:12px; flex:0 0 auto;
         }
-        .tp-avatar-inline.is-fallback{
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          color: #63d3e0;
-          font-weight: 800;
-          font-size: 22px;
-        }
-        @media (max-width: 480px){
-          .tp-avatar-inline{ width: 48px; height: 48px; }
-        }
+        .tp-avatar-inline.is-fallback{ display:inline-flex; align-items:center; justify-content:center; color:#63d3e0; font-weight:800; font-size:22px; }
+        @media (max-width:480px){ .tp-avatar-inline{ width:48px; height:48px; } }
 
-        .tp-social { display:flex; gap:10px; align-items:center; margin: 8px 0 8px; }
-        .tp-social a {
-          width: 36px; height: 36px; border-radius: 999px;
-          border: 1px solid var(--glyphBorder);
-          background: transparent; color: var(--glyphText);
-          display:inline-flex; align-items:center; justify-content:center;
-          text-decoration:none;
+        .tp-social { display:flex; gap:10px; align-items:center; margin:8px 0 8px; }
+        .tp-social a{
+          width:36px; height:36px; border-radius:999px; border:1px solid var(--glyphBorder);
+          background:transparent; color:var(--glyphText); display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
         }
-        .tp-glyph { font-size: 13px; font-weight: 800; letter-spacing: .2px; }
+        .tp-glyph { font-size:13px; font-weight:800; letter-spacing:.2px; }
 
-        .tp-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 16px;
-          margin-top: 16px;
+        .tp-grid { display:grid; grid-template-columns:1fr; gap:16px; margin-top:16px; }
+        @media (min-width:820px){
+          .tp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+          .tp-grid > .tp-gallery-card { grid-column:1 / -1 !important; width:100%; }
         }
-        @media (min-width: 820px) {
-          .tp-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-          .tp-grid > .tp-gallery-card { grid-column: 1 / -1 !important; width: 100%; }
-        }
-        .tp-grid > section { min-width: 0; }
+        .tp-grid > section { min-width:0; }
 
-        .tp-gallery { display: grid; gap: 16px; }
-        @media (min-width: 820px) { .tp-gallery { grid-template-columns: repeat(3, minmax(0,1fr)); } }
-        @media (max-width: 819.98px) { .tp-gallery { grid-template-columns: 1fr; gap: 12px; } }
+        .tp-gallery { display:grid; gap:16px; }
+        @media (min-width:820px){ .tp-gallery { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+        @media (max-width:819.98px){ .tp-gallery { grid-template-columns:1fr; gap:12px; } }
 
         .tp-gallery .item{
-          height: 220px;
-          border-radius: 14px;
-          border: 1px solid var(--chipBorder);
-          background: var(--chipBg);
-          overflow: hidden;
+          height:220px; border-radius:14px; border:1px solid var(--chipBorder); background:var(--chipBg); overflow:hidden;
         }
-        .tp-gallery .item img{
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          border-radius: 14px;
+        .tp-gallery .item img{ width:100%; height:100%; object-fit:cover; border-radius:14px; }
+
+        .tp-chip{
+          padding:6px 12px; border-radius:999px; border:1px solid var(--chipBorder);
+          background:var(--chipBg); color:var(--chipText); font-size:13px;
         }
 
-        .tp-chip {
-          padding: 6px 12px;
-          border-radius: 999px;
-          border: 1px solid var(--chipBorder);
-          background: var(--chipBg);
-          color: var(--chipText);
-          font-size: 13px;
-        }
-
-        @media (max-width: 768px) {
-          .tp-hero { grid-template-columns: 1fr; gap: 12px; align-items: start; margin-bottom: 8px; }
-
-          .tp-avatar { width: 96px; height: 96px; margin: 0 auto; border-radius: 14px; overflow: hidden; transform: translateY(-6px); }
-          .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-          .tp-header {
-            padding: 12px 14px !important;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
-          }
-
-          .tp-head-top { flex-direction: column; align-items:flex-start; gap: 8px; }
-          .tp-head-titles { display:grid; gap:2px; }
-
-          .tp-cta { gap:8px; width:100%; }
-          .tp-cta .tp-btn {
-            flex: 1 1 0;
-            min-width: 120px;
-            padding: 8px 14px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            text-align: center;
-            font-weight: 700;
-            text-decoration: none;
-          }
-
-          .tp-share {
-            display: block;
-            width: 100%;
-            height: 36px;
-            margin-top: 10px;
-            border-radius: 12px;
-            border: 1px solid var(--glyphBorder);
-            background: transparent;
-            color: var(--text);
-            font-weight: 700;
-          }
-
-          .tp-cta-outside, .tp-share-outside { display: none !important; }
-          .tp-social { margin: 8px 0 12px 0; }
+        @media (max-width:768px){
+          .tp-hero{ grid-template-columns:1fr; gap:12px; align-items:start; margin-bottom:8px; }
+          .tp-header{ padding:12px 14px !important; }
+          .tp-head-top{ flex-direction:column; align-items:flex-start; gap:8px; }
+          .tp-head-titles{ display:grid; gap:2px; }
+          .tp-cta{ gap:8px; width:100%; }
+          .tp-cta .tp-btn{ flex:1 1 0; min-width:120px; padding:8px 14px; border-radius:12px; border:1px solid var(--border); text-align:center; font-weight:700; text-decoration:none; }
+          .tp-share{ display:block; width:100%; height:36px; margin-top:10px; border-radius:12px; border:1px solid var(--glyphBorder); background:transparent; color:var(--text); font-weight:700; }
+          .tp-cta-outside, .tp-share-outside{ display:none !important; }
+          .tp-social{ margin:8px 0 12px 0; }
         }
       `}</style>
 
@@ -588,31 +360,17 @@ export default function PublicPage() {
                 </div>
 
                 <div className="tp-cta">
-                  {callHref && (
-                    <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
-                      Call
-                    </a>
-                  )}
-                  {waHref && (
-                    <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-                      WhatsApp
-                    </a>
-                  )}
+                  {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
+                  {waHref && <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="tp-share"
-                onClick={handleShare}
-                style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}
-              >
+              <button type="button" className="tp-share" onClick={handleShare} style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}>
                 Share
               </button>
             </div>
           </div>
 
-          {/* Social icons */}
           {(fb || ig || tk || xx) && (
             <div className="tp-social">
               {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><span className="tp-glyph">f</span></a>}
@@ -624,7 +382,6 @@ export default function PublicPage() {
 
           {/* Cards grid */}
           <div className="tp-grid">
-            {/* About */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>About</h2>
               <p style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 }}>
@@ -632,49 +389,36 @@ export default function PublicPage() {
               </p>
             </div>
 
-            {/* Prices */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Prices</h2>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {priceLines.length === 0 ? (
-                  <li style={{ opacity: 0.8 }}>Please ask for a quote.</li>
-                ) : (
-                  priceLines.map((ln, i) => <li key={i}>{ln}</li>)
-                )}
+                {priceLines.length === 0 ? <li style={{ opacity: 0.8 }}>Please ask for a quote.</li> : priceLines.map((ln, i) => <li key={i}>{ln}</li>)}
               </ul>
             </div>
 
-            {/* Areas we cover */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Areas we cover</h2>
               {areas.length ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {areas.map((a, i) => (<span key={i} className="tp-chip">{a}</span>))}
                 </div>
-              ) : (
-                <div style={{ opacity: 0.8 }}>No areas listed yet.</div>
-              )}
+              ) : (<div style={{ opacity: 0.8 }}>No areas listed yet.</div>)}
             </div>
 
-            {/* Services */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Services</h2>
               {services.length ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {services.map((s, i) => (<span key={i} className="tp-chip">{s}</span>))}
                 </div>
-              ) : (
-                <div style={{ opacity: 0.8 }}>No services listed yet.</div>
-              )}
+              ) : (<div style={{ opacity: 0.8 }}>No services listed yet.</div>)}
             </div>
 
-            {/* Hours */}
             <div style={sectionStyle}>
               <h2 style={h2Style}>Hours</h2>
               <div style={{ opacity: 0.9 }}>{row?.hours || 'Mon–Sat 08:00–18:00'}</div>
             </div>
 
-            {/* Other useful information */}
             {(row?.other_info ?? '').trim() && (
               <div style={sectionStyle}>
                 <h2 style={h2Style}>Other useful information</h2>
@@ -682,16 +426,12 @@ export default function PublicPage() {
               </div>
             )}
 
-            {/* Gallery — span both columns */}
             <Card title="Gallery" className="tp-gallery-card" wide>
               <div className="tp-gallery">
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item">
-                  <img
-                    src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
-                    alt="work"
-                  />
+                  <img src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop" alt="work"/>
                 </div>
               </div>
             </Card>
@@ -700,4 +440,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-      }
+}
