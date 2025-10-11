@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
 /* ---------- helpers ---------- */
-function normalizeSocial(type: string, raw: unknown) {
+function normalizeSocial(type, raw) {
   const v = String(raw || '').trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v;
@@ -20,7 +20,7 @@ function normalizeSocial(type: string, raw: unknown) {
 }
 
 // Accept either a full URL or a path in the 'avatars' bucket
-const normalizeAvatarSrc = (value: unknown) => {
+const normalizeAvatarSrc = (value) => {
   const v = String(value || '').trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v;
@@ -29,7 +29,6 @@ const normalizeAvatarSrc = (value: unknown) => {
 };
 
 /* ---------- theme normalization ---------- */
-/** Canonical keys you used before */
 const THEME_KEYS = [
   'deep-navy',
   'midnight-teal',
@@ -43,11 +42,10 @@ const THEME_KEYS = [
   'sandstone',
   'cloud-blue',
   'ivory-ink',
-] as const;
+];
 const THEME_SET = new Set(THEME_KEYS);
 
-/** Friendly names/old labels → canonical key */
-const ALIAS: Record<string, string> = {
+const ALIAS = {
   'midnight': 'deep-navy',
   'cocoa-bronze': 'graphite-ember',
   'cocoa bronze': 'graphite-ember',
@@ -56,7 +54,7 @@ const ALIAS: Record<string, string> = {
   'glacier-mist': 'cloud-blue',
   'glacier mist': 'cloud-blue',
 
-  // common variations/typos
+  // common variations
   'porcelain mint': 'porcelain-mint',
   'forest emerald': 'forest-emerald',
   'royal purple': 'royal-purple',
@@ -68,7 +66,7 @@ const ALIAS: Record<string, string> = {
   'ivory ink': 'ivory-ink',
 };
 
-function normalizeThemeKey(raw: unknown) {
+function normalizeThemeKey(raw) {
   const k = String(raw ?? '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
   if (THEME_SET.has(k)) return k;
   if (ALIAS[k]) return ALIAS[k];
@@ -76,7 +74,7 @@ function normalizeThemeKey(raw: unknown) {
 }
 
 /* ---------- styles using CSS variables ---------- */
-const sectionStyle: React.CSSProperties = {
+const sectionStyle = {
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
   borderRadius: 12,
@@ -84,9 +82,9 @@ const sectionStyle: React.CSSProperties = {
   maxWidth: 720,
   marginTop: 14,
 };
-const h2Style: React.CSSProperties = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
+const h2Style = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
 
-const pageWrapStyle: React.CSSProperties = {
+const pageWrapStyle = {
   maxWidth: 980,
   margin: '28px auto',
   padding: '0 16px 48px',
@@ -94,20 +92,20 @@ const pageWrapStyle: React.CSSProperties = {
   overflowX: 'hidden',
 };
 
-const headerNameStyle: React.CSSProperties = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle:  React.CSSProperties = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const headerLeftStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
+const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
+const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
 
-const btnBaseStyle:    React.CSSProperties = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
-const btnPrimaryStyle: React.CSSProperties = { background: 'var(--btnPrimaryBg)', color: 'var(--btnPrimaryText)' };
-const btnNeutralStyle: React.CSSProperties = { background: 'var(--btnNeutralBg)', color: 'var(--btnNeutralText)' };
+const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
+const btnPrimaryStyle = { background: 'var(--btnPrimaryBg)', color: 'var(--btnPrimaryText)' };
+const btnNeutralStyle = { background: 'var(--btnNeutralBg)', color: 'var(--btnNeutralText)' };
 
-const imgPlaceholderStyle: React.CSSProperties = {
+const imgPlaceholderStyle = {
   width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
 };
 
 // Card wrapper
-function Card({ title, wide = false, className, children }: { title?: string; wide?: boolean; className?: string; children: React.ReactNode }) {
+function Card({ title, wide = false, className, children }) {
   return (
     <section className={className} style={{ ...sectionStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
       {title && <h2 style={h2Style}>{title}</h2>}
@@ -120,9 +118,9 @@ const DEFAULT_THEME = 'deep-navy';
 
 export default function PublicPage() {
   const { slug } = useParams();
-  const [row, setRow] = useState<any>(null);
+  const [row, setRow] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState(null);
 
   // fetch profile (includes theme)
   useEffect(() => {
@@ -146,7 +144,7 @@ export default function PublicPage() {
         if (cancelled) return;
         if (error) setErr(error.message);
         else setRow(data);
-      } catch (e: any) {
+      } catch (e) {
         if (!cancelled) setErr(String(e?.message || e));
       } finally {
         if (!cancelled) setLoading(false);
@@ -422,7 +420,7 @@ export default function PublicPage() {
             <div style={sectionStyle}>
               <h2 style={h2Style}>Prices</h2>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {priceLines.length === 0 ? <li style={{ opacity: 0.8 }}>Please ask for a quote.</li> : priceLines.map((ln: string, i: number) => <li key={i}>{ln}</li>)}
+                {priceLines.length === 0 ? <li style={{ opacity: 0.8 }}>Please ask for a quote.</li> : priceLines.map((ln, i) => <li key={i}>{ln}</li>)}
               </ul>
             </div>
 
@@ -430,7 +428,7 @@ export default function PublicPage() {
               <h2 style={h2Style}>Areas we cover</h2>
               {areas.length ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {areas.map((a: string, i: number) => (<span key={i} className="tp-chip">{a}</span>))}
+                  {areas.map((a, i) => (<span key={i} className="tp-chip">{a}</span>))}
                 </div>
               ) : (<div style={{ opacity: 0.8 }}>No areas listed yet.</div>)}
             </div>
@@ -439,7 +437,7 @@ export default function PublicPage() {
               <h2 style={h2Style}>Services</h2>
               {services.length ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {services.map((s: string, i: number) => (<span key={i} className="tp-chip">{s}</span>))}
+                  {services.map((s, i) => (<span key={i} className="tp-chip">{s}</span>))}
                 </div>
               ) : (<div style={{ opacity: 0.8 }}>No services listed yet.</div>)}
             </div>
@@ -470,4 +468,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-  }
+}
