@@ -211,28 +211,37 @@ export default function PublicPage() {
           .tp-share-inline { display: inline-flex; } /* show inline button */
         }
 
-        /* ===== Topbar buttons (Dashboard / Sign out) —
-           now use the SAME tokens as app buttons so they adapt per theme ===== */
-        body[data-theme] a[href*="dashboard"],
-        body[data-theme] a[href*="signout"],
-        body[data-theme] a[href*="sign-out"],
-        body[data-theme] a[href*="logout"] {
-          padding: 10px 14px;
-          border-radius: 12px;
-          background: var(--btnNeutralBg);
+        /* ===== FIX: Topbar "Dashboard" / "Sign out" pills =====
+           Force them to use the *same neutral button tokens* as the WhatsApp button.
+           We scope to header/nav only and use !important to beat global header CSS. */
+        header a[href*="dashboard"],
+        header a[href*="signout"],
+        header a[href*="sign-out"],
+        header a[href*="logout"],
+        nav a[href*="dashboard"],
+        nav a[href*="signout"],
+        nav a[href*="sign-out"],
+        nav a[href*="logout"] {
+          background: var(--btnNeutralBg) !important;
           color: var(--btnNeutralText) !important;
-          border: 1px solid var(--border);
-          text-decoration: none;
-          line-height: 1;
-          display: inline-flex;
-          align-items: center;
-          gap: .35rem;
-          transition: filter .12s ease, opacity .12s ease;
+          border: 1px solid var(--border) !important;
+          padding: 10px 14px !important;
+          border-radius: 12px !important;
+          text-decoration: none !important;
+          line-height: 1 !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: .35rem !important;
         }
-        body[data-theme] a[href*="dashboard"]:hover,
-        body[data-theme] a[href*="signout"]:hover,
-        body[data-theme] a[href*="sign-out"]:hover,
-        body[data-theme] a[href*="logout"]:hover {
+        /* subtle hover */
+        header a[href*="dashboard"]:hover,
+        header a[href*="signout"]:hover,
+        header a[href*="sign-out"]:hover,
+        header a[href*="logout"]:hover,
+        nav a[href*="dashboard"]:hover,
+        nav a[href*="signout"]:hover,
+        nav a[href*="sign-out"]:hover,
+        nav a[href*="logout"]:hover {
           filter: brightness(1.06);
         }
 
@@ -515,4 +524,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-         }
+  }
