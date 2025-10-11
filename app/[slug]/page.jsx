@@ -39,12 +39,12 @@ const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px s
 const btnPrimaryStyle = { background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)', color: '#08101e' };
 const btnNeutralStyle = { background: '#1f2937', color: '#fff' };
 
-// placeholder text block for empty gallery cells
+// placeholder for empty gallery cells
 const imgPlaceholderStyle = {
   width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
 };
 
-// Card wrapper — now accepts className and supports wide spanning
+// Card wrapper — accepts className and supports wide spanning
 function Card({ title, wide = false, className, children }) {
   return (
     <section
@@ -207,41 +207,21 @@ export default function PublicPage() {
           grid-template-columns: 1fr;   /* mobile: single column */
           gap: 16px;
           margin-top: 16px;
-          grid-auto-flow: row dense;    /* allow wide items to fill rows neatly */
+          grid-auto-flow: row dense;
         }
         .tp-grid > * { min-width: 0; }
 
-        /* desktop rule (updated) */
-        @media (min-width: 980px){
-          .tp-grid{
-            grid-template-columns: repeat(2, minmax(0,1fr));
-            gap: 16px;
-          }
-          /* force full-row span for the gallery card */
-          .tp-grid > .tp-wide{
-            grid-column: 1 / -1 !important;
-            width: 100%;
-            justify-self: stretch;
-          }
-        }
-
-        /* Gallery: 1 col mobile, 2 col tablet, 3 col desktop (at 980px page width) */
+        /* Gallery base */
         .tp-gallery{
           display: grid;
           gap: 16px;
-          grid-template-columns: repeat(1, minmax(0, 1fr));
+          grid-template-columns: 1fr;
           min-width: 0;
           width: 100%;
         }
         .tp-gallery > *{
           min-width: 0;
           box-sizing: border-box;
-        }
-        @media (min-width: 720px){
-          .tp-gallery{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        @media (min-width: 980px){
-          .tp-gallery{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
         .tp-gallery .item{
           height: 220px;
@@ -255,6 +235,19 @@ export default function PublicPage() {
           height: 100%;
           object-fit: cover;
           border-radius: 14px;
+        }
+
+        /* Desktop: 2 cols, Gallery spans both */
+        @media (min-width: 820px) {
+          .tp-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+          .tp-grid > .tp-gallery-card { grid-column: 1 / -1 !important; } /* <- full width */
+          .tp-gallery { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+        }
+
+        /* Mobile: stack */
+        @media (max-width: 819.98px) {
+          .tp-grid { grid-template-columns: 1fr; }
+          .tp-gallery { display: grid; grid-template-columns: 1fr; gap: 12px; }
         }
       `}</style>
 
@@ -436,8 +429,8 @@ export default function PublicPage() {
               </div>
             )}
 
-            {/* Gallery spans both columns via className */}
-            <Card title="Gallery" wide className="tp-wide">
+            {/* Gallery — one-liner with class for spanning */}
+            <Card title="Gallery" className="tp-gallery-card">
               <div className="tp-gallery">
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
