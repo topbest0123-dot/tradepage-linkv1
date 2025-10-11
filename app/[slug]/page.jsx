@@ -71,6 +71,14 @@ function Card({ title, wide = false, className, children }) {
 
 const DEFAULT_THEME = 'deep-navy';
 
+/** NEW: allowable theme names (fallback if unknown) */
+const THEME_WHITELIST = new Set([
+  'deep-navy',
+  'ivory-ink',
+  'sandstone',
+  'porcelain-mint',
+]);
+
 export default function PublicPage() {
   const { slug } = useParams();
   const [row, setRow] = useState(null);
@@ -115,7 +123,10 @@ export default function PublicPage() {
 
   // apply theme to <html data-theme="...">
   useEffect(() => {
-    const theme = (row?.theme || DEFAULT_THEME).trim();
+    /** NEW: whitelist + fallback */
+    const raw = (row?.theme || DEFAULT_THEME).trim();
+    const theme = THEME_WHITELIST.has(raw) ? raw : DEFAULT_THEME;
+
     document.documentElement.setAttribute('data-theme', theme);
     return () => {
       // leave other pages alone
@@ -217,6 +228,54 @@ export default function PublicPage() {
 
           --glyphBorder: #d4cfc3;
           --glyphText:   #1d2433;
+
+          --avatarBg: #ffffff;
+        }
+
+        /* NEW: warm dark “sandstone” */
+        [data-theme="sandstone"] {
+          --bg: #171411;
+          --text: #f7efe6;
+
+          --border: #3a2f27;
+          --cardGradStart: #2a221c;
+          --cardGradEnd:   #1c1713;
+
+          --chipBorder: #4b3c32;
+          --chipBg:     #231c17;
+          --chipText:   #f1e7db;
+
+          --btnNeutralBg:   #2a2622;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #0d0a07;
+          --btnPrimaryBg:   linear-gradient(135deg,#f3c07a,#f0a16b);
+
+          --glyphBorder: #4b3c32;
+          --glyphText:   #f7efe6;
+
+          --avatarBg: #221c17;
+        }
+
+        /* NEW: light fresh “porcelain-mint” */
+        [data-theme="porcelain-mint"] {
+          --bg: #f6fffb;
+          --text: #0f1a15;
+
+          --border: #cfeee3;
+          --cardGradStart: #ffffff;
+          --cardGradEnd:   #eef9f4;
+
+          --chipBorder: #c7eadf;
+          --chipBg:     #f2fcf8;
+          --chipText:   #153126;
+
+          --btnNeutralBg:   #1f2937;
+          --btnNeutralText: #ffffff;
+          --btnPrimaryText: #0d1b14;
+          --btnPrimaryBg:   linear-gradient(135deg,#7de2c3,#6cc4ff);
+
+          --glyphBorder: #cfeee3;
+          --glyphText:   #0f1a15;
 
           --avatarBg: #ffffff;
         }
@@ -497,4 +556,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-                                                                  }
+                         }
