@@ -168,13 +168,15 @@ export default function PublicPage() {
         }
 
         .tp-header {
-          display:flex; align-items:center; justify-content:space-between; gap:12px;
+          display:flex; flex-direction: column; gap:10px;
           padding: 12px 14px;
           border-radius: 16px;
           border: 1px solid #183153;
           background: linear-gradient(180deg,#0f213a,#0b1524);
           margin-bottom: 8px; /* ensures the 8px gap above the social row */
         }
+
+        .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
         .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
         .tp-cta a, .tp-cta button { font-weight:700; }
 
@@ -201,7 +203,7 @@ export default function PublicPage() {
           .tp-avatar-inline{ width: 48px; height: 48px; }
         }
 
-        /* social icon row — centered in the space (8px above + 8px below) */
+        /* social icon row — centered in the space (8px above + 8px below default) */
         .tp-social { display:flex; gap:10px; align-items:center; margin: 8px 0 8px; }
         .tp-social a {
           width: 36px; height: 36px; border-radius: 999px;
@@ -245,6 +247,94 @@ export default function PublicPage() {
           object-fit: cover;
           border-radius: 14px;
         }
+
+        /* ===========================
+           MOBILE-ONLY HEADER LAYOUT
+           =========================== */
+        @media (max-width: 768px) {
+          /* Hero container stacks vertically on mobile */
+          .tp-hero {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 8px; /* small space to social icons */
+          }
+
+          /* (Optional) If you use a standalone avatar block */
+          .tp-avatar {
+            width: 96px;
+            height: 96px;
+            margin: 0 auto;
+            border-radius: 14px;
+            overflow: hidden;
+            transform: translateY(-6px);
+          }
+          .tp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+          /* Header card look */
+          .tp-header {
+            padding: 12px 14px !important;
+            border-radius: 16px;
+            border: 1px solid #183153;
+            background: linear-gradient(180deg,#0f213a,#0b1524);
+          }
+
+          /* Top row: title/subtitle + CTAs */
+          .tp-head-top {
+            display: flex;
+            flex-direction: column;      /* stack on mobile */
+            align-items: flex-start;
+            gap: 8px;
+          }
+
+          .tp-head-titles {
+            display: grid;
+            gap: 2px;
+          }
+
+          /* CTA pills inside the header */
+          .tp-cta {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+          }
+          .tp-cta .tp-btn {
+            flex: 1 1 0;
+            min-width: 120px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1px solid #2f3c4f;
+            text-align: center;
+            font-weight: 700;
+            text-decoration: none;
+          }
+
+          /* Full-width Share bar INSIDE the header card */
+          .tp-share {
+            display: block;
+            width: 100%;
+            height: 36px;
+            margin-top: 10px;
+            border-radius: 12px;
+            border: 1px solid #213a6b;
+            background: transparent;
+            color: #eaf2ff;
+            font-weight: 700;
+          }
+
+          /* Hide any “outer” duplicates on mobile */
+          .tp-cta-outside,
+          .tp-share-outside {
+            display: none !important;
+          }
+
+          /* Social icons row spacing so it feels centered
+             between the header and the next card */
+          .tp-social {
+            margin: 8px 0 12px 0;
+          }
+        }
       `}</style>
 
       {loading && <div style={{ opacity: 0.7 }}>Loading…</div>}
@@ -253,47 +343,52 @@ export default function PublicPage() {
 
       {row && (
         <>
-          {/* HERO: header card with inline avatar */}
+          {/* HERO: header card with inline avatar + CTAs + Share bar */}
           <div className="tp-hero">
             <div className="tp-header">
-              <div style={headerLeftStyle}>
-                {avatarSrc ? (
-                  <img src={avatarSrc} alt={`${row.name || row.slug} logo`} className="tp-avatar-inline" loading="lazy" />
-                ) : (
-                  <div className="tp-avatar-inline is-fallback">★</div>
-                )}
-                <div>
-                  <div style={headerNameStyle}>{row.name || row.slug}</div>
-                  <div style={headerSubStyle}>
-                    {[row.trade, row.city].filter(Boolean).join(' • ')}
+              <div className="tp-head-top">
+                <div style={headerLeftStyle}>
+                  {avatarSrc ? (
+                    <img src={avatarSrc} alt={`${row.name || row.slug} logo`} className="tp-avatar-inline" loading="lazy" />
+                  ) : (
+                    <div className="tp-avatar-inline is-fallback">★</div>
+                  )}
+                  <div className="tp-head-titles">
+                    <div style={headerNameStyle}>{row.name || row.slug}</div>
+                    <div style={headerSubStyle}>
+                      {[row.trade, row.city].filter(Boolean).join(' • ')}
+                    </div>
                   </div>
+                </div>
+
+                <div className="tp-cta">
+                  {callHref && (
+                    <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+                      Call
+                    </a>
+                  )}
+                  {waHref && (
+                    <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                      WhatsApp
+                    </a>
+                  )}
                 </div>
               </div>
 
-              <div className="tp-cta">
-                {callHref && (
-                  <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
-                    Call
-                  </a>
-                )}
-                {waHref && (
-                  <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-                    WhatsApp
-                  </a>
-                )}
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  style={{
-                    ...btnBaseStyle,
-                    border: '1px solid #213a6b',
-                    background: 'transparent',
-                    color: '#eaf2ff',
-                  }}
-                >
-                  Share
-                </button>
-              </div>
+              {/* Full-width Share bar inside the header card (mobile shows as bar) */}
+              <button
+                type="button"
+                className="tp-share"
+                onClick={handleShare}
+                style={{
+                  ...btnBaseStyle,
+                  border: '1px solid #213a6b',
+                  background: 'transparent',
+                  color: '#eaf2ff',
+                }}
+              >
+                Share
+              </button>
             </div>
           </div>
 
@@ -443,4 +538,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-    }
+                }
