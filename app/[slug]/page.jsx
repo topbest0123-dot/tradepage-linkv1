@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-// ---------- helpers ----------
-function normalizeSocial(type, raw) {
+/* ---------------- helpers ---------------- */
+function normalizeSocial(type: string, raw: unknown) {
   const v = String(raw || '').trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v;
@@ -19,17 +19,17 @@ function normalizeSocial(type, raw) {
   }
 }
 
-// Avatar helper
-const normalizeAvatarSrc = (value) => {
+// Accept either a full URL or a path in the 'avatars' bucket
+const normalizeAvatarSrc = (value: unknown) => {
   const v = String(value || '').trim();
   if (!v) return null;
-  if (/^https?:\/\//i.test(v)) return v;
+  if (/^https?:\/\//i.test(v)) return v; // already public
   const { data } = supabase.storage.from('avatars').getPublicUrl(v);
   return data?.publicUrl || null;
 };
 
-// Theme normalization
-const normalizeTheme = (t) =>
+// Theme name → safe key
+const normalizeTheme = (t: unknown) =>
   String(t || '')
     .trim()
     .toLowerCase()
@@ -50,8 +50,8 @@ const THEMES = new Set([
 
 const DEFAULT_THEME = 'deep-navy';
 
-// ---------- shared styles ----------
-const sectionStyle = {
+/* -------------- shared styles -------------- */
+const sectionStyle: React.CSSProperties = {
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
   borderRadius: 12,
@@ -59,24 +59,23 @@ const sectionStyle = {
   maxWidth: 720,
   marginTop: 14,
 };
-const h2Style = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
-const pageWrapStyle = {
+const h2Style: React.CSSProperties = { margin: '0 0 10px 0', fontSize: 18, fontWeight: 800 };
+const pageWrapStyle: React.CSSProperties = {
   maxWidth: 980,
   margin: '28px auto',
   padding: '0 16px 48px',
   color: 'var(--text)',
   overflowX: 'hidden',
 };
-const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
-const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
-const btnPrimaryStyle = { background: 'var(--btnPrimaryBg)', color: 'var(--btnPrimaryText)' };
-const btnNeutralStyle = { background: 'var(--btnNeutralBg)', color: 'var(--btnNeutralText)' };
-const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
+const headerNameStyle: React.CSSProperties = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
+const headerSubStyle: React.CSSProperties  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const headerLeftStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 };
+const btnBaseStyle: React.CSSProperties    = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
+const btnPrimaryStyle: React.CSSProperties = { background: 'var(--btnPrimaryBg)', color: 'var(--btnPrimaryText)' };
+const btnNeutralStyle: React.CSSProperties = { background: 'var(--btnNeutralBg)', color: 'var(--btnNeutralText)' };
+const imgPlaceholderStyle: React.CSSProperties = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
 
-// Card wrapper
-function Card({ title, wide = false, className, children }) {
+function Card({ title, wide = false, className, children }: { title?: string; wide?: boolean; className?: string; children: React.ReactNode }) {
   return (
     <section className={className} style={{ ...sectionStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
       {title && <h2 style={h2Style}>{title}</h2>}
@@ -85,13 +84,14 @@ function Card({ title, wide = false, className, children }) {
   );
 }
 
+/* ---------------- page ---------------- */
 export default function PublicPage() {
   const { slug } = useParams();
-  const [row, setRow] = useState(null);
+  const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState(null);
+  const [err, setErr] = useState<string | null>(null);
 
-  // fetch profile (only `theme`)
+  // fetch profile — NOTE: only 'theme' (no theme_text)
   useEffect(() => {
     let cancelled = false;
     async function run() {
@@ -113,7 +113,7 @@ export default function PublicPage() {
         if (cancelled) return;
         if (error) setErr(error.message);
         else setRow(data);
-      } catch (e) {
+      } catch (e: any) {
         if (!cancelled) setErr(String(e?.message || e));
       } finally {
         if (!cancelled) setLoading(false);
@@ -123,10 +123,9 @@ export default function PublicPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
-  // apply theme to <html data-theme="...">
+  // compute + apply theme
   const themeKey = (() => {
-    const raw = row?.theme ?? DEFAULT_THEME;
-    const n = normalizeTheme(raw);
+    const n = normalizeTheme(row?.theme ?? DEFAULT_THEME);
     return THEMES.has(n) ? n : DEFAULT_THEME;
   })();
 
@@ -135,19 +134,34 @@ export default function PublicPage() {
     return () => document.documentElement.removeAttribute('data-theme');
   }, [themeKey]);
 
+  // computed content
   const callHref = row?.phone ? `tel:${String(row.phone).replace(/\s+/g, '')}` : null;
   const waHref  = row?.whatsapp ? `https://wa.me/${String(row.whatsapp).replace(/\D/g, '')}` : null;
+
   const fb = normalizeSocial('facebook',  row?.facebook);
   const ig = normalizeSocial('instagram', row?.instagram);
   const tk = normalizeSocial('tiktok',    row?.tiktok);
   const xx = normalizeSocial('x',         row?.x);
-  const priceLines = useMemo(() =>
-    String(row?.prices ?? '')
-      .split(/\r?\n/)
-      .map((s) => s.trim())
-      .filter(Boolean), [row]);
-  const areas = String(row?.areas || '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
-  const services = String(row?.services || '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
+
+  const priceLines = useMemo(
+    () =>
+      String(row?.prices ?? '')
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    [row]
+  );
+
+  const areas = String(row?.areas || '')
+    .split(/[,\n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const services = String(row?.services || '')
+    .split(/[,\n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
   const handleShare = async () => {
@@ -167,9 +181,10 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* THEME TOKENS (10 full themes, all like Porcelain Mint) */}
+      {/* ===== THEME TOKENS (10 themes) ===== */}
       <style>{`
         body { background: var(--bg); color: var(--text); }
+
         [data-theme="deep-navy"] {
           --bg:#0b1524;--text:#eaf2ff;--border:#183153;--cardGradStart:#0f213a;--cardGradEnd:#0b1524;
           --chipBorder:#27406e;--chipBg:#0c1a2e;--chipText:#d1e1ff;
@@ -230,6 +245,35 @@ export default function PublicPage() {
           --btnNeutralBg:#1f2937;--btnNeutralText:#fff;--btnPrimaryText:#08101e;--btnPrimaryBg:linear-gradient(135deg,#4dd0b5,#6aa9ff);
           --glyphBorder:#d4cfc3;--glyphText:#1d2433;--avatarBg:#fff;
         }
+
+        /* layout */
+        .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
+        .tp-header { display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:16px; border:1px solid var(--border); background:linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd)); margin-bottom:8px; }
+        .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
+        .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
+        .tp-cta a,.tp-cta button { font-weight:700; }
+        .tp-avatar-inline{ width:56px; height:56px; border-radius:14px; border:1px solid var(--border); background:var(--avatarBg); object-fit:cover; margin-right:12px; flex:0 0 auto; }
+        .tp-avatar-inline.is-fallback{ display:inline-flex; align-items:center; justify-content:center; color:#63d3e0; font-weight:800; font-size:22px; }
+        @media (max-width:480px){ .tp-avatar-inline{ width:48px; height:48px; } }
+        .tp-social { display:flex; gap:10px; align-items:center; margin:8px 0 8px; }
+        .tp-social a { width:36px; height:36px; border-radius:999px; border:1px solid var(--glyphBorder); background:transparent; color:var(--glyphText); display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
+        .tp-glyph { font-size:13px; font-weight:800; letter-spacing:.2px; }
+        .tp-grid { display:grid; grid-template-columns:1fr; gap:16px; margin-top:16px; }
+        @media (min-width:820px){ .tp-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } .tp-grid>.tp-gallery-card{ grid-column:1 / -1 !important; width:100%; } }
+        .tp-grid>section{ min-width:0; }
+        .tp-gallery{ display:grid; gap:16px; }
+        @media (min-width:820px){ .tp-gallery{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+        @media (max-width:819.98px){ .tp-gallery{ grid-template-columns:1fr; gap:12px; } }
+        .tp-gallery .item{ height:220px; border-radius:14px; border:1px solid var(--chipBorder); background:var(--chipBg); overflow:hidden; }
+        .tp-gallery .item img{ width:100%; height:100%; object-fit:cover; border-radius:14px; }
+        .tp-chip{ padding:6px 12px; border-radius:999px; border:1px solid var(--chipBorder); background:var(--chipBg); color:var(--chipText); font-size:13px; }
+        @media (max-width:768px){
+          .tp-head-top{ flex-direction:column; align-items:flex-start; gap:8px; }
+          .tp-cta{ gap:8px; width:100%; }
+          .tp-cta .tp-btn{ flex:1 1 0; min-width:120px; padding:8px 14px; border-radius:12px; border:1px solid var(--border); text-align:center; font-weight:700; text-decoration:none; }
+          .tp-share{ display:block; width:100%; height:36px; margin-top:10px; border-radius:12px; border:1px solid var(--glyphBorder); background:transparent; color:var(--text); font-weight:700; }
+          .tp-social{ margin:8px 0 12px 0; }
+        }
       `}</style>
 
       {loading && <div style={{ opacity: 0.7 }}>Loading…</div>}
@@ -248,26 +292,17 @@ export default function PublicPage() {
                   ) : (
                     <div className="tp-avatar-inline is-fallback">★</div>
                   )}
-                  <div className="tp-head-titles">
+                  <div>
                     <div style={headerNameStyle}>{row.name || row.slug}</div>
-                    <div style={headerSubStyle}>
-                      {[row.trade, row.city].filter(Boolean).join(' • ')}
-                    </div>
+                    <div style={headerSubStyle}>{[row.trade, row.city].filter(Boolean).join(' • ')}</div>
                   </div>
                 </div>
-
                 <div className="tp-cta">
                   {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
-                  {waHref && <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
+                  {waHref  && <a href={waHref}  className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
                 </div>
               </div>
-
-              <button
-                type="button"
-                className="tp-share"
-                onClick={handleShare}
-                style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}
-              >
+              <button type="button" className="tp-share" onClick={handleShare} style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}>
                 Share
               </button>
             </div>
@@ -276,27 +311,85 @@ export default function PublicPage() {
           {/* Social icons */}
           {(fb || ig || tk || xx) && (
             <div className="tp-social">
-              {fb && <a href={fb} target="_blank" rel="noopener noreferrer"><span className="tp-glyph">f</span></a>}
-              {ig && <a href={ig} target="_blank" rel="noopener noreferrer"><span className="tp-glyph">IG</span></a>}
-              {tk && <a href={tk} target="_blank" rel="noopener noreferrer"><span className="tp-glyph">t</span></a>}
-              {xx && <a href={xx} target="_blank" rel="noopener noreferrer"><span className="tp-glyph">X</span></a>}
+              {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><span className="tp-glyph">f</span></a>}
+              {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><span className="tp-glyph">IG</span></a>}
+              {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok"><span className="tp-glyph">t</span></a>}
+              {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X"><span className="tp-glyph">X</span></a>}
             </div>
           )}
 
-          {/* Cards grid */}
+          {/* GRID */}
           <div className="tp-grid">
-            <div style={sectionStyle}>
+            {/* About */}
+            <section style={sectionStyle}>
               <h2 style={h2Style}>About</h2>
               <p style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.5 }}>
                 {row?.about?.trim() ? row.about : 'Reliable, friendly and affordable. Free quotes, no hidden fees.'}
               </p>
-            </div>
-            <div style={sectionStyle}>
+            </section>
+
+            {/* Prices */}
+            <section style={sectionStyle}>
               <h2 style={h2Style}>Prices</h2>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {priceLines.length === 0 ? <li style={{ opacity: 0.8 }}>Please ask for a quote.</li> : priceLines.map((ln, i) => <li key={i}>{ln}</li>)}
+                {priceLines.length === 0 ? <li style={{ opacity: 0.8 }}>Please ask for a quote.</li> : priceLines.map((ln: string, i: number) => <li key={i}>{ln}</li>)}
               </ul>
-            </div>
-            <div style={sectionStyle}>
+            </section>
+
+            {/* Areas */}
+            <section style={sectionStyle}>
               <h2 style={h2Style}>Areas we cover</h2>
               {areas.length ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {areas.map((a: string, i: number) => <span key={i} className="tp-chip">{a}</span>)}
+                </div>
+              ) : (
+                <div style={{ opacity: 0.8 }}>No areas listed yet.</div>
+              )}
+            </section>
+
+            {/* Services */}
+            <section style={sectionStyle}>
+              <h2 style={h2Style}>Services</h2>
+              {services.length ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {services.map((s: string, i: number) => <span key={i} className="tp-chip">{s}</span>)}
+                </div>
+              ) : (
+                <div style={{ opacity: 0.8 }}>No services listed yet.</div>
+              )}
+            </section>
+
+            {/* Hours */}
+            <section style={sectionStyle}>
+              <h2 style={h2Style}>Hours</h2>
+              <div style={{ opacity: 0.9 }}>{row?.hours || 'Mon–Sat 08:00–18:00'}</div>
+            </section>
+
+            {/* Other info */}
+            {(row?.other_info ?? '').trim() && (
+              <section style={sectionStyle}>
+                <h2 style={h2Style}>Other useful information</h2>
+                <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{row.other_info}</p>
+              </section>
+            )}
+
+            {/* Gallery */}
+            <Card title="Gallery" className="tp-gallery-card" wide>
+              <div className="tp-gallery">
+                <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
+                <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
+                <div className="item">
+                  <img
+                    src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
+                    alt="work"
+                  />
+                </div>
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
+    </div>
+  );
+      }
