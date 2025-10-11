@@ -13,7 +13,6 @@ import { createClient } from '@supabase/supabase-js';
 export const revalidate = 60;           // refresh metadata at most once per minute
 export const dynamic = 'force-static';  // good default for ISR-style pages
 
-
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
