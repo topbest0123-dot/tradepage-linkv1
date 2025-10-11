@@ -30,18 +30,13 @@ const normalizeAvatarSrc = (value) => {
 
 /* ---------- theme normalization ---------- */
 const THEME_KEYS = [
-  'deep-navy',
-  'midnight-teal',
-  'royal-purple',
-  'graphite-ember',
-  'sapphire-ice',
-  'forest-emerald',
-  'paper-snow',
-  'porcelain-mint',
-  'linen-rose',
-  'sandstone',
-  'cloud-blue',
-  'ivory-ink',
+  'deep-navy','midnight-teal','royal-purple','graphite-ember','sapphire-ice',
+  'forest-emerald','paper-snow','porcelain-mint','linen-rose','sandstone',
+  'cloud-blue','ivory-ink',
+
+  // NEW
+  'crimson-dusk','amber-glow','azure-lagoon','noir-rose','obsidian-blue',
+  'copper-sunset','moss-sage','violet-aurora','steel-wave','pearl-lilac'
 ];
 const THEME_SET = new Set(THEME_KEYS);
 
@@ -153,7 +148,7 @@ export default function PublicPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
-  // apply theme to html + body with normalization & aliases
+  // apply theme
   useEffect(() => {
     const key = normalizeThemeKey(row?.theme ?? DEFAULT_THEME);
     document.documentElement.setAttribute('data-theme', key);
@@ -204,7 +199,7 @@ export default function PublicPage() {
         /* Make sure page background & text always follow the active theme */
         html, body { background: var(--bg) !important; color: var(--text) !important; }
 
-        /* ========== Theme tokens (12 themes) ========== */
+        /* ========== Theme tokens ========== */
         html[data-theme="deep-navy"], body[data-theme="deep-navy"] {
           --bg:#0b1524; --text:#eaf2ff; --border:#183153;
           --cardGradStart:#0f213a; --cardGradEnd:#0b1524;
@@ -302,6 +297,97 @@ export default function PublicPage() {
           --glyphBorder:#e7e2d6; --glyphText:#101112; --avatarBg:#ffffff;
         }
 
+        /* ---------- New 10 themes ---------- */
+        html[data-theme="crimson-dusk"], body[data-theme="crimson-dusk"] {
+          --bg:#16090c; --text:#ffecee; --border:#3a141a;
+          --cardGradStart:#2a0f15; --cardGradEnd:#170b0f;
+          --chipBorder:#4a1921; --chipBg:#1b0c10; --chipText:#ffd8dd;
+          --btnNeutralBg:#2a1c20; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#1b0c10; --btnPrimaryBg:linear-gradient(135deg,#ff6b81,#ffb199);
+          --glyphBorder:#4a1921; --glyphText:#ffecee; --avatarBg:#1b0c10;
+        }
+
+        html[data-theme="amber-glow"], body[data-theme="amber-glow"] {
+          --bg:#fff9f1; --text:#1f1409; --border:#f0e0c8;
+          --cardGradStart:#ffffff; --cardGradEnd:#fbf2e2;
+          --chipBorder:#ead7bb; --chipBg:#f9f1e4; --chipText:#25190c;
+          --btnNeutralBg:#efe7db; --btnNeutralText:#1f1409;
+          --btnPrimaryText:#1f1409; --btnPrimaryBg:linear-gradient(135deg,#f6bf65,#ff8f5a);
+          --glyphBorder:#ead7bb; --glyphText:#1f1409; --avatarBg:#ffffff;
+        }
+
+        html[data-theme="azure-lagoon"], body[data-theme="azure-lagoon"] {
+          --bg:#eefdff; --text:#0b1a22; --border:#cfe8f1;
+          --cardGradStart:#ffffff; --cardGradEnd:#f0f9ff;
+          --chipBorder:#cfe8f1; --chipBg:#eef6fb; --chipText:#0b1a22;
+          --btnNeutralBg:#e8f1f6; --btnNeutralText:#0b1a22;
+          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#66d3ff,#37d6a0);
+          --glyphBorder:#cfe8f1; --glyphText:#0b1a22; --avatarBg:#ffffff;
+        }
+
+        html[data-theme="noir-rose"], body[data-theme="noir-rose"] {
+          --bg:#120c10; --text:#ffeaf5; --border:#2c1b26;
+          --cardGradStart:#1d1320; --cardGradEnd:#130d14;
+          --chipBorder:#3a2532; --chipBg:#160f15; --chipText:#ffd7ec;
+          --btnNeutralBg:#221922; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#160f15; --btnPrimaryBg:linear-gradient(135deg,#ff80c0,#9ea4ff);
+          --glyphBorder:#3a2532; --glyphText:#ffeaf5; --avatarBg:#160f15;
+        }
+
+        html[data-theme="obsidian-blue"], body[data-theme="obsidian-blue"] {
+          --bg:#080e18; --text:#e9f1ff; --border:#16233a;
+          --cardGradStart:#0f1c30; --cardGradEnd:#0a1220;
+          --chipBorder:#203454; --chipBg:#0c1524; --chipText:#d9e6ff;
+          --btnNeutralBg:#121c2a; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#0a1220; --btnPrimaryBg:linear-gradient(135deg,#5c8dff,#44e1c8);
+          --glyphBorder:#1e314f; --glyphText:#e9f1ff; --avatarBg:#0a1220;
+        }
+
+        html[data-theme="copper-sunset"], body[data-theme="copper-sunset"] {
+          --bg:#fff6f2; --text:#23140f; --border:#f0d3c7;
+          --cardGradStart:#ffffff; --cardGradEnd:#fbe9e1;
+          --chipBorder:#e9c7b8; --chipBg:#f7ede8; --chipText:#23140f;
+          --btnNeutralBg:#efe3dc; --btnNeutralText:#23140f;
+          --btnPrimaryText:#23140f; --btnPrimaryBg:linear-gradient(135deg,#ff9b6a,#f3cc76);
+          --glyphBorder:#e7cfc5; --glyphText:#23140f; --avatarBg:#ffffff;
+        }
+
+        html[data-theme="moss-sage"], body[data-theme="moss-sage"] {
+          --bg:#f7fbf6; --text:#162014; --border:#d1e4cf;
+          --cardGradStart:#ffffff; --cardGradEnd:#eff6ef;
+          --chipBorder:#c7dbc5; --chipBg:#f0f6ef; --chipText:#1b2a18;
+          --btnNeutralBg:#e9f0ea; --btnNeutralText:#162014;
+          --btnPrimaryText:#0d1b14; --btnPrimaryBg:linear-gradient(135deg,#92e0b2,#8fb6a1);
+          --glyphBorder:#d1e4cf; --glyphText:#162014; --avatarBg:#ffffff;
+        }
+
+        html[data-theme="violet-aurora"], body[data-theme="violet-aurora"] {
+          --bg:#0e0a17; --text:#efe8ff; --border:#2c2250;
+          --cardGradStart:#1a1340; --cardGradEnd:#0f0a23;
+          --chipBorder:#3a2f6e; --chipBg:#140f25; --chipText:#ded2ff;
+          --btnNeutralBg:#241d3c; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#120d26; --btnPrimaryBg:linear-gradient(135deg,#a081ff,#68e0d6);
+          --glyphBorder:#3a2f6e; --glyphText:#efe8ff; --avatarBg:#120d26;
+        }
+
+        html[data-theme="steel-wave"], body[data-theme="steel-wave"] {
+          --bg:#0f1316; --text:#e6eef7; --border:#1f2c35;
+          --cardGradStart:#172331; --cardGradEnd:#0f151b;
+          --chipBorder:#2a3b4a; --chipBg:#121a22; --chipText:#d6e2ee;
+          --btnNeutralBg:#1a2430; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#0f151b; --btnPrimaryBg:linear-gradient(135deg,#6aa7ff,#79dfc1);
+          --glyphBorder:#243545; --glyphText:#e6eef7; --avatarBg:#121a22;
+        }
+
+        html[data-theme="pearl-lilac"], body[data-theme="pearl-lilac"] {
+          --bg:#fbf9ff; --text:#1a1624; --border:#e4dcf6;
+          --cardGradStart:#ffffff; --cardGradEnd:#f4effd;
+          --chipBorder:#e0d7f3; --chipBg:#f6f2fd; --chipText:#1a1624;
+          --btnNeutralBg:#eee9f8; --btnNeutralText:#1a1624;
+          --btnPrimaryText:#0f1020; --btnPrimaryBg:linear-gradient(135deg,#b79bff,#6fe3cc);
+          --glyphBorder:#e4dcf6; --glyphText:#1a1624; --avatarBg:#ffffff;
+        }
+
         /* --------- layout (unchanged) --------- */
         .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
         .tp-header {
@@ -349,6 +435,9 @@ export default function PublicPage() {
           background:var(--chipBg); color:var(--chipText); font-size:13px;
         }
 
+        /* ===========================
+           MOBILE-ONLY HEADER LAYOUT
+           =========================== */
         @media (max-width:768px){
           .tp-hero{ grid-template-columns:1fr; gap:12px; align-items:start; margin-bottom:8px; }
           .tp-header{ padding:12px 14px !important; }
@@ -404,7 +493,7 @@ export default function PublicPage() {
               {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><span className="tp-glyph">f</span></a>}
               {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram"><span className="tp-glyph">IG</span></a>}
               {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok"><span className="tp-glyph">t</span></a>}
-              {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)"><span className="tp-glyph">X</span></a>}
+              {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X"><span className="tp-glyph">X</span></a>}
             </div>
           )}
 
@@ -468,4 +557,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-}
+      }
