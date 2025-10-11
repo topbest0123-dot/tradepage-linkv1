@@ -34,7 +34,6 @@ const THEME_KEYS = [
   'cloud-blue','ivory-ink',
 ];
 const THEME_SET = new Set(THEME_KEYS);
-
 const ALIAS = {
   'midnight':'deep-navy','cocoa-bronze':'graphite-ember','cocoa bronze':'graphite-ember',
   'ivory-sand':'paper-snow','ivory sand':'paper-snow','glacier-mist':'cloud-blue','glacier mist':'cloud-blue',
@@ -42,7 +41,6 @@ const ALIAS = {
   'graphite ember':'graphite-ember','sapphire ice':'sapphire-ice','paper snow':'paper-snow',
   'linen rose':'linen-rose','cloud blue':'cloud-blue','ivory ink':'ivory-ink',
 };
-
 function normalizeThemeKey(raw) {
   const k = String(raw ?? '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
   if (THEME_SET.has(k)) return k;
@@ -163,34 +161,29 @@ export default function PublicPage() {
       <style>{`
         html, body { background: var(--bg) !important; color: var(--text) !important; }
 
-        .tp-share-inline { display: none; }
+        /* ONE Share button that adapts */
+        .tp-share-btn { display: none; } /* hidden by default */
         @media (min-width: 769px) {
-          .tp-share { display: none; }
-          .tp-share-inline { display: inline-flex; }
+          .tp-share-btn { display: inline-flex; }  /* inline in the CTA row on desktop */
+        }
+        @media (max-width: 768px) {
+          .tp-share-btn {
+            display: block; width: 100%; height: 36px; margin-top: 10px;
+            border-radius: 12px; border: 1px solid var(--glyphBorder);
+            background: transparent; color: var(--text);
+            font-weight: 700; text-align: center;
+          }
         }
 
-        /* ==== Top bar harmonization (Dashboard / Sign out) ====
-           Covers typical header/topbar/nav containers and generic logout buttons.
-           Applies neutral CTA tokens (same as WhatsApp) for guaranteed contrast. */
-        header a,
-        header button,
-        [class*="topbar"] a,
-        [class*="topbar"] button,
-        [class*="header"] a,
-        [class*="header"] button,
-        nav[class*="top"] a,
-        nav[class*="top"] button,
-        a[href*="dashboard"],
-        a[href^="/dashboard"],
-        button[id*="signout"],
-        button[id*="sign-out"],
-        button[id*="logout"],
-        button[name*="signout"],
-        button[name*="sign-out"],
-        button[name*="logout"],
-        button[data-action*="signout"],
-        button[data-action*="sign-out"],
-        button[data-action*="logout"] {
+        /* Theme-aware top-right header links (Dashboard / Sign out) */
+        header a, header button,
+        [class*="topbar"] a, [class*="topbar"] button,
+        [class*="header"] a, [class*="header"] button,
+        nav[class*="top"] a, nav[class*="top"] button,
+        a[href*="dashboard"], a[href^="/dashboard"],
+        button[id*="signout"], button[id*="sign-out"], button[id*="logout"],
+        button[name*="signout"], button[name*="sign-out"], button[name*="logout"],
+        button[data-action*="signout"], button[data-action*="sign-out"], button[data-action*="logout"] {
           background: var(--btnNeutralBg) !important;
           color: var(--btnNeutralText) !important;
           border: 1px solid var(--border) !important;
@@ -202,12 +195,6 @@ export default function PublicPage() {
           align-items: center !important;
           gap: .35rem !important;
           opacity: 1 !important;
-        }
-        header a:hover, header button:hover,
-        [class*="topbar"] a:hover, [class*="topbar"] button:hover,
-        [class*="header"] a:hover, [class*="header"] button:hover,
-        nav[class*="top"] a:hover, nav[class*="top"] button:hover {
-          filter: brightness(1.06);
         }
 
         /* ===== Theme tokens (unchanged) ===== */
@@ -335,18 +322,6 @@ export default function PublicPage() {
         .tp-gallery .item img{ width:100%; height:100%; object-fit:cover; border-radius:14px; }
 
         .tp-chip{ padding:6px 12px; border-radius:999px; border:1px solid var(--chipBorder); background:var(--chipBg); color:var(--chipText); font-size:13px; }
-
-        @media (max-width:768px){
-          .tp-hero{ grid-template-columns:1fr; gap:12px; align-items:start; margin-bottom:8px; }
-          .tp-header{ padding:12px 14px !important; }
-          .tp-head-top{ flex-direction:column; align-items:flex-start; gap:8px; }
-          .tp-head-titles{ display:grid; gap:2px; }
-          .tp-cta{ gap:8px; width:100%; }
-          .tp-cta .tp-btn{ flex:1 1 0; min-width:120px; padding:8px 14px; border-radius:12px; border:1px solid var(--border); text-align:center; font-weight:700; text-decoration:none; }
-          .tp-share{ display:block; width:100%; height:36px; margin-top:10px; border-radius:12px; border:1px solid var(--glyphBorder); background:transparent; color:var(--text); font-weight:700; }
-          .tp-cta-outside, .tp-share-outside{ display:none !important; }
-          .tp-social{ margin:8px 0 12px 0; }
-        }
       `}</style>
 
       {loading && <div style={{ opacity: 0.7 }}>Loading…</div>}
@@ -374,16 +349,17 @@ export default function PublicPage() {
                 <div className="tp-cta">
                   {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
                   {waHref  && <a href={waHref}  className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-                  <button type="button" className="tp-share-inline tp-btn" onClick={handleShare} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                  {/* SINGLE adaptive Share button */}
+                  <button
+                    type="button"
+                    className="tp-share-btn tp-btn"
+                    onClick={handleShare}
+                    style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+                  >
                     Share
                   </button>
                 </div>
               </div>
-
-              <button type="button" className="tp-share" onClick={handleShare}
-                style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}>
-                Share
-              </button>
             </div>
           </div>
 
@@ -457,4 +433,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-}
+    }
