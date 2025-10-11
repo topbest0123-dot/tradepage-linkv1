@@ -18,7 +18,6 @@ function normalizeSocial(type, raw) {
     default:          return null;
   }
 }
-
 // Accept either a full URL or a path in the 'avatars' bucket
 const normalizeAvatarSrc = (value) => {
   const v = String(value || '').trim();
@@ -28,7 +27,20 @@ const normalizeAvatarSrc = (value) => {
   return data?.publicUrl || null;
 };
 
-// ---------- styles using CSS variables ----------
+// ---- THEME: keys + normalization ----
+const DEFAULT_THEME = 'deep-navy';
+const THEMES = new Set([
+  'deep-navy','ivory-ink','sandstone','porcelain-mint','ocean-teal',
+  'sunset-peach','plum-noir','slate-sky','emerald-fog','charcoal-gold'
+]);
+const normalizeTheme = (v) =>
+  String(v || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, '-')         // spaces/underscores → hyphens
+    .replace(/[^a-z0-9-]/g, '');     // safety
+
+// ---------- design tokens via CSS vars ----------
 const sectionStyle = {
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
@@ -69,21 +81,13 @@ function Card({ title, wide = false, className, children }) {
   );
 }
 
-const DEFAULT_THEME = 'deep-navy';
-
-// Optional: keep a whitelist to avoid typos breaking themes
-const THEMES = new Set([
-  'deep-navy','ivory-ink','sandstone','porcelain-mint','ocean-teal',
-  'sunset-peach','plum-noir','slate-sky','emerald-fog','charcoal-gold'
-]);
-
 export default function PublicPage() {
   const { slug } = useParams();
   const [row, setRow] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState(null);
+  const [err,   setErr]     = useState(null);
 
-  // fetch profile (includes theme)
+  // fetch profile (includes `theme`)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -102,6 +106,7 @@ export default function PublicPage() {
           `)
           .eq('slug', String(slug || ''))
           .maybeSingle();
+
         if (cancelled) return;
         if (error) setErr(error.message);
         else setRow(data);
@@ -114,19 +119,21 @@ export default function PublicPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
-  // apply theme to html + body
+  // apply theme to html + body + local wrapper
+  const themeKey = (() => {
+    const n = normalizeTheme(row?.theme || DEFAULT_THEME);
+    return THEMES.has(n) ? n : DEFAULT_THEME;
+  })();
+
   useEffect(() => {
-    const raw = (row?.theme || DEFAULT_THEME).trim();
-    const theme = THEMES.has(raw) ? raw : DEFAULT_THEME;
-    document.documentElement.setAttribute('data-theme', theme);
-    document.body.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', themeKey);
+    document.body.setAttribute('data-theme', themeKey);
     return () => {
       document.documentElement.removeAttribute('data-theme');
       document.body.removeAttribute('data-theme');
     };
-  }, [row?.theme]);
+  }, [themeKey]);
 
-  // links
   const callHref = row?.phone ? `tel:${String(row.phone).replace(/\s+/g, '')}` : null;
   const waHref  = row?.whatsapp ? `https://wa.me/${String(row.whatsapp).replace(/\D/g, '')}` : null;
 
@@ -135,15 +142,24 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    row?.tiktok);
   const xx = normalizeSocial('x',         row?.x);
 
-  // pricing lines
   const priceLines = useMemo(
-    () => String(row?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
+    () =>
+      String(row?.prices ?? '')
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
     [row]
   );
 
-  // tags
-  const areas = String(row?.areas || '').split(/[,\n]+/).map(s=>s.trim()).filter(Boolean);
-  const services = String(row?.services || '').split(/[,\n]+/).map(s=>s.trim()).filter(Boolean);
+  const areas = String(row?.areas || '')
+    .split(/[,\n]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const services = String(row?.services || '')
+    .split(/[,\n]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
 
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
@@ -154,16 +170,22 @@ export default function PublicPage() {
       url: typeof window !== 'undefined' ? window.location.href : '',
     };
     try {
-      if (navigator.share) await navigator.share(shareData);
-      else if (navigator.clipboard) { await navigator.clipboard.writeText(shareData.url); alert('Link copied to clipboard!'); }
-      else { prompt('Copy this link:', shareData.url); }
-    } catch {}
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareData.url);
+        alert('Link copied to clipboard!');
+      } else {
+        prompt('Copy this link:', shareData.url);
+      }
+    } catch {/* ignore */}
   };
 
   return (
-    <div style={pageWrapStyle}>
+    <div className="tp-root" data-theme={themeKey} style={{ ...pageWrapStyle }}>
+      {/* THEME TOKENS */}
       <style>{`
-        /* Base tokens (fallback to deep-navy) */
+        /* Base tokens (fallback) */
         :root {
           --bg: #0b1524;
           --text: #eaf2ff;
@@ -182,8 +204,12 @@ export default function PublicPage() {
           --avatarBg: #0b1524;
         }
 
-        /* Theme blocks — scoped to html/body so either attribute works */
-        html[data-theme="deep-navy"], body[data-theme="deep-navy"] {
+        /* Helper: scope selector for tokens (html/body/local wrapper) */
+        /* Each theme defines variables; body bg/text are forced so the whole page flips like porcelain-mint */
+        .tp-root, html, body { background: var(--bg) !important; color: var(--text) !important; }
+
+        /* === THEMES === */
+        html[data-theme="deep-navy"], body[data-theme="deep-navy"], .tp-root[data-theme="deep-navy"] {
           --bg:#0b1524; --text:#eaf2ff; --border:#183153;
           --cardGradStart:#0f213a; --cardGradEnd:#0b1524;
           --chipBorder:#27406e; --chipBg:#0c1a2e; --chipText:#d1e1ff;
@@ -192,7 +218,7 @@ export default function PublicPage() {
           --glyphBorder:#213a6b; --glyphText:#eaf2ff; --avatarBg:#0b1524;
         }
 
-        html[data-theme="ivory-ink"], body[data-theme="ivory-ink"] {
+        html[data-theme="ivory-ink"], body[data-theme="ivory-ink"], .tp-root[data-theme="ivory-ink"] {
           --bg:#f9f7f2; --text:#1d2433; --border:#e6e2d9;
           --cardGradStart:#ffffff; --cardGradEnd:#f3efe7;
           --chipBorder:#ddd6c8; --chipBg:#faf7f1; --chipText:#24324a;
@@ -201,7 +227,7 @@ export default function PublicPage() {
           --glyphBorder:#d4cfc3; --glyphText:#1d2433; --avatarBg:#ffffff;
         }
 
-        html[data-theme="sandstone"], body[data-theme="sandstone"] {
+        html[data-theme="sandstone"], body[data-theme="sandstone"], .tp-root[data-theme="sandstone"] {
           --bg:#171411; --text:#f7efe6; --border:#3a2f27;
           --cardGradStart:#2a221c; --cardGradEnd:#1c1713;
           --chipBorder:#4b3c32; --chipBg:#231c17; --chipText:#f1e7db;
@@ -210,7 +236,7 @@ export default function PublicPage() {
           --glyphBorder:#4b3c32; --glyphText:#f7efe6; --avatarBg:#221c17;
         }
 
-        html[data-theme="porcelain-mint"], body[data-theme="porcelain-mint"] {
+        html[data-theme="porcelain-mint"], body[data-theme="porcelain-mint"], .tp-root[data-theme="porcelain-mint"] {
           --bg:#f6fffb; --text:#0f1a15; --border:#cfeee3;
           --cardGradStart:#ffffff; --cardGradEnd:#eef9f4;
           --chipBorder:#c7eadf; --chipBg:#f2fcf8; --chipText:#153126;
@@ -219,7 +245,7 @@ export default function PublicPage() {
           --glyphBorder:#cfeee3; --glyphText:#0f1a15; --avatarBg:#ffffff;
         }
 
-        html[data-theme="ocean-teal"], body[data-theme="ocean-teal"] {
+        html[data-theme="ocean-teal"], body[data-theme="ocean-teal"], .tp-root[data-theme="ocean-teal"] {
           --bg:#0b1616; --text:#e8fffb; --border:#103a3a;
           --cardGradStart:#0f2626; --cardGradEnd:#0b1616;
           --chipBorder:#174b4b; --chipBg:#0c1b1b; --chipText:#d7fffb;
@@ -228,7 +254,7 @@ export default function PublicPage() {
           --glyphBorder:#184e4e; --glyphText:#e8fffb; --avatarBg:#0f2020;
         }
 
-        html[data-theme="sunset-peach"], body[data-theme="sunset-peach"] {
+        html[data-theme="sunset-peach"], body[data-theme="sunset-peach"], .tp-root[data-theme="sunset-peach"] {
           --bg:#fff7f2; --text:#241a18; --border:#f3d7cc;
           --cardGradStart:#ffffff; --cardGradEnd:#fdebe3;
           --chipBorder:#f0c9bc; --chipBg:#fff3ec; --chipText:#2a1f1d;
@@ -237,7 +263,7 @@ export default function PublicPage() {
           --glyphBorder:#efd2c7; --glyphText:#241a18; --avatarBg:#ffffff;
         }
 
-        html[data-theme="plum-noir"], body[data-theme="plum-noir"] {
+        html[data-theme="plum-noir"], body[data-theme="plum-noir"], .tp-root[data-theme="plum-noir"] {
           --bg:#140b16; --text:#f3e9ff; --border:#2b1633;
           --cardGradStart:#1d0f24; --cardGradEnd:#140b16;
           --chipBorder:#3a1d45; --chipBg:#160b1a; --chipText:#efe4ff;
@@ -246,7 +272,7 @@ export default function PublicPage() {
           --glyphBorder:#3a1d45; --glyphText:#f3e9ff; --avatarBg:#1a0e1f;
         }
 
-        html[data-theme="slate-sky"], body[data-theme="slate-sky"] {
+        html[data-theme="slate-sky"], body[data-theme="slate-sky"], .tp-root[data-theme="slate-sky"] {
           --bg:#0f131a; --text:#e9f2ff; --border:#1e2a3a;
           --cardGradStart:#142033; --cardGradEnd:#0f131a;
           --chipBorder:#293a52; --chipBg:#0f1723; --chipText:#d5e6ff;
@@ -255,7 +281,7 @@ export default function PublicPage() {
           --glyphBorder:#263750; --glyphText:#e9f2ff; --avatarBg:#101724;
         }
 
-        html[data-theme="emerald-fog"], body[data-theme="emerald-fog"] {
+        html[data-theme="emerald-fog"], body[data-theme="emerald-fog"], .tp-root[data-theme="emerald-fog"] {
           --bg:#f3fbf4; --text:#132018; --border:#cde7d2;
           --cardGradStart:#ffffff; --cardGradEnd:#ebf6ee;
           --chipBorder:#c3e1c8; --chipBg:#f2faf4; --chipText:#183222;
@@ -264,7 +290,7 @@ export default function PublicPage() {
           --glyphBorder:#cde7d2; --glyphText:#132018; --avatarBg:#ffffff;
         }
 
-        html[data-theme="charcoal-gold"], body[data-theme="charcoal-gold"] {
+        html[data-theme="charcoal-gold"], body[data-theme="charcoal-gold"], .tp-root[data-theme="charcoal-gold"] {
           --bg:#0f0f10; --text:#f8f6ed; --border:#2b2b2d;
           --cardGradStart:#1a1a1c; --cardGradEnd:#0f0f10;
           --chipBorder:#3a3a3d; --chipBg:#121213; --chipText:#f2f0e6;
@@ -273,57 +299,31 @@ export default function PublicPage() {
           --glyphBorder:#3a3a3d; --glyphText:#f8f6ed; --avatarBg:#141416;
         }
 
-        /* Force page base colors to win */
-        body { background: var(--bg) !important; color: var(--text) !important; }
-
+        /* layout bits */
         .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
-        .tp-header {
-          display:flex; flex-direction:column; gap:10px; padding:12px 14px;
-          border-radius:16px; border:1px solid var(--border);
-          background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
-          margin-bottom:8px;
-        }
+        .tp-header { display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:16px; border:1px solid var(--border); background:linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd)); margin-bottom:8px; }
         .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
         .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
         .tp-cta a, .tp-cta button { font-weight:700; }
-
-        .tp-avatar-inline{
-          width:56px; height:56px; border-radius:14px; border:1px solid var(--border);
-          background:var(--avatarBg); object-fit:cover; margin-right:12px; flex:0 0 auto;
-        }
+        .tp-avatar-inline{ width:56px; height:56px; border-radius:14px; border:1px solid var(--border); background:var(--avatarBg); object-fit:cover; margin-right:12px; flex:0 0 auto; }
         .tp-avatar-inline.is-fallback{ display:inline-flex; align-items:center; justify-content:center; color:#63d3e0; font-weight:800; font-size:22px; }
         @media (max-width:480px){ .tp-avatar-inline{ width:48px; height:48px; } }
-
         .tp-social { display:flex; gap:10px; align-items:center; margin:8px 0 8px; }
-        .tp-social a{
-          width:36px; height:36px; border-radius:999px; border:1px solid var(--glyphBorder);
-          background:transparent; color:var(--glyphText); display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
-        }
+        .tp-social a{ width:36px; height:36px; border-radius:999px; border:1px solid var(--glyphBorder); background:transparent; color:var(--glyphText); display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
         .tp-glyph { font-size:13px; font-weight:800; letter-spacing:.2px; }
 
         .tp-grid { display:grid; grid-template-columns:1fr; gap:16px; margin-top:16px; }
-        @media (min-width:820px){
-          .tp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-          .tp-grid > .tp-gallery-card { grid-column:1 / -1 !important; width:100%; }
-        }
-        .tp-grid > section { min-width:0; }
-
-        .tp-gallery { display:grid; gap:16px; }
-        @media (min-width:820px){ .tp-gallery { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-        @media (max-width:819.98px){ .tp-gallery { grid-template-columns:1fr; gap:12px; } }
-
-        .tp-gallery .item{
-          height:220px; border-radius:14px; border:1px solid var(--chipBorder); background:var(--chipBg); overflow:hidden;
-        }
+        @media (min-width:820px){ .tp-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } .tp-grid > .tp-gallery-card{ grid-column:1 / -1 !important; width:100%; } }
+        .tp-grid > section{ min-width:0; }
+        .tp-gallery{ display:grid; gap:16px; }
+        @media (min-width:820px){ .tp-gallery{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+        @media (max-width:819.98px){ .tp-gallery{ grid-template-columns:1fr; gap:12px; } }
+        .tp-gallery .item{ height:220px; border-radius:14px; border:1px solid var(--chipBorder); background:var(--chipBg); overflow:hidden; }
         .tp-gallery .item img{ width:100%; height:100%; object-fit:cover; border-radius:14px; }
-
-        .tp-chip{
-          padding:6px 12px; border-radius:999px; border:1px solid var(--chipBorder);
-          background:var(--chipBg); color:var(--chipText); font-size:13px;
-        }
+        .tp-chip{ padding:6px 12px; border-radius:999px; border:1px solid var(--chipBorder); background:var(--chipBg); color:var(--chipText); font-size:13px; }
 
         @media (max-width:768px){
-          .tp-hero{ grid-template-columns:1fr; gap:12px; align-items:start; margin-bottom:8px; }
+          .tp-hero{ margin-bottom:8px; }
           .tp-header{ padding:12px 14px !important; }
           .tp-head-top{ flex-direction:column; align-items:flex-start; gap:8px; }
           .tp-head-titles{ display:grid; gap:2px; }
@@ -365,7 +365,12 @@ export default function PublicPage() {
                 </div>
               </div>
 
-              <button type="button" className="tp-share" onClick={handleShare} style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}>
+              <button
+                type="button"
+                className="tp-share"
+                onClick={handleShare}
+                style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}
+              >
                 Share
               </button>
             </div>
@@ -440,4 +445,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-      }
+}
