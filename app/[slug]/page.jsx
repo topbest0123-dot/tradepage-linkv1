@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-/* ---------------- helpers ---------------- */
+/* ---------- helpers ---------- */
 function normalizeSocial(type, raw) {
   const v = String(raw || '').trim();
   if (!v) return null;
@@ -28,7 +28,52 @@ const normalizeAvatarSrc = (value) => {
   return data?.publicUrl || null;
 };
 
-/* ---------------- styles (use CSS vars) ---------------- */
+/* ---------- theme normalization ---------- */
+const THEME_KEYS = [
+  'deep-navy',
+  'midnight-teal',
+  'royal-purple',
+  'graphite-ember',
+  'sapphire-ice',
+  'forest-emerald',
+  'paper-snow',
+  'porcelain-mint',
+  'linen-rose',
+  'sandstone',
+  'cloud-blue',
+  'ivory-ink',
+];
+const THEME_SET = new Set(THEME_KEYS);
+
+const ALIAS = {
+  'midnight': 'deep-navy',
+  'cocoa-bronze': 'graphite-ember',
+  'cocoa bronze': 'graphite-ember',
+  'ivory-sand': 'paper-snow',
+  'ivory sand': 'paper-snow',
+  'glacier-mist': 'cloud-blue',
+  'glacier mist': 'cloud-blue',
+
+  // common variations
+  'porcelain mint': 'porcelain-mint',
+  'forest emerald': 'forest-emerald',
+  'royal purple': 'royal-purple',
+  'graphite ember': 'graphite-ember',
+  'sapphire ice': 'sapphire-ice',
+  'paper snow': 'paper-snow',
+  'linen rose': 'linen-rose',
+  'cloud blue': 'cloud-blue',
+  'ivory ink': 'ivory-ink',
+};
+
+function normalizeThemeKey(raw) {
+  const k = String(raw ?? '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  if (THEME_SET.has(k)) return k;
+  if (ALIAS[k]) return ALIAS[k];
+  return 'deep-navy';
+}
+
+/* ---------- styles using CSS variables ---------- */
 const sectionStyle = {
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
@@ -69,21 +114,8 @@ function Card({ title, wide = false, className, children }) {
   );
 }
 
-/* ---------------- theme handling ---------------- */
 const DEFAULT_THEME = 'deep-navy';
 
-// All supported theme keys (old + new)
-const THEME_KEYS = [
-  // existing
-  'deep-navy','ivory-ink','sandstone','porcelain-mint','ocean-teal',
-  'sunset-peach','plum-noir','slate-sky','emerald-fog','charcoal-gold',
-  // new 10
-  'crimson-dusk','amber-glow','azure-lagoon','noir-rose','obsidian-blue',
-  'copper-sunset','moss-sage','violet-aurora','steel-wave','pearl-lilac'
-];
-const THEMES = new Set(THEME_KEYS);
-
-/* ---------------- page ---------------- */
 export default function PublicPage() {
   const { slug } = useParams();
   const [row, setRow] = useState(null);
@@ -121,12 +153,11 @@ export default function PublicPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
-  // apply theme to html + body
+  // apply theme to html + body with normalization & aliases
   useEffect(() => {
-    const raw = String(row?.theme || DEFAULT_THEME).trim();
-    const theme = THEMES.has(raw) ? raw : DEFAULT_THEME;
-    document.documentElement.setAttribute('data-theme', theme);
-    document.body.setAttribute('data-theme', theme);
+    const key = normalizeThemeKey(row?.theme ?? DEFAULT_THEME);
+    document.documentElement.setAttribute('data-theme', key);
+    document.body.setAttribute('data-theme', key);
     return () => {
       document.documentElement.removeAttribute('data-theme');
       document.body.removeAttribute('data-theme');
@@ -170,17 +201,10 @@ export default function PublicPage() {
   return (
     <div style={pageWrapStyle}>
       <style>{`
-        /* Base tokens fallback (deep-navy) */
-        :root {
-          --bg: #0b1524; --text: #eaf2ff; --border: #183153;
-          --cardGradStart: #0f213a; --cardGradEnd: #0b1524;
-          --chipBorder: #27406e; --chipBg: #0c1a2e; --chipText: #d1e1ff;
-          --btnNeutralBg: #1f2937; --btnNeutralText: #ffffff;
-          --btnPrimaryText: #08101e; --btnPrimaryBg: linear-gradient(135deg,#66e0b9,#8ab4ff);
-          --glyphBorder: #213a6b; --glyphText: #eaf2ff; --avatarBg: #0b1524;
-        }
+        /* Make sure page background & text always follow the active theme */
+        html, body { background: var(--bg) !important; color: var(--text) !important; }
 
-        /* ---------- Existing themes ---------- */
+        /* ========== Theme tokens (12 themes) ========== */
         html[data-theme="deep-navy"], body[data-theme="deep-navy"] {
           --bg:#0b1524; --text:#eaf2ff; --border:#183153;
           --cardGradStart:#0f213a; --cardGradEnd:#0b1524;
@@ -189,182 +213,96 @@ export default function PublicPage() {
           --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#66e0b9,#8ab4ff);
           --glyphBorder:#213a6b; --glyphText:#eaf2ff; --avatarBg:#0b1524;
         }
-
-        html[data-theme="ivory-ink"], body[data-theme="ivory-ink"] {
-          --bg:#f9f7f2; --text:#1d2433; --border:#e6e2d9;
-          --cardGradStart:#ffffff; --cardGradEnd:#f3efe7;
-          --chipBorder:#ddd6c8; --chipBg:#faf7f1; --chipText:#24324a;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#4dd0b5,#6aa9ff);
-          --glyphBorder:#d4cfc3; --glyphText:#1d2433; --avatarBg:#ffffff;
+        html[data-theme="midnight-teal"], body[data-theme="midnight-teal"] {
+          --bg:#071417; --text:#e9fbff; --border:#15444a;
+          --cardGradStart:#0b2a31; --cardGradEnd:#0a1e24;
+          --chipBorder:#1e5660; --chipBg:#0a2227; --chipText:#c0e9f2;
+          --btnNeutralBg:#122026; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#031012; --btnPrimaryBg:linear-gradient(135deg,#51e1c2,#6db7ff);
+          --glyphBorder:#214e56; --glyphText:#e9fbff; --avatarBg:#0a1e24;
         }
-
-        html[data-theme="sandstone"], body[data-theme="sandstone"] {
-          --bg:#171411; --text:#f7efe6; --border:#3a2f27;
-          --cardGradStart:#2a221c; --cardGradEnd:#1c1713;
-          --chipBorder:#4b3c32; --chipBg:#231c17; --chipText:#f1e7db;
-          --btnNeutralBg:#2a2622; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0d0a07; --btnPrimaryBg:linear-gradient(135deg,#f3c07a,#f0a16b);
-          --glyphBorder:#4b3c32; --glyphText:#f7efe6; --avatarBg:#221c17;
+        html[data-theme="royal-purple"], body[data-theme="royal-purple"] {
+          --bg:#0c0714; --text:#f0e9ff; --border:#3b2b6a;
+          --cardGradStart:#1b1340; --cardGradEnd:#120e2b;
+          --chipBorder:#463487; --chipBg:#160f33; --chipText:#d7c9ff;
+          --btnNeutralBg:#221a3d; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#120e2b; --btnPrimaryBg:linear-gradient(135deg,#8f7bff,#c48bff);
+          --glyphBorder:#3d2f72; --glyphText:#f0e9ff; --avatarBg:#120e2b;
         }
-
+        html[data-theme="graphite-ember"], body[data-theme="graphite-ember"] {
+          --bg:#0a0a0c; --text:#f3f3f7; --border:#34353a;
+          --cardGradStart:#16171c; --cardGradEnd:#0f1013;
+          --chipBorder:#383a41; --chipBg:#121317; --chipText:#d9d9e2;
+          --btnNeutralBg:#1b1c21; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#0f1013; --btnPrimaryBg:linear-gradient(135deg,#ffb259,#ff7e6e);
+          --glyphBorder:#3a3b42; --glyphText:#f3f3f7; --avatarBg:#0f1013;
+        }
+        html[data-theme="sapphire-ice"], body[data-theme="sapphire-ice"] {
+          --bg:#051018; --text:#eaf6ff; --border:#1a3f63;
+          --cardGradStart:#0b2235; --cardGradEnd:#081827;
+          --chipBorder:#1f4a77; --chipBg:#0a1d2c; --chipText:#cfe6ff;
+          --btnNeutralBg:#0f1b28; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#06131c; --btnPrimaryBg:linear-gradient(135deg,#6cd2ff,#77ffa9);
+          --glyphBorder:#204a73; --glyphText:#eaf6ff; --avatarBg:#081827;
+        }
+        html[data-theme="forest-emerald"], body[data-theme="forest-emerald"] {
+          --bg:#07130e; --text:#eafff5; --border:#1c4f3b;
+          --cardGradStart:#0c2b21; --cardGradEnd:#0a1f18;
+          --chipBorder:#1d5f49; --chipBg:#0a231c; --chipText:#c8f5e6;
+          --btnNeutralBg:#0f1d18; --btnNeutralText:#ffffff;
+          --btnPrimaryText:#06140e; --btnPrimaryBg:linear-gradient(135deg,#38e6a6,#7bd7ff);
+          --glyphBorder:#215846; --glyphText:#eafff5; --avatarBg:#0a1f18;
+        }
+        html[data-theme="paper-snow"], body[data-theme="paper-snow"] {
+          --bg:#ffffff; --text:#121417; --border:#e5e7ea;
+          --cardGradStart:#ffffff; --cardGradEnd:#f7f9fb;
+          --chipBorder:#e5e7ea; --chipBg:#f3f5f7; --chipText:#121417;
+          --btnNeutralBg:#eef2f6; --btnNeutralText:#121417;
+          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#3b82f6,#22c55e);
+          --glyphBorder:#dfe3e8; --glyphText:#121417; --avatarBg:#ffffff;
+        }
         html[data-theme="porcelain-mint"], body[data-theme="porcelain-mint"] {
-          --bg:#f6fffb; --text:#0f1a15; --border:#cfeee3;
-          --cardGradStart:#ffffff; --cardGradEnd:#eef9f4;
-          --chipBorder:#c7eadf; --chipBg:#f2fcf8; --chipText:#153126;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0d1b14; --btnPrimaryBg:linear-gradient(135deg,#7de2c3,#6cc4ff);
-          --glyphBorder:#cfeee3; --glyphText:#0f1a15; --avatarBg:#ffffff;
+          --bg:#f6fbf8; --text:#0b1b16; --border:#cfe7dc;
+          --cardGradStart:#ffffff; --cardGradEnd:#f1f7f3;
+          --chipBorder:#cfe7dc; --chipBg:#eef5f0; --chipText:#0b1b16;
+          --btnNeutralBg:#e9f2ed; --btnNeutralText:#0b1b16;
+          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#21c58b,#5fb9ff);
+          --glyphBorder:#c7e0d4; --glyphText:#0b1b16; --avatarBg:#ffffff;
+        }
+        html[data-theme="linen-rose"], body[data-theme="linen-rose"] {
+          --bg:#fbf7f5; --text:#221a16; --border:#eaded7;
+          --cardGradStart:#ffffff; --cardGradEnd:#f6efeb;
+          --chipBorder:#eaded7; --chipBg:#f2eae6; --chipText:#221a16;
+          --btnNeutralBg:#efe7e3; --btnNeutralText:#221a16;
+          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#f472b6,#60a5fa);
+          --glyphBorder:#e6d9d1; --glyphText:#221a16; --avatarBg:#ffffff;
+        }
+        html[data-theme="sandstone"], body[data-theme="sandstone"] {
+          --bg:#faf7f1; --text:#191714; --border:#eadfcd;
+          --cardGradStart:#ffffff; --cardGradEnd:#f6f1e7;
+          --chipBorder:#eadfcd; --chipBg:#f2ece1; --chipText:#191714;
+          --btnNeutralBg:#efe9df; --btnNeutralText:#191714;
+          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#f59e0b,#84cc16);
+          --glyphBorder:#e6dac7; --glyphText:#191714; --avatarBg:#ffffff;
+        }
+        html[data-theme="cloud-blue"], body[data-theme="cloud-blue"] {
+          --bg:#f6fbff; --text:#0e141a; --border:#d8e6f1;
+          --cardGradStart:#ffffff; --cardGradEnd:#eff6fb;
+          --chipBorder:#d8e6f1; --chipBg:#edf4fa; --chipText:#0e141a;
+          --btnNeutralBg:#eaf2f8; --btnNeutralText:#0e141a;
+          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#60a5fa,#34d399);
+          --glyphBorder:#d3e2ee; --glyphText:#0e141a; --avatarBg:#ffffff;
+        }
+        html[data-theme="ivory-ink"], body[data-theme="ivory-ink"] {
+          --bg:#fffdf7; --text:#101112; --border:#ebe7db;
+          --cardGradStart:#ffffff; --cardGradEnd:#faf7ef;
+          --chipBorder:#ebe7db; --chipBg:#f7f4ed; --chipText:#101112;
+          --btnNeutralBg:#f1ede4; --btnNeutralText:#101112;
+          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#111827,#64748b);
+          --glyphBorder:#e7e2d6; --glyphText:#101112; --avatarBg:#ffffff;
         }
 
-        html[data-theme="ocean-teal"], body[data-theme="ocean-teal"] {
-          --bg:#0b1616; --text:#e8fffb; --border:#103a3a;
-          --cardGradStart:#0f2626; --cardGradEnd:#0b1616;
-          --chipBorder:#174b4b; --chipBg:#0c1b1b; --chipText:#d7fffb;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#031311; --btnPrimaryBg:linear-gradient(135deg,#68e0c2,#6fb8ff);
-          --glyphBorder:#184e4e; --glyphText:#e8fffb; --avatarBg:#0f2020;
-        }
-
-        html[data-theme="sunset-peach"], body[data-theme="sunset-peach"] {
-          --bg:#fff7f2; --text:#241a18; --border:#f3d7cc;
-          --cardGradStart:#ffffff; --cardGradEnd:#fdebe3;
-          --chipBorder:#f0c9bc; --chipBg:#fff3ec; --chipText:#2a1f1d;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#2a110d; --btnPrimaryBg:linear-gradient(135deg,#ffb199,#ffa26b);
-          --glyphBorder:#efd2c7; --glyphText:#241a18; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="plum-noir"], body[data-theme="plum-noir"] {
-          --bg:#140b16; --text:#f3e9ff; --border:#2b1633;
-          --cardGradStart:#1d0f24; --cardGradEnd:#140b16;
-          --chipBorder:#3a1d45; --chipBg:#160b1a; --chipText:#efe4ff;
-          --btnNeutralBg:#2a2230; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#180b1d; --btnPrimaryBg:linear-gradient(135deg,#c48bff,#8ea0ff);
-          --glyphBorder:#3a1d45; --glyphText:#f3e9ff; --avatarBg:#1a0e1f;
-        }
-
-        html[data-theme="slate-sky"], body[data-theme="slate-sky"] {
-          --bg:#0f131a; --text:#e9f2ff; --border:#1e2a3a;
-          --cardGradStart:#142033; --cardGradEnd:#0f131a;
-          --chipBorder:#293a52; --chipBg:#0f1723; --chipText:#d5e6ff;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#09111a; --btnPrimaryBg:linear-gradient(135deg,#7fb4ff,#7ee0d3);
-          --glyphBorder:#263750; --glyphText:#e9f2ff; --avatarBg:#101724;
-        }
-
-        html[data-theme="emerald-fog"], body[data-theme="emerald-fog"] {
-          --bg:#f3fbf4; --text:#132018; --border:#cde7d2;
-          --cardGradStart:#ffffff; --cardGradEnd:#ebf6ee;
-          --chipBorder:#c3e1c8; --chipBg:#f2faf4; --chipText:#183222;
-          --btnNeutralBg:#1f2937; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0d1510; --btnPrimaryBg:linear-gradient(135deg,#8de3b5,#7ad1b0);
-          --glyphBorder:#cde7d2; --glyphText:#132018; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="charcoal-gold"], body[data-theme="charcoal-gold"] {
-          --bg:#0f0f10; --text:#f8f6ed; --border:#2b2b2d;
-          --cardGradStart:#1a1a1c; --cardGradEnd:#0f0f10;
-          --chipBorder:#3a3a3d; --chipBg:#121213; --chipText:#f2f0e6;
-          --btnNeutralBg:#2a2a2e; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#1a1403; --btnPrimaryBg:linear-gradient(135deg,#f0d274,#f2b55e);
-          --glyphBorder:#3a3a3d; --glyphText:#f8f6ed; --avatarBg:#141416;
-        }
-
-        /* ---------- New 10 rich themes ---------- */
-        html[data-theme="crimson-dusk"], body[data-theme="crimson-dusk"] {
-          --bg:#16090c; --text:#ffecee; --border:#3a141a;
-          --cardGradStart:#2a0f15; --cardGradEnd:#170b0f;
-          --chipBorder:#4a1921; --chipBg:#1b0c10; --chipText:#ffd8dd;
-          --btnNeutralBg:#2a1c20; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#1b0c10; --btnPrimaryBg:linear-gradient(135deg,#ff6b81,#ffb199);
-          --glyphBorder:#4a1921; --glyphText:#ffecee; --avatarBg:#1b0c10;
-        }
-
-        html[data-theme="amber-glow"], body[data-theme="amber-glow"] {
-          --bg:#fff9f1; --text:#1f1409; --border:#f0e0c8;
-          --cardGradStart:#ffffff; --cardGradEnd:#fbf2e2;
-          --chipBorder:#ead7bb; --chipBg:#f9f1e4; --chipText:#25190c;
-          --btnNeutralBg:#efe7db; --btnNeutralText:#1f1409;
-          --btnPrimaryText:#1f1409; --btnPrimaryBg:linear-gradient(135deg,#f6bf65,#ff8f5a);
-          --glyphBorder:#ead7bb; --glyphText:#1f1409; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="azure-lagoon"], body[data-theme="azure-lagoon"] {
-          --bg:#eefdff; --text:#0b1a22; --border:#cfe8f1;
-          --cardGradStart:#ffffff; --cardGradEnd:#f0f9ff;
-          --chipBorder:#cfe8f1; --chipBg:#eef6fb; --chipText:#0b1a22;
-          --btnNeutralBg:#e8f1f6; --btnNeutralText:#0b1a22;
-          --btnPrimaryText:#08101e; --btnPrimaryBg:linear-gradient(135deg,#66d3ff,#37d6a0);
-          --glyphBorder:#cfe8f1; --glyphText:#0b1a22; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="noir-rose"], body[data-theme="noir-rose"] {
-          --bg:#120c10; --text:#ffeaf5; --border:#2c1b26;
-          --cardGradStart:#1d1320; --cardGradEnd:#130d14;
-          --chipBorder:#3a2532; --chipBg:#160f15; --chipText:#ffd7ec;
-          --btnNeutralBg:#221922; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#160f15; --btnPrimaryBg:linear-gradient(135deg,#ff80c0,#9ea4ff);
-          --glyphBorder:#3a2532; --glyphText:#ffeaf5; --avatarBg:#160f15;
-        }
-
-        html[data-theme="obsidian-blue"], body[data-theme="obsidian-blue"] {
-          --bg:#080e18; --text:#e9f1ff; --border:#16233a;
-          --cardGradStart:#0f1c30; --cardGradEnd:#0a1220;
-          --chipBorder:#203454; --chipBg:#0c1524; --chipText:#d9e6ff;
-          --btnNeutralBg:#121c2a; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0a1220; --btnPrimaryBg:linear-gradient(135deg,#5c8dff,#44e1c8);
-          --glyphBorder:#1e314f; --glyphText:#e9f1ff; --avatarBg:#0a1220;
-        }
-
-        html[data-theme="copper-sunset"], body[data-theme="copper-sunset"] {
-          --bg:#fff6f2; --text:#23140f; --border:#f0d3c7;
-          --cardGradStart:#ffffff; --cardGradEnd:#fbe9e1;
-          --chipBorder:#e9c7b8; --chipBg:#f7ede8; --chipText:#23140f;
-          --btnNeutralBg:#efe3dc; --btnNeutralText:#23140f;
-          --btnPrimaryText:#23140f; --btnPrimaryBg:linear-gradient(135deg,#ff9b6a,#f3cc76);
-          --glyphBorder:#e7cfc5; --glyphText:#23140f; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="moss-sage"], body[data-theme="moss-sage"] {
-          --bg:#f7fbf6; --text:#162014; --border:#d1e4cf;
-          --cardGradStart:#ffffff; --cardGradEnd:#eff6ef;
-          --chipBorder:#c7dbc5; --chipBg:#f0f6ef; --chipText:#1b2a18;
-          --btnNeutralBg:#e9f0ea; --btnNeutralText:#162014;
-          --btnPrimaryText:#0d1b14; --btnPrimaryBg:linear-gradient(135deg,#92e0b2,#8fb6a1);
-          --glyphBorder:#d1e4cf; --glyphText:#162014; --avatarBg:#ffffff;
-        }
-
-        html[data-theme="violet-aurora"], body[data-theme="violet-aurora"] {
-          --bg:#0e0a17; --text:#efe8ff; --border:#2c2250;
-          --cardGradStart:#1a1340; --cardGradEnd:#0f0a23;
-          --chipBorder:#3a2f6e; --chipBg:#140f25; --chipText:#ded2ff;
-          --btnNeutralBg:#241d3c; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#120d26; --btnPrimaryBg:linear-gradient(135deg,#a081ff,#68e0d6);
-          --glyphBorder:#3a2f6e; --glyphText:#efe8ff; --avatarBg:#120d26;
-        }
-
-        html[data-theme="steel-wave"], body[data-theme="steel-wave"] {
-          --bg:#0f1316; --text:#e6eef7; --border:#1f2c35;
-          --cardGradStart:#172331; --cardGradEnd:#0f151b;
-          --chipBorder:#2a3b4a; --chipBg:#121a22; --chipText:#d6e2ee;
-          --btnNeutralBg:#1a2430; --btnNeutralText:#ffffff;
-          --btnPrimaryText:#0f151b; --btnPrimaryBg:linear-gradient(135deg,#6aa7ff,#79dfc1);
-          --glyphBorder:#243545; --glyphText:#e6eef7; --avatarBg:#121a22;
-        }
-
-        html[data-theme="pearl-lilac"], body[data-theme="pearl-lilac"] {
-          --bg:#fbf9ff; --text:#1a1624; --border:#e4dcf6;
-          --cardGradStart:#ffffff; --cardGradEnd:#f4effd;
-          --chipBorder:#e0d7f3; --chipBg:#f6f2fd; --chipText:#1a1624;
-          --btnNeutralBg:#eee9f8; --btnNeutralText:#1a1624;
-          --btnPrimaryText:#0f1020; --btnPrimaryBg:linear-gradient(135deg,#b79bff,#6fe3cc);
-          --glyphBorder:#e4dcf6; --glyphText:#1a1624; --avatarBg:#ffffff;
-        }
-
-        /* Force page base colors */
-        body { background: var(--bg) !important; color: var(--text) !important; }
-
+        /* --------- layout (unchanged) --------- */
         .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
         .tp-header {
           display:flex; flex-direction:column; gap:10px; padding:12px 14px;
@@ -450,7 +388,7 @@ export default function PublicPage() {
 
                 <div className="tp-cta">
                   {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
-                  {waHref && <a href={waHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
+                  {waHref  && <a href={waHref}  className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
                 </div>
               </div>
 
@@ -460,6 +398,7 @@ export default function PublicPage() {
             </div>
           </div>
 
+          {/* Social icons */}
           {(fb || ig || tk || xx) && (
             <div className="tp-social">
               {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><span className="tp-glyph">f</span></a>}
