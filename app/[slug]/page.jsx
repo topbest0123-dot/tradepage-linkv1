@@ -19,7 +19,6 @@ function normalizeSocial(type, raw) {
   }
 }
 
-// Accept either a full URL or a path in the 'avatars' bucket
 const normalizeAvatarSrc = (value) => {
   const v = String(value || '').trim();
   if (!v) return null;
@@ -30,38 +29,18 @@ const normalizeAvatarSrc = (value) => {
 
 /* ---------- theme normalization ---------- */
 const THEME_KEYS = [
-  'deep-navy',
-  'midnight-teal',
-  'royal-purple',
-  'graphite-ember',
-  'sapphire-ice',
-  'forest-emerald',
-  'paper-snow',
-  'porcelain-mint',
-  'linen-rose',
-  'sandstone',
-  'cloud-blue',
-  'ivory-ink',
+  'deep-navy','midnight-teal','royal-purple','graphite-ember','sapphire-ice',
+  'forest-emerald','paper-snow','porcelain-mint','linen-rose','sandstone',
+  'cloud-blue','ivory-ink',
 ];
 const THEME_SET = new Set(THEME_KEYS);
 
 const ALIAS = {
-  'midnight': 'deep-navy',
-  'cocoa-bronze': 'graphite-ember',
-  'cocoa bronze': 'graphite-ember',
-  'ivory-sand': 'paper-snow',
-  'ivory sand': 'paper-snow',
-  'glacier-mist': 'cloud-blue',
-  'glacier mist': 'cloud-blue',
-  'porcelain mint': 'porcelain-mint',
-  'forest emerald': 'forest-emerald',
-  'royal purple': 'royal-purple',
-  'graphite ember': 'graphite-ember',
-  'sapphire ice': 'sapphire-ice',
-  'paper snow': 'paper-snow',
-  'linen rose': 'linen-rose',
-  'cloud blue': 'cloud-blue',
-  'ivory ink': 'ivory-ink',
+  'midnight':'deep-navy','cocoa-bronze':'graphite-ember','cocoa bronze':'graphite-ember',
+  'ivory-sand':'paper-snow','ivory sand':'paper-snow','glacier-mist':'cloud-blue','glacier mist':'cloud-blue',
+  'porcelain mint':'porcelain-mint','forest emerald':'forest-emerald','royal purple':'royal-purple',
+  'graphite ember':'graphite-ember','sapphire ice':'sapphire-ice','paper snow':'paper-snow',
+  'linen rose':'linen-rose','cloud blue':'cloud-blue','ivory ink':'ivory-ink',
 };
 
 function normalizeThemeKey(raw) {
@@ -71,7 +50,7 @@ function normalizeThemeKey(raw) {
   return 'deep-navy';
 }
 
-/* ---------- styles using CSS variables ---------- */
+/* ---------- styles ---------- */
 const sectionStyle = {
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd))',
@@ -98,12 +77,9 @@ const btnBaseStyle    = { padding: '10px 16px', borderRadius: 12, border: '1px s
 const btnPrimaryStyle = { background: 'var(--btnPrimaryBg)', color: 'var(--btnPrimaryText)' };
 const btnNeutralStyle = { background: 'var(--btnNeutralBg)', color: 'var(--btnNeutralText)' };
 
-const imgPlaceholderStyle = {
-  width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75,
-};
+const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
 
-// Card wrapper
-function Card({ title, wide = false, className, children }) {
+function Card({ title, wide=false, className, children }) {
   return (
     <section className={className} style={{ ...sectionStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
       {title && <h2 style={h2Style}>{title}</h2>}
@@ -120,13 +96,10 @@ export default function PublicPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
-  // fetch profile (includes theme)
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      setLoading(true);
-      setErr(null);
-      setRow(null);
+      setLoading(true); setErr(null); setRow(null);
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -134,14 +107,12 @@ export default function PublicPage() {
             slug,name,trade,city,phone,whatsapp,
             facebook,instagram,tiktok,x,
             about,prices,areas,services,hours,other_info,
-            avatar_path,avatar_url,
-            theme
+            avatar_path,avatar_url,theme
           `)
           .eq('slug', String(slug || ''))
           .maybeSingle();
         if (cancelled) return;
-        if (error) setErr(error.message);
-        else setRow(data);
+        if (error) setErr(error.message); else setRow(data);
       } catch (e) {
         if (!cancelled) setErr(String(e?.message || e));
       } finally {
@@ -151,7 +122,6 @@ export default function PublicPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
-  // apply theme to html + body with normalization & aliases
   useEffect(() => {
     const key = normalizeThemeKey(row?.theme ?? DEFAULT_THEME);
     document.documentElement.setAttribute('data-theme', key);
@@ -162,7 +132,6 @@ export default function PublicPage() {
     };
   }, [row?.theme]);
 
-  // links
   const callHref = row?.phone ? `tel:${String(row.phone).replace(/\s+/g, '')}` : null;
   const waHref  = row?.whatsapp ? `https://wa.me/${String(row.whatsapp).replace(/\D/g, '')}` : null;
 
@@ -171,57 +140,47 @@ export default function PublicPage() {
   const tk = normalizeSocial('tiktok',    row?.tiktok);
   const xx = normalizeSocial('x',         row?.x);
 
-  // pricing lines
   const priceLines = useMemo(
     () => String(row?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
     [row]
   );
-
-  // tags
   const areas = String(row?.areas || '').split(/[,\n]+/).map(s=>s.trim()).filter(Boolean);
   const services = String(row?.services || '').split(/[,\n]+/).map(s=>s.trim()).filter(Boolean);
 
   const avatarSrc = normalizeAvatarSrc(row?.avatar_path || row?.avatar_url);
 
-  // simplified share — share only the URL
   const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     try {
-      if (navigator.share) {
-        await navigator.share({ url });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
-      } else {
-        prompt('Copy this link:', url);
-      }
+      if (navigator.share) await navigator.share({ url });
+      else if (navigator.clipboard) { await navigator.clipboard.writeText(url); alert('Link copied to clipboard!'); }
+      else { prompt('Copy this link:', url); }
     } catch {}
   };
 
   return (
     <div style={pageWrapStyle}>
       <style>{`
-        /* Make sure page background & text always follow the active theme */
         html, body { background: var(--bg) !important; color: var(--text) !important; }
 
-        /* inline Share (desktop) vs full-width Share (mobile) */
         .tp-share-inline { display: none; }
         @media (min-width: 769px) {
-          .tp-share { display: none; }               /* hide bar on desktop */
-          .tp-share-inline { display: inline-flex; } /* show inline button */
+          .tp-share { display: none; }
+          .tp-share-inline { display: inline-flex; }
         }
 
-        /* ===== FIX: Topbar "Dashboard" / "Sign out" pills =====
-           Force them to use the *same neutral button tokens* as the WhatsApp button.
-           We scope to header/nav only and use !important to beat global header CSS. */
-        header a[href*="dashboard"],
-        header a[href*="signout"],
-        header a[href*="sign-out"],
-        header a[href*="logout"],
-        nav a[href*="dashboard"],
-        nav a[href*="signout"],
-        nav a[href*="sign-out"],
-        nav a[href*="logout"] {
+        /* ===== FINAL OVERRIDE FOR TOP-RIGHT HEADER LINKS =====
+           Match ANY anchor or button whose HREF contains dashboard/signout/sign-out/logout,
+           regardless of where it lives. Uses the same tokens as the neutral CTA. */
+        a[href*="dashboard"],
+        a[href*="/dashboard"],
+        button[href*="dashboard"],
+        a[href*="signout"],
+        a[href*="sign-out"],
+        a[href*="logout"],
+        button[href*="signout"],
+        button[href*="sign-out"],
+        button[href*="logout"] {
           background: var(--btnNeutralBg) !important;
           color: var(--btnNeutralText) !important;
           border: 1px solid var(--border) !important;
@@ -232,20 +191,21 @@ export default function PublicPage() {
           display: inline-flex !important;
           align-items: center !important;
           gap: .35rem !important;
+          opacity: 1 !important;
+          box-shadow: 0 0 0 0 rgba(0,0,0,0); /* keep subtle */
         }
-        /* subtle hover */
-        header a[href*="dashboard"]:hover,
-        header a[href*="signout"]:hover,
-        header a[href*="sign-out"]:hover,
-        header a[href*="logout"]:hover,
-        nav a[href*="dashboard"]:hover,
-        nav a[href*="signout"]:hover,
-        nav a[href*="sign-out"]:hover,
-        nav a[href*="logout"]:hover {
+        a[href*="dashboard"]:hover,
+        a[href*="signout"]:hover,
+        a[href*="sign-out"]:hover,
+        a[href*="logout"]:hover,
+        button[href*="dashboard"]:hover,
+        button[href*="signout"]:hover,
+        button[href*="sign-out"]:hover,
+        button[href*="logout"]:hover {
           filter: brightness(1.06);
         }
 
-        /* ========== Theme tokens (12 themes) ========== */
+        /* ===== Theme tokens (unchanged) ===== */
         html[data-theme="deep-navy"], body[data-theme="deep-navy"] {
           --bg:#0b1524; --text:#eaf2ff; --border:#183153;
           --cardGradStart:#0f213a; --cardGradEnd:#0b1524;
@@ -343,52 +303,33 @@ export default function PublicPage() {
           --glyphBorder:#e7e2d6; --glyphText:#101112; --avatarBg:#ffffff;
         }
 
-        /* --------- layout (unchanged) --------- */
+        /* -------- layout (unchanged) -------- */
         .tp-hero { display:grid; grid-template-columns:1fr; gap:12px; align-items:start; margin:8px 0 6px; }
-        .tp-header {
-          display:flex; flex-direction:column; gap:10px; padding:12px 14px;
-          border-radius:16px; border:1px solid var(--border);
-          background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd));
-          margin-bottom:8px;
-        }
+        .tp-header { display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:16px; border:1px solid var(--border); background: linear-gradient(180deg,var(--cardGradStart),var(--cardGradEnd)); margin-bottom:8px; }
         .tp-head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; }
         .tp-cta { display:flex; gap:8px; flex-wrap:wrap; }
         .tp-cta a, .tp-cta button { font-weight:700; }
 
-        .tp-avatar-inline{
-          width:56px; height:56px; border-radius:14px; border:1px solid var(--border);
-          background:var(--avatarBg); object-fit:cover; margin-right:12px; flex:0 0 auto;
-        }
+        .tp-avatar-inline{ width:56px; height:56px; border-radius:14px; border:1px solid var(--border); background:var(--avatarBg); object-fit:cover; margin-right:12px; flex:0 0 auto; }
         .tp-avatar-inline.is-fallback{ display:inline-flex; align-items:center; justify-content:center; color:#63d3e0; font-weight:800; font-size:22px; }
         @media (max-width:480px){ .tp-avatar-inline{ width:48px; height:48px; } }
 
         .tp-social { display:flex; gap:10px; align-items:center; margin:8px 0 8px; }
-        .tp-social a{
-          width:36px; height:36px; border-radius:999px; border:1px solid var(--glyphBorder);
-          background:transparent; color:var(--glyphText); display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
-        }
+        .tp-social a{ width:36px; height:36px; border-radius:999px; border:1px solid var(--glyphBorder); background:transparent; color:var(--glyphText); display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
         .tp-glyph { font-size:13px; font-weight:800; letter-spacing:.2px; }
 
         .tp-grid { display:grid; grid-template-columns:1fr; gap:16px; margin-top:16px; }
-        @media (min-width:820px){
-          .tp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-          .tp-grid > .tp-gallery-card { grid-column:1 / -1 !important; width:100%; }
-        }
+        @media (min-width:820px){ .tp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .tp-grid > .tp-gallery-card { grid-column:1 / -1 !important; width:100%; } }
         .tp-grid > section { min-width:0; }
 
         .tp-gallery { display:grid; gap:16px; }
         @media (min-width:820px){ .tp-gallery { grid-template-columns:repeat(3,minmax(0,1fr)); } }
         @media (max-width:819.98px){ .tp-gallery { grid-template-columns:1fr; gap:12px; } }
 
-        .tp-gallery .item{
-          height:220px; border-radius:14px; border:1px solid var(--chipBorder); background:var(--chipBg); overflow:hidden;
-        }
+        .tp-gallery .item{ height:220px; border-radius:14px; border:1px solid var(--chipBorder); background:var(--chipBg); overflow:hidden; }
         .tp-gallery .item img{ width:100%; height:100%; object-fit:cover; border-radius:14px; }
 
-        .tp-chip{
-          padding:6px 12px; border-radius:999px; border:1px solid var(--chipBorder);
-          background:var(--chipBg); color:var(--chipText); font-size:13px;
-        }
+        .tp-chip{ padding:6px 12px; border-radius:999px; border:1px solid var(--chipBorder); background:var(--chipBg); color:var(--chipText); font-size:13px; }
 
         @media (max-width:768px){
           .tp-hero{ grid-template-columns:1fr; gap:12px; align-items:start; margin-bottom:8px; }
@@ -416,9 +357,7 @@ export default function PublicPage() {
                 <div style={headerLeftStyle}>
                   {avatarSrc ? (
                     <img src={avatarSrc} alt={`${row.name || row.slug} logo`} className="tp-avatar-inline" loading="lazy" />
-                  ) : (
-                    <div className="tp-avatar-inline is-fallback">★</div>
-                  )}
+                  ) : (<div className="tp-avatar-inline is-fallback">★</div>)}
                   <div className="tp-head-titles">
                     <div style={headerNameStyle}>{row.name || row.slug}</div>
                     <div style={headerSubStyle}>
@@ -430,25 +369,14 @@ export default function PublicPage() {
                 <div className="tp-cta">
                   {callHref && <a href={callHref} className="tp-btn" style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
                   {waHref  && <a href={waHref}  className="tp-btn" style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-                  {/* Inline Share for DESKTOP only (same size) */}
-                  <button
-                    type="button"
-                    className="tp-share-inline tp-btn"
-                    onClick={handleShare}
-                    style={{ ...btnBaseStyle, ...btnNeutralStyle }}
-                  >
+                  <button type="button" className="tp-share-inline tp-btn" onClick={handleShare} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
                     Share
                   </button>
                 </div>
               </div>
 
-              {/* Full-width Share bar (MOBILE only) */}
-              <button
-                type="button"
-                className="tp-share"
-                onClick={handleShare}
-                style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}
-              >
+              <button type="button" className="tp-share" onClick={handleShare}
+                style={{ ...btnBaseStyle, border: '1px solid var(--glyphBorder)', background: 'transparent', color: 'var(--text)' }}>
                 Share
               </button>
             </div>
@@ -515,7 +443,7 @@ export default function PublicPage() {
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item"><div style={imgPlaceholderStyle}>work photo</div></div>
                 <div className="item">
-                  <img src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop" alt="work"/>
+                  <img src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop" alt="work" />
                 </div>
               </div>
             </Card>
@@ -524,4 +452,4 @@ export default function PublicPage() {
       )}
     </div>
   );
-  }
+}
