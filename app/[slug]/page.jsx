@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
+// tiny helpers (add under imports)
+const digitsOnly = (v) => String(v || '').replace(/\D+/g, '');
+const telHref = (phone) => `tel:${digitsOnly(phone)}`;
+const waHref  = (num)   => `https://wa.me/${digitsOnly(num)}`;
+
 /** Small helper: turn any value into a clean list of strings */
 const toList = (value) =>
   String(value ?? '')
@@ -50,8 +55,6 @@ export default function Page({ params }) {
   if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
   if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
 
-  const callHref = p?.phone ? `tel:${p.phone.replace(/\s+/g, '')}` : null;
-  const waHref = p?.whatsapp ? `https://wa.me/${p.whatsapp.replace(/\D/g, '')}` : null;
   const avatarUrl = publicUrlFor(p?.avatar_path);
 
   // --- Share handler (native share on mobile, clipboard fallback on desktop) ---
@@ -113,14 +116,25 @@ export default function Page({ params }) {
         </div>
 
         <div style={ctaRowStyle}>
-          {callHref && (
-            <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
-              Call
+          {/* Phone */}
+          {p?.phone && (
+            <a
+              href={telHref(p.phone)}
+              style={{ ...btnBaseStyle, ...btnPrimaryStyle }}
+              className="underline"
+            >
+              Call {p.phone}
             </a>
           )}
-          {waHref && (
-            <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-              WhatsApp
+
+          {/* WhatsApp */}
+          {p?.whatsapp && (
+            <a
+              href={waHref(p.whatsapp)}
+              style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+              className="underline"
+            >
+              WhatsApp {p.whatsapp}
             </a>
           )}
 
