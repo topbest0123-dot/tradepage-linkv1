@@ -10,46 +10,40 @@ export async function generateMetadata({ params }) {
 
   const { data } = await sb
     .from('profiles')
-    .select('name, coty, about, avatar_url, avatar_path') // ⬅️ includes avatar_path
+    .select('name, coty, about, avatar_url, avatar_path')
     .eq('slug', params.slug)
     .maybeSingle();
 
-  // Build OG/Twitter image from Supabase Storage avatar
-  const BUCKET = 'avatars'; // ← your bucket name
-  let imageUrl;
-
-  if (data?.avatar_url && /^https?:\/\//i.test(data.avatar_url)) {
-    // full URL already stored
-    imageUrl = data.avatar_url;
-  } else if (data?.avatar_path) {
-    // avatar_path must be the file key inside the bucket, e.g. "83c8de26.../avatar.jpg"
-    const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(data.avatar_path);
-    imageUrl = pub?.publicUrl;
-  }
-
-  const images = imageUrl ? [{ url: imageUrl, width: 1200, height: 630 }] : undefined;
-
-  // Page <title>
+  // Tab text stays fixed
   const title = { absolute: 'Trade Page Link' };
 
-  // OG/Twitter
+  // OG title/description
   const business = (data?.name || '').trim() || 'Trade Page';
   const city = (data?.coty || '').trim();
   const ogTitle = city ? `${business} — ${city}` : business;
-
   const description =
     ((data?.about || '').replace(/\s+/g, ' ').slice(0, 200)) ||
     'Your business in a link.';
 
-  // ⬇️ CHANGED: hardcoded OG/Twitter image from /public
+  // --- Avatar → OG image ---
+  // 1) prefer full URL in `avatar_url`
+  // 2) else build a public URL from Storage bucket `avatars` + `avatar_path`
+  let imageUrl;
+  if (data?.avatar_url && /^https?:\/\//i.test(data.avatar_url)) {
+    imageUrl = data.avatar_url;
+  } else if (data?.avatar_path) {
+    const { data: pub } = sb.storage.from('avatars').getPublicUrl(data.avatar_path);
+    imageUrl = pub?.publicUrl;
+  }
+  const images = imageUrl ? [{ url: imageUrl, width: 1200, height: 630 }] : undefined;
+
   return {
-    title: { absolute: 'Trade Page Link' },
+    title,
     description,
     openGraph: {
       title: ogTitle,
       description,
-      // TEMP: hardcoded image that exists in /public
-      images: [{ url: 'https://www.tradepage.link/og-default.png', width: 1200, height: 630 }],
+      images,
       type: 'website',
       url: `https://www.tradepage.link/${params.slug}`,
     },
@@ -57,8 +51,7 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: ogTitle,
       description,
-      // TEMP too
-      images: ['https://www.tradepage.link/og-default.png'],
+      images: imageUrl ? [imageUrl] : undefined,
     },
   };
 }
