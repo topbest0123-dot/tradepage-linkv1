@@ -48,7 +48,7 @@ export default function Page({ params }) {
         .from('profiles')
         .select(
           'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,avatar_path,instagram,tiktok,facebook,youtube,x,website'
-        ) // ↑ read new social columns
+        )
         .ilike('slug', slug)
         .maybeSingle();
 
@@ -141,37 +141,6 @@ export default function Page({ params }) {
           <div>
             <div style={headerNameStyle}>{p.name || p.slug}</div>
             <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
-
-            {/* Social icon buttons under name/header */}
-            {socials.length > 0 && (
-              <ul style={{ display: 'flex', gap: 8, marginTop: 8, padding: 0, listStyle: 'none' }}>
-                {socials.map(([key, url, label]) => (
-                  <li key={key}>
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={key}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 32,
-                        height: 32,
-                        borderRadius: 999,
-                        border: '1px solid #27406e',
-                        textDecoration: 'none',
-                        color: '#b8ccff',
-                        fontWeight: 700,
-                        fontSize: 12,
-                      }}
-                    >
-                      {label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
         </div>
 
@@ -219,7 +188,29 @@ export default function Page({ params }) {
         </div>
       </div>
 
-      {/* GRID */}
+      {/* ⬇️ socials block moved to after header, before main/content */}
+      {socials.length > 0 && (
+        <div className="max-w-4xl mx-auto mt-3 mb-1">
+          <ul className="flex gap-2">
+            {socials.map(([key, url, label]) => (
+              <li key={key}>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={key}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full border"
+                  style={{ textDecoration: 'none' }}
+                >
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* GRID (acts as main content) */}
       <div style={grid2Style}>
         {/* About */}
         <Card title="About">
@@ -341,7 +332,7 @@ const headerCardStyle = {
   borderRadius: 16,
   border: '1px solid #183153',
   background: 'linear-gradient(180deg,#0f213a,#0b1524)',
-  marginBottom: 20,
+  marginBottom: 12, // tighten to make room for socials row
 };
 const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
 const logoDotStyle = {
