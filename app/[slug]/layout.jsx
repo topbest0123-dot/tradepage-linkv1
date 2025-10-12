@@ -1,4 +1,7 @@
 // app/[slug]/layout.jsx  (SERVER — no 'use client')
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { createClient } from '@supabase/supabase-js';
 
 export async function generateMetadata({ params }) {
@@ -35,9 +38,7 @@ export async function generateMetadata({ params }) {
     const { data: pub } = sb.storage.from('avatars').getPublicUrl(data.avatar_path);
     imageUrl = pub?.publicUrl;
   }
-
-  // Fallback to a default image if no avatar is available
-  const image = imageUrl || 'https://www.tradepage.link/og-default.png';
+  const images = imageUrl ? [{ url: imageUrl, width: 1200, height: 630 }] : undefined;
 
   return {
     title,
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: ogTitle,
       description,
-      images: [{ url: image, width: 1200, height: 630 }],
+      images,
       type: 'website',
       url: `https://www.tradepage.link/${params.slug}`,
     },
@@ -53,7 +54,7 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: ogTitle,
       description,
-      images: [image],
+      images: imageUrl ? [imageUrl] : undefined,
     },
   };
 }
