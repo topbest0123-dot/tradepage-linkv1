@@ -35,7 +35,9 @@ export async function generateMetadata({ params }) {
     const { data: pub } = sb.storage.from('avatars').getPublicUrl(data.avatar_path);
     imageUrl = pub?.publicUrl;
   }
-  const images = imageUrl ? [{ url: imageUrl, width: 1200, height: 630 }] : undefined;
+
+  // Fallback to a default image if no avatar is available
+  const image = imageUrl || 'https://www.tradepage.link/og-default.png';
 
   return {
     title,
@@ -43,7 +45,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: ogTitle,
       description,
-      images,
+      images: [{ url: image, width: 1200, height: 630 }],
       type: 'website',
       url: `https://www.tradepage.link/${params.slug}`,
     },
@@ -51,7 +53,7 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: ogTitle,
       description,
-      images: imageUrl ? [imageUrl] : undefined,
+      images: [image],
     },
   };
 }
