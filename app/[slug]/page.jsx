@@ -3,10 +3,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
-// tiny helpers (add under imports)
+// tiny helpers (existing)
 const digitsOnly = (v) => String(v || '').replace(/\D+/g, '');
 const telHref = (phone) => `tel:${digitsOnly(phone)}`;
 const waHref  = (num)   => `https://wa.me/${digitsOnly(num)}`;
+
+// --- SOCIAL USERNAME/URL HELPER ---
+const asUrl = (type, v) => {
+  if (!v) return null;
+  const s = String(v).trim();
+  if (/^https?:\/\//i.test(s)) return s;
+  const clean = s.replace(/^@/, '');
+  switch (type) {
+    case 'instagram': return `https://instagram.com/${clean}`;
+    case 'tiktok':    return `https://tiktok.com/@${clean}`;
+    case 'facebook':  return `https://facebook.com/${clean}`;
+    case 'youtube':   return `https://youtube.com/${clean}`;
+    case 'x':         return `https://x.com/${clean}`;
+    case 'website':   return `https://${clean}`;
+    default:          return s;
+  }
+};
 
 /** Small helper: turn any value into a clean list of strings */
 const toList = (value) =>
@@ -29,7 +46,9 @@ export default function Page({ params }) {
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,avatar_path')
+        .select(
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,avatar_path,instagram,tiktok,facebook,youtube,x,website'
+        ) // ↑ read new social columns
         .ilike('slug', slug)
         .maybeSingle();
 
@@ -51,6 +70,16 @@ export default function Page({ params }) {
         .filter(Boolean),
     [p]
   );
+
+  // Build round-icon social buttons list once profile is loaded
+  const socials = useMemo(() => ([
+    ['instagram', asUrl('instagram', p?.instagram), 'IG'],
+    ['tiktok',    asUrl('tiktok',    p?.tiktok),    't'],
+    ['facebook',  asUrl('facebook',  p?.facebook),  'f'],
+    ['youtube',   asUrl('youtube',   p?.youtube),   'YT'],
+    ['x',         asUrl('x',         p?.x),         'X'],
+    ['website',   asUrl('website',   p?.website),   '🌐'],
+  ].filter(([, url]) => !!url)), [p]);
 
   if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
   if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
@@ -112,6 +141,37 @@ export default function Page({ params }) {
           <div>
             <div style={headerNameStyle}>{p.name || p.slug}</div>
             <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
+
+            {/* Social icon buttons under name/header */}
+            {socials.length > 0 && (
+              <ul style={{ display: 'flex', gap: 8, marginTop: 8, padding: 0, listStyle: 'none' }}>
+                {socials.map(([key, url, label]) => (
+                  <li key={key}>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={key}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        borderRadius: 999,
+                        border: '1px solid #27406e',
+                        textDecoration: 'none',
+                        color: '#b8ccff',
+                        fontWeight: 700,
+                        fontSize: 12,
+                      }}
+                    >
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 
