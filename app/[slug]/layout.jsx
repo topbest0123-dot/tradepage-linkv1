@@ -2,34 +2,47 @@
 import { createClient } from '@supabase/supabase-js';
 
 export async function generateMetadata({ params }) {
-  const supabase = createClient(
+  const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     { auth: { persistSession: false } }
   );
 
-  const { data } = await supabase
+  const { data } = await sb
     .from('profiles')
-    .select('name, about')
+    .select('name, coty, about, avatar_url')
     .eq('slug', params.slug)
     .maybeSingle();
 
-  const title = data?.name ? `${data.name} — TradePage` : 'TradePage';
-  const description = data?.about?.slice(0, 160) || 'Professional TradePage profile';
+  // Page <title>
+  const title = { absolute: 'Trade Page Link' };
+
+  // OG/Twitter
+  const business = (data?.name || '').trim() || 'Trade Page';
+  const city = (data?.coty || '').trim();
+  const ogTitle = city ? `${business} — ${city}` : business;
+
+  const description =
+    ((data?.about || '').replace(/\s+/g, ' ').slice(0, 200)) ||
+    'Your business in a link.';
+
+  const images = data?.avatar_url ? [{ url: data.avatar_url }] : undefined;
 
   return {
     title,
     description,
     openGraph: {
-      title,
+      title: ogTitle,
       description,
+      images,
       type: 'website',
       url: `https://www.tradepage.link/${params.slug}`,
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: ogTitle,
       description,
+      images,
     },
   };
 }
