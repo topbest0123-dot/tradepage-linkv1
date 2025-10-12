@@ -24,6 +24,9 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   const sha = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0,7) || 'local';
+  const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  let supaHost = 'missing';
+  try { supaHost = new URL(supaUrl).host || 'missing'; } catch {}
 
   return (
     <html lang="en">
@@ -53,7 +56,7 @@ export default function RootLayout({ children }) {
           fontSize: 12, background: 'rgba(0,0,0,.6)', color: '#fff',
           padding: '4px 8px', borderRadius: 6
         }}>
-          build {sha}
+          build {sha} • db {supaHost}
         </div>
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
