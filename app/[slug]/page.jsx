@@ -228,6 +228,15 @@ export default function PublicPage() {
           </div>
         </Card>
       </div>
+
+      {/* DEBUG MARKER — remove later */}
+      <div style={{
+        position:'fixed', right:12, bottom:12, zIndex:99999,
+        padding:'6px 10px', borderRadius:8, background:'#111', color:'#0f0',
+        fontFamily:'monospace', fontSize:12, boxShadow:'0 0 0 1px #0f0'
+      }}>
+        slug/page.jsx LIVE {(process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0,7)}
+      </div>
     </div>
   );
 }
