@@ -106,14 +106,18 @@ export default function Page({ params }) {
   );
 
   // Build round-icon social buttons list once profile is loaded
-  const socials = useMemo(() => ([
-    ['instagram', asUrl('instagram', p?.instagram), 'IG'],
-    ['tiktok',    asUrl('tiktok',    p?.tiktok),    't'],
-    ['facebook',  asUrl('facebook',  p?.facebook),  'f'],
-    ['youtube',   asUrl('youtube',   p?.youtube),   'YT'],
-    ['x',         asUrl('x',         p?.x),         'X'],
-    ['website',   asUrl('website',   p?.website),   '🌐'],
-  ].filter(([, url]) => !!url)), [p]);
+  const socials = useMemo(
+    () =>
+      [
+        ['instagram', asUrl('instagram', p?.instagram), 'IG'],
+        ['tiktok', asUrl('tiktok', p?.tiktok), 't'],
+        ['facebook', asUrl('facebook', p?.facebook), 'f'],
+        ['youtube', asUrl('youtube', p?.youtube), 'YT'],
+        ['x', asUrl('x', p?.x), 'X'],
+        ['website', asUrl('website', p?.website), '🌐'],
+      ].filter(([, url]) => !!url),
+    [p]
+  );
 
   if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
   if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
@@ -141,7 +145,7 @@ export default function Page({ params }) {
   return (
     <div style={pageWrapStyle}>
       {/* CANARY label (debug) */}
-      <div style={{position:'fixed',top:8,right:8,fontSize:12,opacity:.7,background:'rgba(0,0,0,.4)',color:'#fff',padding:'4px 6px',borderRadius:6,zIndex:9999}}>
+      <div style={{ position: 'fixed', top: 8, right: 8, fontSize: 12, opacity: .7, background: 'rgba(0,0,0,.4)', color: '#fff', padding: '4px 6px', borderRadius: 6, zIndex: 9999 }}>
         CANARY-A
       </div>
 
@@ -179,14 +183,16 @@ export default function Page({ params }) {
         </div>
 
         <div style={ctaRowStyle}>
-          {/* Phone */}
+          {/* Call */}
           {p?.phone && (
             <a
               href={telHref(p.phone)}
               style={{ ...btnBaseStyle, ...btnPrimaryStyle }}
               className="underline"
+              aria-label={`Call ${p.phone}`}
+              title={`Call ${p.phone}`}
             >
-              Call {p.phone}
+              Call
             </a>
           )}
 
@@ -196,8 +202,10 @@ export default function Page({ params }) {
               href={waHref(p.whatsapp)}
               style={{ ...btnBaseStyle, ...btnNeutralStyle }}
               className="underline"
+              aria-label={`WhatsApp ${p.whatsapp}`}
+              title={`WhatsApp ${p.whatsapp}`}
             >
-              WhatsApp {p.whatsapp}
+              WhatsApp
             </a>
           )}
 
