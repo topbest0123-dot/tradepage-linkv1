@@ -23,6 +23,8 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0,7) || 'local';
+
   return (
     <html lang="en">
       {/* Default (deep-navy) variables for first paint */}
@@ -45,6 +47,15 @@ export default function RootLayout({ children }) {
           color: 'var(--text)',        // follow theme text
         }}
       >
+        {/* DEBUG BANNER — remove later */}
+        <div style={{
+          position: 'fixed', bottom: 8, right: 8, zIndex: 999999,
+          fontSize: 12, background: 'rgba(0,0,0,.6)', color: '#fff',
+          padding: '4px 8px', borderRadius: 6
+        }}>
+          build {sha}
+        </div>
+
         <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
           <header
             style={{
