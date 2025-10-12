@@ -10,12 +10,12 @@ export async function generateMetadata({ params }) {
 
   const { data } = await sb
     .from('profiles')
-    .select('name, coty, about, avatar_url')
+    .select('name, coty, about, avatar_url, avatar_path') // ⬅️ added avatar_path
     .eq('slug', params.slug)
     .maybeSingle();
 
   // Build OG/Twitter image from avatar
-  const BUCKET = 'avatars'; // ⬅️ change if your bucket name is different
+  const BUCKET = 'avatar_path'; // ⬅️ updated bucket name per instruction
   let imageUrl;
 
   if (data?.avatar_url && /^https?:\/\//i.test(data.avatar_url)) {
