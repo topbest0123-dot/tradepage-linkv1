@@ -10,8 +10,6 @@ import { createClient } from '@supabase/supabase-js';
    DYNAMIC OG/TWITTER METADATA (runs on the server)
    ────────────────────────────────────────────────────────────── */
 
-export const revalidate = 60;           // refresh metadata at most once per minute
-export const dynamic = 'force-static';  // good default for ISR-style pages
 
 export async function generateMetadata({ params }) {
   const sb = createClient(
