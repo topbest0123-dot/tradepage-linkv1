@@ -81,7 +81,7 @@ export default function Page({ params }) {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,avatar_path,instagram,tiktok,facebook,youtube,x,website'
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,avatar_url,avatar_path,instagram,tiktok,facebook,youtube,x,website'
         )
         .ilike('slug', slug)
         .maybeSingle();
@@ -148,6 +148,18 @@ export default function Page({ params }) {
       <div style={{ position: 'fixed', top: 8, right: 8, fontSize: 12, opacity: .7, background: 'rgba(0,0,0,.4)', color: '#fff', padding: '4px 6px', borderRadius: 6, zIndex: 9999 }}>
         CANARY-A
       </div>
+
+      {/* ⬇️ TEMP DEBUG: shows avatar_url/avatar_path values */}
+      {p && (
+        <pre style={{
+          position:'fixed', left:8, bottom:8, zIndex:99999,
+          fontSize:11, padding:'6px 8px', background:'rgba(0,0,0,.55)',
+          color:'#fff', borderRadius:6, maxWidth:'80vw', whiteSpace:'pre-wrap'
+        }}>
+          avatar_url: {String(p.avatar_url || '')}
+          {"\n"}avatar_path: {String(p.avatar_path || '')}
+        </pre>
+      )}
 
       {/* desktop-only tweak: make only Gallery span both columns on desktop */}
       <style>{`
