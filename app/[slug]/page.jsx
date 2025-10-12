@@ -16,6 +16,10 @@ const toList = (value) =>
 const publicUrlFor = (path) =>
   path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
 
+// Route segment config — disables static HTML caching for this page
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function PublicPage() {
   const { slug } = useParams();
   const [p, setP] = useState(null);
