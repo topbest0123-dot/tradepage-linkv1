@@ -1,15 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import Script from 'next/script'; // kept to avoid changing imports
-import { createClient } from '@supabase/supabase-js';
-
-/* ──────────────────────────────────────────────────────────────
-   DYNAMIC OG/TWITTER METADATA (runs on the server)
-   ────────────────────────────────────────────────────────────── */
-
 
 /** Small helper: turn any value into a clean list of strings */
 const toList = (value) =>
@@ -22,12 +14,13 @@ const toList = (value) =>
 const publicUrlFor = (path) =>
   path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
 
-export default function PublicPage() {
-  const { slug } = useParams();
+export default function Page({ params }) {
+  const slug = params?.slug;
   const [p, setP] = useState(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    if (!slug) return;
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -81,6 +74,7 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
+      {/* CANARY label (debug) */}
       <div style={{position:'fixed',top:8,right:8,fontSize:12,opacity:.7,background:'rgba(0,0,0,.4)',color:'#fff',padding:'4px 6px',borderRadius:6,zIndex:9999}}>
         CANARY-A
       </div>
