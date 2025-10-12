@@ -14,6 +14,21 @@ export async function generateMetadata({ params }) {
     .eq('slug', params.slug)
     .maybeSingle();
 
+  // Build OG/Twitter image from avatar
+  const BUCKET = 'avatars'; // ⬅️ change if your bucket name is different
+  let imageUrl;
+
+  if (data?.avatar_url && /^https?:\/\//i.test(data.avatar_url)) {
+    // full URL already stored
+    imageUrl = data.avatar_url;
+  } else if (data?.avatar_path) {
+    // we store a storage path like 'user123/avatar.png'
+    const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(data.avatar_path);
+    imageUrl = pub?.publicUrl;
+  }
+
+  const images = imageUrl ? [{ url: imageUrl }] : undefined;
+
   // Page <title>
   const title = { absolute: 'Trade Page Link' };
 
@@ -25,8 +40,6 @@ export async function generateMetadata({ params }) {
   const description =
     ((data?.about || '').replace(/\s+/g, ' ').slice(0, 200)) ||
     'Your business in a link.';
-
-  const images = data?.avatar_url ? [{ url: data.avatar_url }] : undefined;
 
   return {
     title,
