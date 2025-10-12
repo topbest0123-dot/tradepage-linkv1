@@ -191,7 +191,17 @@ export default function Page({ params }) {
       {/* Socials row — place between </header> and <main> */}
       {socials.length > 0 && (
         <nav className="max-w-4xl mx-auto mt-3 mb-1">
-          <ul className="flex flex-wrap items-center gap-3 list-none p-0 m-0">
+          <ul
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '12px',
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+            }}
+          >
             {socials.map(([key, url, label]) => (
               <li key={key}>
                 <a
@@ -199,15 +209,18 @@ export default function Page({ params }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={key}
-                  className="
-                    inline-flex items-center justify-center
-                    w-10 h-10 rounded-full
-                    border border-[var(--border)]
-                    bg-[var(--chip-bg)] text-[var(--chip-text)]
-                    hover:bg-[var(--accent)] hover:text-[var(--bg)]
-                    transition-colors
-                  "
-                  style={{ textDecoration: 'none' }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '9999px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--chip-bg)',
+                    color: 'var(--chip-text)',
+                    textDecoration: 'none',
+                  }}
                 >
                   {label}
                 </a>
