@@ -1,3 +1,10 @@
+// at the top of the file (outside the component)
+const SHA = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0,7) || 'local';
+const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPA_HOST = (() => { try { return new URL(SUPA_URL).host } catch { return SUPA_URL } })();
+const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const ANON_FINGERPRINT = ANON ? `${ANON.slice(0,6)}…${ANON.slice(-4)}` : 'missing';
+
 'use client';
 
 import { useEffect, useState } from 'react';
