@@ -50,13 +50,6 @@ export default function RootLayout({ children }) {
           color: 'var(--text)',        // follow theme text
         }}
       >
-        {/* DEBUG BANNER — remove later */}
-        <div style={{
-          position: 'fixed', bottom: 8, right: 8, zIndex: 999999,
-          fontSize: 12, background: 'rgba(0,0,0,.6)', color: '#fff',
-          padding: '4px 8px', borderRadius: 6
-        }}>
-          build {sha} • db {supaHost}
         </div>
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
