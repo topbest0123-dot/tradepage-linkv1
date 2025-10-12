@@ -188,10 +188,10 @@ export default function Page({ params }) {
         </div>
       </div>
 
-      {/* ⬇️ socials block moved to after header, before main/content */}
+      {/* Socials row — place between </header> and <main> */}
       {socials.length > 0 && (
-        <div className="max-w-4xl mx-auto mt-3 mb-1">
-          <ul className="flex gap-2">
+        <nav className="max-w-4xl mx-auto mt-3 mb-1">
+          <ul className="flex flex-wrap items-center gap-3 list-none p-0 m-0">
             {socials.map(([key, url, label]) => (
               <li key={key}>
                 <a
@@ -199,7 +199,14 @@ export default function Page({ params }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={key}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full border"
+                  className="
+                    inline-flex items-center justify-center
+                    w-10 h-10 rounded-full
+                    border border-[var(--border)]
+                    bg-[var(--chip-bg)] text-[var(--chip-text)]
+                    hover:bg-[var(--accent)] hover:text-[var(--bg)]
+                    transition-colors
+                  "
                   style={{ textDecoration: 'none' }}
                 >
                   {label}
@@ -207,7 +214,7 @@ export default function Page({ params }) {
               </li>
             ))}
           </ul>
-        </div>
+        </nav>
       )}
 
       {/* GRID (acts as main content) */}
@@ -356,16 +363,17 @@ const btnBaseStyle = {
   borderRadius: 12,
   border: '1px solid #2f3c4f',
   textDecoration: 'none',
-  fontWeight: 700,
 };
 const btnPrimaryStyle = {
   background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
   color: '#08101e',
   border: '1px solid #2d4e82',
+  fontWeight: 700,
 };
 const btnNeutralStyle = {
   background: '#1f2937',
   color: '#ffffff',
+  fontWeight: 700,
 };
 
 const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
