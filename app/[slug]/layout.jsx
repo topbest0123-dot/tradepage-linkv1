@@ -41,13 +41,15 @@ export async function generateMetadata({ params }) {
     ((data?.about || '').replace(/\s+/g, ' ').slice(0, 200)) ||
     'Your business in a link.';
 
+  // ⬇️ CHANGED: hardcoded OG/Twitter image from /public
   return {
-    title,
+    title: { absolute: 'Trade Page Link' },
     description,
     openGraph: {
       title: ogTitle,
       description,
-      images,
+      // TEMP: hardcoded image that exists in /public
+      images: [{ url: 'https://www.tradepage.link/og-default.png', width: 1200, height: 630 }],
       type: 'website',
       url: `https://www.tradepage.link/${params.slug}`,
     },
@@ -55,7 +57,8 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: ogTitle,
       description,
-      images,
+      // TEMP too
+      images: ['https://www.tradepage.link/og-default.png'],
     },
   };
 }
