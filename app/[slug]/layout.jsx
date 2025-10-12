@@ -9,6 +9,7 @@ export async function generateMetadata({ params }) {
   const title = { absolute: 'Trade Page Link' };
 
   let name = '', city = '', about = '', avatarUrl = '';
+  let avatarDebug = 'none';
 
   try {
     const sb = createClient(
@@ -22,6 +23,11 @@ export async function generateMetadata({ params }) {
       .select('name, coty, about, avatar_url, avatar_path')
       .eq('slug', params.slug)
       .maybeSingle();
+
+    // ⬇️ Tiny debug fingerprint from avatar fields
+    avatarDebug = (data?.avatar_url || data?.avatar_path || 'none')
+      .toString()
+      .slice(0, 40);
 
     if (data) {
       name = data.name || '';
@@ -43,7 +49,11 @@ export async function generateMetadata({ params }) {
   }
 
   const ogTitle = (name ? name : 'Trade Page') + (city ? ` — ${city}` : '');
-  const description = (about || 'Your business in a link.')
+
+  // ⬇️ Description with debug fingerprint
+  const description = (
+    `[AVATAR:${avatarDebug}] ` + (about || 'Your business in a link.')
+  )
     .replace(/\s+/g, ' ')
     .slice(0, 200);
 
