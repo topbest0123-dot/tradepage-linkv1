@@ -81,6 +81,10 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
+      <div style={{position:'fixed',top:8,right:8,fontSize:12,opacity:.7,background:'rgba(0,0,0,.4)',color:'#fff',padding:'4px 6px',borderRadius:6,zIndex:9999}}>
+        CANARY-A
+      </div>
+
       {/* desktop-only tweak: make only Gallery span both columns on desktop */}
       <style>{`
         @media (min-width: 900px) {
