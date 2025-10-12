@@ -1,13 +1,12 @@
 // app/[slug]/layout.jsx  (SERVER — no 'use client')
 import { createClient } from '@supabase/supabase-js';
 
-export async function generateMetadata() {
-  return {
-    title: { absolute: 'Trade Page Link' }, // tab text EXACTLY this
-    openGraph: { title: 'Trade Page Link' },
-    twitter:   { title: 'Trade Page Link' },
-  };
-}
+export async function generateMetadata({ params }) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false } }
+  );
 
   const { data } = await supabase
     .from('profiles')
