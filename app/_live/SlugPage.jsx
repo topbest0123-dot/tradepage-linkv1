@@ -1,10 +1,62 @@
-// app/_live/SlugPage.jsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import Script from 'next/script'; // kept to avoid changing imports
+import { createClient } from '@supabase/supabase-js';
+
+/* ──────────────────────────────────────────────────────────────
+   DYNAMIC OG/TWITTER METADATA (runs on the server)
+   ────────────────────────────────────────────────────────────── */
+
+export const revalidate = 60;           // refresh metadata at most once per minute
+export const dynamic = 'force-static';  // good default for ISR-style pages
+
+export async function generateMetadata({ params }) {
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const { data: p } = await sb
+    .from('profiles')
+    .select('slug,name,trade,city,avatar_path')
+    .ilike('slug', params.slug)
+    .maybeSingle();
+
+  const title = p?.name || params.slug;
+  const sub = [p?.trade, p?.city].filter(Boolean).join(' • ');
+  const description = sub || 'Your business in a link';
+
+  // Build a public URL for the avatar (or fall back to a default OG image)
+  const avatarUrl = p?.avatar_path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(p.avatar_path)}`
+    : '/og-default.png';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `/${params.slug}`,
+      siteName: 'TradePage',
+      images: [avatarUrl], // relative works because you set metadataBase in layout
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [avatarUrl],
+    },
+  };
+}
+
+/* ──────────────────────────────────────────────────────────────
+   CLIENT PAGE (your original component)
+   ────────────────────────────────────────────────────────────── */
 
 /** Small helper: turn any value into a clean list of strings */
 const toList = (value) =>
@@ -76,6 +128,13 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
+      {/* desktop-only tweak: make only Gallery span both columns on desktop */}
+      <style>{`
+        @media (min-width: 900px) {
+          section.gallery-wide { grid-column: 1 / -1 !important; }
+        }
+      `}</style>
+
       {/* HEADER CARD */}
       <div style={headerCardStyle}>
         <div style={headerLeftStyle}>
@@ -137,7 +196,7 @@ export default function PublicPage() {
 
       {/* GRID */}
       <div style={grid2Style}>
-        {/* About = text only, wraps properly */}
+        {/* About */}
         <Card title="About">
           <p
             style={{
@@ -207,8 +266,8 @@ export default function PublicPage() {
           <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
         </Card>
 
-        {/* Gallery (spans both columns) */}
-        <Card title="Gallery" wide>
+        {/* Gallery — desktop-only wide */}
+        <Card title="Gallery" className="gallery-wide">
           <div style={galleryGridStyle}>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
@@ -227,9 +286,12 @@ export default function PublicPage() {
 }
 
 /* ---------- Components ---------- */
-function Card({ title, wide = false, children }) {
+function Card({ title, wide = false, className, children }) {
   return (
-    <section style={{ ...cardStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
+    <section
+      className={className}
+      style={{ ...cardStyle, gridColumn: wide ? '1 / -1' : 'auto' }}
+    >
       {title && <h2 style={h2Style}>{title}</h2>}
       {children}
     </section>
@@ -283,7 +345,7 @@ const btnBaseStyle = {
 const btnPrimaryStyle = {
   background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
   color: '#08101e',
-  border: '1px solid '#2d4e82',
+  border: '1px solid #2d4e82',
 };
 const btnNeutralStyle = {
   background: '#1f2937',
