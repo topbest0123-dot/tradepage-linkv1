@@ -10,24 +10,24 @@ export async function generateMetadata({ params }) {
 
   const { data } = await sb
     .from('profiles')
-    .select('name, coty, about, avatar_url, avatar_path') // ⬅️ added avatar_path
+    .select('name, coty, about, avatar_url, avatar_path') // ⬅️ includes avatar_path
     .eq('slug', params.slug)
     .maybeSingle();
 
-  // Build OG/Twitter image from avatar
-  const BUCKET = 'avatar_path'; // ⬅️ updated bucket name per instruction
+  // Build OG/Twitter image from Supabase Storage avatar
+  const BUCKET = 'avatars'; // ← your bucket name
   let imageUrl;
 
   if (data?.avatar_url && /^https?:\/\//i.test(data.avatar_url)) {
     // full URL already stored
     imageUrl = data.avatar_url;
   } else if (data?.avatar_path) {
-    // we store a storage path like 'user123/avatar.png'
+    // avatar_path must be the file key inside the bucket, e.g. "83c8de26.../avatar.jpg"
     const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(data.avatar_path);
     imageUrl = pub?.publicUrl;
   }
 
-  const images = imageUrl ? [{ url: imageUrl }] : undefined;
+  const images = imageUrl ? [{ url: imageUrl, width: 1200, height: 630 }] : undefined;
 
   // Page <title>
   const title = { absolute: 'Trade Page Link' };
