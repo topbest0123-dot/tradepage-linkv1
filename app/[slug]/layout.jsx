@@ -57,6 +57,10 @@ export async function generateMetadata({ params }) {
   const metaDescription = 'Trade Page Link — Your business in a link.'; // browser tab meta
 
   const image = apiData?.image || `${base}/og-default.png`;
+  // Make scrapers fetch a fresh image each deploy
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || '0';
+  const img = image + (image.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(sha);
+
   const url = `${base}/${params.slug}`;
 
   return {
@@ -70,7 +74,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: business,
       description: ogDescription,
-      images: [{ url: image, width: 1200, height: 630 }],
+      images: [{ url: img, width: 1200, height: 630 }],
       type: 'website',
       url,
     },
@@ -80,7 +84,7 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: business,
       description: ogDescription,
-      images: [image],
+      images: [img],
     },
   };
 }
