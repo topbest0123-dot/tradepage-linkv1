@@ -5,71 +5,57 @@ export const revalidate = 0;
 import { createClient } from '@supabase/supabase-js';
 
 export async function generateMetadata({ params }) {
-  // Fixed browser tab text
-  const title = { absolute: 'Trade Page Link' };
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;          // e.g. https://...supabase.co
+  const SUPA_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;     // anon key
 
-  let name = '', city = '', about = '', avatarUrl = '';
-  let avatarDebug = 'none';
+  // 1) Fetch the row via REST (no SDK)
+  const url =
+    `${SUPA_URL}/rest/v1/profiles` +
+    `?select=name,coty,about,avatar_url,avatar_path` +
+    `&slug=eq.${encodeURIComponent(params.slug)}` +
+    `&limit=1`;
 
-  try {
-    const sb = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      { auth: { persistSession: false } }
-    );
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPA_KEY,
+      Authorization: `Bearer ${SUPA_KEY}`,
+      Prefer: 'return=representation',
+      'Cache-Control': 'no-store',
+    },
+    cache: 'no-store',
+  });
 
-    const { data } = await sb
-      .from('profiles')
-      .select('name, coty, about, avatar_url, avatar_path')
-      .eq('slug', params.slug)
-      .maybeSingle();
+  const rows = (res.ok ? await res.json() : []) || [];
+  const data = rows[0];
 
-    // ⬇️ Tiny debug fingerprint from avatar fields
-    avatarDebug = (data?.avatar_url || data?.avatar_path || 'none')
-      .toString()
-      .slice(0, 40);
+  // 2) Build title/description
+  const tabTitle = { absolute: 'Trade Page Link' };
+  const business = (data?.name || '').trim() || 'Trade Page';
+  const city = (data?.coty || '').trim();
+  const ogTitle = city ? `${business} — ${city}` : business;
+  const description =
+    ((data?.about || '').replace(/\s+/g, ' ').slice(0, 200)) ||
+    'Your business in a link.';
 
-    if (data) {
-      name = data.name || '';
-      city = data.coty || '';
-      about = data.about || '';
-
-      if (data.avatar_url && /^https?:\/\//i.test(data.avatar_url)) {
-        // full URL already stored
-        avatarUrl = data.avatar_url;
-      } else if (data.avatar_path) {
-        // build public URL from Storage bucket "avatars"
-        const { data: pub } = sb.storage.from('avatars').getPublicUrl(data.avatar_path);
-        // supabase-js v2: public URL is at pub.publicUrl
-        avatarUrl = pub?.publicUrl || pub?.public_url || '';
-      }
-    }
-  } catch (_) {
-    // swallow errors; we'll fall back below
+  // 3) Avatar → OG image (prefer full URL in avatar_url; else use bucket `avatars` + avatar_path)
+  let image = 'https://www.tradepage.link/og-default.png';
+  if (data?.avatar_url && /^https?:\/\//i.test(data.avatar_url)) {
+    image = data.avatar_url;
+  } else if (data?.avatar_path) {
+    image = `${SUPA_URL}/storage/v1/object/public/avatars/${data.avatar_path}`;
   }
 
-  const ogTitle = (name ? name : 'Trade Page') + (city ? ` — ${city}` : '');
-
-  // ⬇️ Description with debug fingerprint
-  const description = (
-    `[AVATAR:${avatarDebug}] ` + (about || 'Your business in a link.')
-  )
-    .replace(/\s+/g, ' ')
-    .slice(0, 200);
-
-  // Always emit an image: avatar if present, else fallback
-  const image = avatarUrl || 'https://www.tradepage.link/og-default.png';
-  const url = `https://www.tradepage.link/${params.slug}`;
+  const pageUrl = `https://www.tradepage.link/${params.slug}`;
 
   return {
-    title,
+    title: tabTitle,
     description,
     openGraph: {
       title: ogTitle,
       description,
       images: [{ url: image, width: 1200, height: 630 }],
       type: 'website',
-      url,
+      url: pageUrl,
     },
     twitter: {
       card: 'summary_large_image',
@@ -81,5 +67,5 @@ export async function generateMetadata({ params }) {
 }
 
 export default function SlugLayout({ children }) {
-  return children;
+  return children; // keeps your current UI exactly as is
 }
