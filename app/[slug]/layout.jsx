@@ -8,7 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 export async function generateMetadata({ params }) {
   const base = 'https://www.tradepage.link';
 
-  // Read everything we need directly with the service key (bypasses RLS)
+  // Read directly with service key (bypasses RLS)
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -21,58 +21,53 @@ export async function generateMetadata({ params }) {
     .eq('slug', params.slug)
     .maybeSingle();
 
-  // Title pieces
+  // Title + lines
   const business = (data?.name || 'Trade Page').trim();
-  const trade = (data?.trade || '').trim();
-  const city  = (data?.city || data?.coty || '').trim();
-  const line2 = [trade, city].filter(Boolean).join(' • ');
-
-  // Meta descriptions
+  const trade    = (data?.trade || '').trim();
+  const city     = (data?.city || data?.coty || '').trim();
+  const ogDescription = [trade, city].filter(Boolean).join(' • ') || 'Your business in a link.';
   const metaDescription = 'Trade Page Link — Your business in a link.'; // <meta name="description">
-  const ogDescription   = line2 || 'Your business in a link.';          // OG/Twitter description
 
-  // Build the avatar URL (full URL preferred, else public storage path)
-  let avatar =
-    (data?.avatar_url && /^https?:\/\//i.test(data.avatar_url))
-      ? data.avatar_url
-      : (data?.avatar_path
-          ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${data.avatar_path}`
-          : `${base}/og-default.png`);
+  // Build OG image directly from avatar (no proxy)
+  let image;
 
-  // Version changes automatically when the avatar changes (new path/url or updated_at)
-  const seed =
-    (data?.avatar_url || '') +
-    (data?.avatar_path || '') +
-    (data?.updated_at || '') +
-    (process.env.VERCEL_GIT_COMMIT_SHA?.slice(0,7) || '');
-  const v = encodeURIComponent(Buffer.from(seed).toString('base64').slice(0, 12));
+  if (data?.avatar_url && /^https?:\/\//i.test(data.avatar_url)) {
+    // Full URL stored → append a small version param so scrapers bust cache
+    const seed =
+      (data.avatar_url || '') +
+      (data.updated_at || '') +
+      (process.env.VERCEL_GIT_COMMIT_SHA?.slice(0,7) || '');
+    const v = encodeURIComponent(Buffer.from(seed).toString('base64').slice(0,12));
+    image = `${data.avatar_url}${data.avatar_url.includes('?') ? '&' : '?'}v=${v}`;
+  } else if (data?.avatar_path) {
+    // Storage path stored → make a signed URL (unique token = new URL for scrapers)
+    const { data: signed } = await sb
+      .storage
+      .from('avatars') // your bucket name
+      .createSignedUrl(data.avatar_path, 60 * 60 * 24); // 24h
+    image = signed?.signedUrl || `${base}/og-default.png`;
+  } else {
+    image = `${base}/og-default.png`;
+  }
 
-  // Proxy through our domain so we control caching; v= busts FB/WA cache on avatar change
-  const img = `${base}/api/og/avatar/${encodeURIComponent(params.slug)}?v=${v}`;
   const url = `${base}/${params.slug}`;
 
   return {
-    // Tab text
-    title: { absolute: 'Trade Page Link' },
+    title: { absolute: 'Trade Page Link' }, // tab text fixed
+    description: metaDescription,           // meta name="description"
 
-    // <meta name="description">
-    description: metaDescription,
-
-    // Open Graph
     openGraph: {
-      title: business,                         // bold line
-      description: ogDescription,              // "trade • city"
-      images: [{ url: img, secure_url: img, width: 1200, height: 630 }],
+      title: business,                      // bold line
+      description: ogDescription,           // "trade • city"
+      images: [{ url: image, width: 1200, height: 630 }],
       type: 'website',
       url,
     },
-
-    // Twitter card
     twitter: {
       card: 'summary_large_image',
       title: business,
       description: ogDescription,
-      images: [img],
+      images: [image],
     },
   };
 }
