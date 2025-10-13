@@ -5,50 +5,36 @@ export const revalidate = 0;
 import { createClient } from '@supabase/supabase-js';
 
 export async function generateMetadata({ params }) {
-  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;          // e.g. https://...supabase.co
-  const SUPA_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;     // anon key
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false } }
+  );
 
-  // 1) Fetch the row via REST (no SDK)
-  const url =
-    `${SUPA_URL}/rest/v1/profiles` +
-    `?select=name,coty,about,avatar_url,avatar_path` +
-    `&slug=eq.${encodeURIComponent(params.slug)}` +
-    `&limit=1`;
+  // Fetch the profile row
+  const { data, error } = await sb
+    .from('profiles')
+    .select('name,coty,about,avatar_url,avatar_path')
+    .eq('slug', params.slug)
+    .maybeSingle();
 
-  const res = await fetch(url, {
-    headers: {
-      apikey: SUPA_KEY,
-      Authorization: `Bearer ${SUPA_KEY}`,
-      Prefer: 'return=representation',
-      'Cache-Control': 'no-store',
-    },
-    cache: 'no-store',
-  });
-
-  // ⬇️ Debug block (added)
-  const status = res.status;
-  const rows = (res.ok ? await res.json() : []) || [];
-  const data = rows[0];
-  const dbg = `REST:${status}, rows:${rows.length}, avatar_url:${(data?.avatar_url ? '1' : '0')}, avatar_path:${(data?.avatar_path ? '1' : '0')}`;
-
-  // 2) Build title/description
+  // Tab title fixed
   const tabTitle = { absolute: 'Trade Page Link' };
+
+  // OG title/description
   const business = (data?.name || '').trim() || 'Trade Page';
   const city = (data?.coty || '').trim();
   const ogTitle = city ? `${business} — ${city}` : business;
+  const description =
+    ((data?.about || 'Your business in a link.').replace(/\s+/g, ' ').slice(0, 200));
 
-  // ⬇️ Description now prefixed with debug string
-  const description = `[${dbg}] ` + (
-    ((data?.about || '').replace(/\s+/g, ' ').slice(0, 200)) ||
-    'Your business in a link.'
-  );
-
-  // 3) Avatar → OG image (prefer full URL in avatar_url; else use bucket `avatars` + avatar_path)
+  // Build image from avatar (prefer full URL, else public Storage URL)
   let image = 'https://www.tradepage.link/og-default.png';
   if (data?.avatar_url && /^https?:\/\//i.test(data.avatar_url)) {
     image = data.avatar_url;
   } else if (data?.avatar_path) {
-    image = `${SUPA_URL}/storage/v1/object/public/avatars/${data.avatar_path}`;
+    const { data: pub } = sb.storage.from('avatars').getPublicUrl(data.avatar_path);
+    if (pub?.publicUrl) image = pub.publicUrl;
   }
 
   const pageUrl = `https://www.tradepage.link/${params.slug}`;
