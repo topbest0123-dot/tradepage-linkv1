@@ -19,9 +19,9 @@ export async function generateMetadata({ params }) {
 
   const business = (data?.name || 'Trade Page').trim();
   const ogTitle = business; // (add city later if you add that column back)
-  const description = (data?.about || 'Your business in a link.')
-    .replace(/\s+/g, ' ')
-    .slice(0, 200);
+
+  // Fixed tagline (no about/ debug prefixes)
+  const description = 'Trade Page Link — Your business in a link.';
 
   const image = data?.image || `${base}/og-default.png`;
   const url = `${base}/${params.slug}`;
