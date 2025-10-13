@@ -25,17 +25,23 @@ export async function generateMetadata({ params }) {
     cache: 'no-store',
   });
 
+  // ⬇️ Debug block (added)
+  const status = res.status;
   const rows = (res.ok ? await res.json() : []) || [];
   const data = rows[0];
+  const dbg = `REST:${status}, rows:${rows.length}, avatar_url:${(data?.avatar_url ? '1' : '0')}, avatar_path:${(data?.avatar_path ? '1' : '0')}`;
 
   // 2) Build title/description
   const tabTitle = { absolute: 'Trade Page Link' };
   const business = (data?.name || '').trim() || 'Trade Page';
   const city = (data?.coty || '').trim();
   const ogTitle = city ? `${business} — ${city}` : business;
-  const description =
+
+  // ⬇️ Description now prefixed with debug string
+  const description = `[${dbg}] ` + (
     ((data?.about || '').replace(/\s+/g, ' ').slice(0, 200)) ||
-    'Your business in a link.';
+    'Your business in a link.'
+  );
 
   // 3) Avatar → OG image (prefer full URL in avatar_url; else use bucket `avatars` + avatar_path)
   let image = 'https://www.tradepage.link/og-default.png';
