@@ -15,7 +15,7 @@ export async function GET(_req, { params }) {
 
     const { data, error } = await sb
       .from('profiles')
-      .select('name,coty,about,avatar_url,avatar_path')
+      .select('name,about,avatar_url,avatar_path')
       .eq('slug', params.slug)
       .maybeSingle();
 
