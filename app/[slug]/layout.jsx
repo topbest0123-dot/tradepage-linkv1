@@ -18,6 +18,14 @@ export async function generateMetadata({ params }) {
     .eq('slug', params.slug)
     .maybeSingle();
 
+  // ⬇️ Debug string (added)
+  const dbg =
+    `sdk:${error ? 'err' : 'ok'};` +
+    ` name:${!!data?.name};` +
+    ` avatar_url:${!!data?.avatar_url};` +
+    ` avatar_path:${!!data?.avatar_path};` +
+    ` slug:${params.slug}`;
+
   // Tab title fixed
   const tabTitle = { absolute: 'Trade Page Link' };
 
@@ -25,8 +33,11 @@ export async function generateMetadata({ params }) {
   const business = (data?.name || '').trim() || 'Trade Page';
   const city = (data?.coty || '').trim();
   const ogTitle = city ? `${business} — ${city}` : business;
-  const description =
-    ((data?.about || 'Your business in a link.').replace(/\s+/g, ' ').slice(0, 200));
+
+  // ⬇️ Description now prefixed with debug string (added)
+  const description = (`[${dbg}] ` + (data?.about || 'Your business in a link.'))
+    .replace(/\s+/g, ' ')
+    .slice(0, 200);
 
   // Build image from avatar (prefer full URL, else public Storage URL)
   let image = 'https://www.tradepage.link/og-default.png';
