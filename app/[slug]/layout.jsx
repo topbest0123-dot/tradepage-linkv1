@@ -3,51 +3,82 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+import { createClient } from '@supabase/supabase-js';
+
 export async function generateMetadata({ params }) {
   const base = 'https://www.tradepage.link';
 
-  // Read profile from your server API (which already builds a public avatar URL)
+  // 1) Get name + avatar (already built) from your API
   const res = await fetch(`${base}/api/profiles/${encodeURIComponent(params.slug)}`, {
     cache: 'no-store',
     headers: { 'cache-control': 'no-store' },
   });
-  const data = res.ok ? await res.json() : null;
+  const apiData = res.ok ? await res.json() : null;
 
-  const business = (data?.name || 'Trade Page').trim();
-  const ogTitle = business; // append city later if/when you add that column
+  // 2) Get trade + city (try both "city" and legacy "coty") via service key
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false } }
+  );
 
-  // ✅ Browser tab + meta description (fixed)
-  const metaDescription = 'Trade Page Link — Your business in a link.';
+  let trade = '';
+  let city = '';
 
-  // ✅ OG/Twitter description (first lines of About, or fallback)
-  const ogDescription =
-    ((data?.about || '').replace(/\s+/g, ' ').slice(0, 200)) ||
-    'Your business in a link.';
+  try {
+    const { data } = await sb
+      .from('profiles')
+      .select('trade,city')
+      .eq('slug', params.slug)
+      .maybeSingle();
+    if (data) {
+      trade = data.trade || '';
+      city = data.city || '';
+    }
+    if (!city) {
+      const { data: d2 } = await sb
+        .from('profiles')
+        .select('trade,coty')
+        .eq('slug', params.slug)
+        .maybeSingle();
+      if (d2) {
+        trade = trade || d2.trade || '';
+        city = d2.coty || city || '';
+      }
+    }
+  } catch (_) {
+    /* ignore; we’ll fall back */
+  }
 
-  // ✅ OG/Twitter image (avatar or fallback)
-  const image = data?.image || `${base}/og-default.png`;
+  // 3) Build OG pieces
+  const business = (apiData?.name || 'Trade Page').trim();
+  const line2 = [trade, city].filter(Boolean).join(' • ');
+  const ogDescription = line2 || 'Your business in a link.'; // shown under the bold title
+  const metaDescription = 'Trade Page Link — Your business in a link.'; // browser tab meta
+
+  const image = apiData?.image || `${base}/og-default.png`;
   const url = `${base}/${params.slug}`;
 
   return {
-    // Tab text
+    // Tab text stays fixed
     title: { absolute: 'Trade Page Link' },
 
     // <meta name="description">
     description: metaDescription,
 
-    // Open Graph
+    // Open Graph (most sites render title in bold, description under it)
     openGraph: {
-      title: ogTitle,
+      title: business,
       description: ogDescription,
       images: [{ url: image, width: 1200, height: 630 }],
       type: 'website',
       url,
     },
 
-    // Twitter Card
+    // Twitter card
     twitter: {
       card: 'summary_large_image',
-      title: ogTitle,
+      title: business,
       description: ogDescription,
       images: [image],
     },
