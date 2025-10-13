@@ -53,13 +53,13 @@ export async function generateMetadata({ params }) {
   // 3) Build OG pieces
   const business = (apiData?.name || 'Trade Page').trim();
   const line2 = [trade, city].filter(Boolean).join(' • ');
-  const ogDescription = line2 || 'Your business in a link.'; // shown under the bold title
+  const ogDescription = line2 || 'Your business in a link.'; // shown under bold title
   const metaDescription = 'Trade Page Link — Your business in a link.'; // browser tab meta
 
-  const image = apiData?.image || `${base}/og-default.png`;
-  // Make scrapers fetch a fresh image each deploy
-  const sha = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || '0';
-  const img = image + (image.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(sha);
+  // --- IMPORTANT: proxy the avatar and add a version that changes when avatar URL changes ---
+  const avatar = apiData?.image || `${base}/og-default.png`;
+  const version = encodeURIComponent(Buffer.from(avatar).toString('base64').slice(0, 12));
+  const img = `${base}/api/og/avatar/${encodeURIComponent(params.slug)}?v=${version}`;
 
   const url = `${base}/${params.slug}`;
 
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }) {
     // <meta name="description">
     description: metaDescription,
 
-    // Open Graph (most sites render title in bold, description under it)
+    // Open Graph
     openGraph: {
       title: business,
       description: ogDescription,
