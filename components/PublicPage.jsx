@@ -15,6 +15,13 @@ const normalizeSocial = (t, raw) => {
        : t === 'x'         ? `https://x.com/${h}`
        : null;
 };
+const normalizeYouTube = (raw) => {
+  const v = String(raw || '').trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v;
+  const h = v.replace(/^@/, '');        // allow @handle
+  return `https://www.youtube.com/@${h}`;
+};
 
 /* ---------- themes ---------- */
 const THEMES = {
@@ -77,7 +84,8 @@ export default function PublicPage({ profile: p }) {
   const ig = normalizeSocial('instagram', p?.instagram);
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
-
+  const yt  = normalizeYouTube(p?.youtube);
+  
   const handleShare = () => {
     const url = window.location.href;
     const title = document.title || 'TradePage';
@@ -143,6 +151,7 @@ export default function PublicPage({ profile: p }) {
           {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}><span style={socialGlyphStyle}>IG</span></a>}
           {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok"    title="TikTok"    style={socialBtnStyle}><span style={socialGlyphStyle}>t</span></a>}
           {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}><span style={socialGlyphStyle}>X</span></a>}
+          {yt  && <a href={yt}  target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube" style={socialBtnStyle}><span style={socialGlyphStyle}>YT</span></a>}
         </div>
       )}
 
