@@ -1,58 +1,53 @@
-// app/[slug]/layout.jsx
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// app/[slug]/layout.jsx  (SERVER COMPONENT)
+import { createClient } from '@supabase/supabase-js';
+
+export const revalidate = 60;         // ISR
+export const dynamic = 'force-static';
 
 export async function generateMetadata({ params }) {
-  const base = 'https://www.tradepage.link';
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false } }
+  );
 
-  // Pull profile from your own API (returns: name, trade, city, image, updated_at)
-  const res = await fetch(`${base}/api/profiles/${encodeURIComponent(params.slug)}`, {
-    cache: 'no-store',
-    headers: { 'cache-control': 'no-store' },
-  });
-  const data = res.ok ? await res.json() : null;
+  const { data: p } = await sb
+    .from('profiles')
+    .select('slug,name,trade,city,avatar_path')
+    .ilike('slug', params.slug)
+    .maybeSingle();
 
-  // Titles
-  const business = (data?.name || 'Trade Page').trim();                   // OG title (bold)
-  const line2    = [data?.trade || '', data?.city || ''].filter(Boolean).join(' • ');
-  const ogDesc   = line2 || 'Your business in a link.';                   // OG description
-  const metaDesc = 'Trade Page Link — Your business in a link.';          // <meta name="description">
+  const title = p?.name || params.slug;
+  const description =
+    [p?.trade, p?.city].filter(Boolean).join(' • ') || 'Your business in a link';
 
-  // OG image (avatar or fallback) + simple version so scrapers refresh
-  let image = data?.image || `${base}/og-default.png`;
-  const vseed = `${data?.updated_at || ''}${process.env.VERCEL_GIT_COMMIT_SHA?.slice(0,7) || ''}`;
-  const v = encodeURIComponent(vseed.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12));
-  const img = `${image}${image.includes('?') ? '&' : '?'}v=${v}`;
-
-  const url = `${base}/${params.slug}`;
+  const avatarUrl = p?.avatar_path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(
+        p.avatar_path
+      )}`
+    : '/og-default.png';
 
   return {
-    // Browser tab text
-    title: { absolute: 'Trade Page Link' },
-
-    // <meta name="description">
-    description: metaDesc,
-
-    // Open Graph
+    title,
+    description,
     openGraph: {
-      title: business,
-      description: ogDesc,
-      images: [{ url: img, width: 1200, height: 630 }],
-      type: 'website',
-      url,
+      title,
+      description,
+      url: `/${params.slug}`,
+      type: 'profile',
+      siteName: 'TradePage',
+      images: [avatarUrl],
     },
-
-    // Twitter Card
     twitter: {
       card: 'summary_large_image',
-      title: business,
-      description: ogDesc,
-      images: [img],
+      title,
+      description,
+      images: [avatarUrl],
     },
   };
 }
 
 export default function SlugLayout({ children }) {
+  // pass-through wrapper
   return children;
 }
