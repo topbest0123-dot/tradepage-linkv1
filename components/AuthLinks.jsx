@@ -57,18 +57,12 @@ export default function AuthLinks() {
 
   if (!session) {
   return (
-    <button
-      type="button"
-      onClick={() => go('/signin')}
-      // you can use btnPrimary to make it pop, or keep btnNeutral
-      style={{ ...btnBase, ...btnPrimary }}
-      aria-label="Create your own page"
-      title="Create your own page"
-    >
-      Create your own page
+    <button type="button" onClick={() => go('/signin')} style={{ ...btnBase, ...btnNeutral }}>
+      Sign in
     </button>
   );
 }
+
 
   // Authenticated: Dashboard (neutral) + Sign out (primary) — same look as WhatsApp + Call
   return (
