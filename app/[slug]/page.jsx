@@ -1,35 +1,41 @@
-'use client';
+// app/[slug]/page.jsx  (SERVER COMPONENT)
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
+import PublicPage from '@/components/PublicPage'; // client component below
 
-export default function DebugSlug() {
-  const { slug } = useParams();
-  const [data, setData] = useState(null);
-  const [err, setErr] = useState('');
+export const dynamic = 'force-dynamic';  // always fetch fresh
+export const revalidate = 0;
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme')
-        .ilike('slug', slug)
-        .maybeSingle();
-
-      if (cancelled) return;
-      if (error) setErr(error.message || String(error));
-      setData(data || null);
-    })();
-    return () => { cancelled = true; };
-  }, [slug]);
-
-  if (err) return <pre style={{ padding: 24, color: 'tomato' }}>ERROR: {err}</pre>;
-  if (!data) return <div style={{ padding: 24 }}>Loading…</div>;
-  return (
-    <pre style={{ padding: 24, whiteSpace: 'pre-wrap', color: 'var(--text)' }}>
-      {JSON.stringify(data, null, 2)}
-    </pre>
+export default async function Page({ params }) {
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false } }
   );
+
+  const { data: p, error } = await sb
+    .from('profiles')
+    .select(`
+      slug,name,trade,city,
+      phone,whatsapp,
+      about,areas,services,prices,hours,
+      facebook,instagram,tiktok,x,
+      avatar_path,other_info,theme
+    `)
+    .ilike('slug', params.slug)
+    .maybeSingle();
+
+  if (error) {
+    return (
+      <div style={{ padding: 24 }}>
+        <p style={{ opacity: .8 }}>This page doesn’t exist yet.</p>
+        <pre style={{ opacity: .7 }}>{error.message}</pre>
+      </div>
+    );
+  }
+  if (!p) {
+    return <div style={{ padding: 24 }}>This page doesn’t exist yet.</div>;
+  }
+
+  return <PublicPage profile={p} />;
 }
