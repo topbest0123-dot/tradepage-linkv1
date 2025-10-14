@@ -1,89 +1,88 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-/* ---------- helpers ---------- */
-const toList = (v) => String(v ?? '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
-const publicUrlFor = (p) => (p ? supabase.storage.from('avatars').getPublicUrl(p).data.publicUrl : null);
-const normalizeSocial = (t, raw) => {
-  const v = String(raw || '').trim();
+// tiny helpers (existing)
+const digitsOnly = (v) => String(v || '').replace(/\D+/g, '');
+const telHref = (phone) => `tel:${digitsOnly(phone)}`;
+const waHref  = (num)   => `https://wa.me/${digitsOnly(num)}`;
+
+// --- SOCIAL USERNAME/URL HELPER ---
+const asUrl = (type, v) => {
   if (!v) return null;
-  if (/^https?:\/\//i.test(v)) return v;
-  const h = v.replace(/^@/, '');
-  return t === 'facebook'  ? `https://facebook.com/${h}` :
-         t === 'instagram' ? `https://instagram.com/${h}` :
-         t === 'tiktok'    ? `https://www.tiktok.com/@${h}` :
-         t === 'x'         ? `https://x.com/${h}` : null;
+  const s = String(v).trim();
+  if (/^https?:\/\//i.test(s)) return s;
+  const clean = s.replace(/^@/, '');
+  switch (type) {
+    case 'instagram': return `https://instagram.com/${clean}`;
+    case 'tiktok':    return `https://tiktok.com/@${clean}`;
+    case 'facebook':  return `https://facebook.com/${clean}`;
+    case 'youtube':   return `https://youtube.com/${clean}`;
+    case 'x':         return `https://x.com/${clean}`;
+    case 'website':   return `https://${clean}`;
+    default:          return s;
+  }
 };
 
-/* ---------- themes ---------- */
-const THEMES = {
-  // dark
-  'deep-navy':      {'--bg':'#0a0f14','--text':'#eaf2ff','--muted':'#b8ccff','--border':'#183153','--card-bg-1':'#0f213a','--card-bg-2':'#0b1524','--chip-bg':'#0c1a2e','--chip-border':'#27406e','--btn-primary-1':'#66e0b9','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#1f2937','--social-border':'#213a6b'},
-  'midnight-teal':  {'--bg':'#071417','--text':'#e9fbff','--muted':'#c0e9f2','--border':'#15444a','--card-bg-1':'#0b2a31','--card-bg-2':'#0a1e24','--chip-bg':'#0a2227','--chip-border':'#1e5660','--btn-primary-1':'#51e1c2','--btn-primary-2':'#6db7ff','--btn-neutral-bg':'#122026','--social-border':'#214e56'},
-  'royal-purple':   {'--bg':'#0c0714','--text':'#f0e9ff','--muted':'#d7c9ff','--border':'#3b2b6a','--card-bg-1':'#1b1340','--card-bg-2':'#120e2b','--chip-bg':'#160f33','--chip-border':'#463487','--btn-primary-1':'#8f7bff','--btn-primary-2':'#c48bff','--btn-neutral-bg':'#221a3d','--social-border':'#3d2f72'},
-  'graphite-ember': {'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'},
-  'sapphire-ice':   {'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#081827','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'},
-  'forest-emerald': {'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'},
-  // light
-  'paper-snow':     {'--bg':'#ffffff','--text':'#121417','--muted':'#5b6777','--border':'#e5e7ea','--card-bg-1':'#ffffff','--card-bg-2':'#f7f9fb','--chip-bg':'#f3f5f7','--chip-border':'#e5e7ea','--btn-primary-1':'#3b82f6','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#eef2f6','--social-border':'#dfe3e8'},
-  'porcelain-mint': {'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'},
-  'linen-rose':     {'--bg':'#fbf7f5','--text':'#221a16','--muted':'#6d5c54','--border':'#eaded7','--card-bg-1':'#ffffff','--card-bg-2':'#f6efeb','--chip-bg':'#f2eae6','--chip-border':'#eaded7','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#efe7e3','--social-border':'#e6d9d1'},
-  'sandstone':      {'--bg':'#faf7f1','--text':'#191714','--muted':'#6f675f','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6f1e7','--chip-bg':'#f2ece1','--chip-border':'#eadfcd','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#efe9df','--social-border':'#e6dac7'},
-  'cloud-blue':     {'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'},
-  'ivory-ink':      {'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'},
+/** Small helper: turn any value into a clean list of strings */
+const toList = (value) =>
+  String(value ?? '')
+    .split(/[,\n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+// Build a public URL from a storage path in the 'avatars' bucket (client side)
+const publicUrlFor = (path) =>
+  path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
+
+/* --- BRAND ICONS --- */
+const ICONS = {
+  facebook: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.4v-2.9h2.4V9.8c0-2.4 1.4-3.7 3.6-3.7 1 0 2 .2 2 .2v2.2h-1.1c-1.1 0-1.5.7-1.5 1.4v1.8h2.6l-.4 2.9h-2.2v7A10 10 0 0 0 22 12z"/>
+    </svg>
+  ),
+  tiktok: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M21 8.1a6.3 6.3 0 0 1-4.3-2V16a6 6 0 1 1-6-6c.3 0 .6 0 .9.1v3.2a3 3 0 1 0 2.1 2.9V2.9h3a6.3 6.3 0 0 0 4.3 3V8z"/>
+    </svg>
+  ),
+  x: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M18.9 3H21l-6.7 7.7L21.8 21h-5.3l-4.2-5.4L7.4 21H3l7.4-8.5L2.5 3H8l3.8 4.9L18.9 3zM16 19h1.5L7.1 5H5.6L16 19z"/>
+    </svg>
+  ),
+  instagram: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zm6-2.8a1.2 1.2 0 1 1-1.2 1.2A1.2 1.2 0 0 1 18 6.7z"/>
+    </svg>
+  ),
+  youtube: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M23 12s0-3.4-.4-5a3 3 0 0 0-2.1-2.1C18.9 4.4 12 4.4 12 4.4s-6.9 0-8.5.5A3 3 0 0 0 1.4 7C1 8.6 1 12 1 12s0 3.4.4 5a3 3 0 0 0 2.1 2.1c1.6.5 8.5.5 8.5.5s6.9 0 8.5-.5A3 3 0 0 0 22.6 17c.4-1.6.4-5 .4-5zM10 15.5v-7l6 3.5-6 3.5z"/>
+    </svg>
+  ),
+  website: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm0 2c1.9 0 3.6.7 4.9 1.8l-2.1 2.1A5 5 0 0 0 7 12H5a7 7 0 0 1 7-8zm0 16a7 7 0 0 1-7-7h2a5 5 0 0 0 8.8 3.5l2.1 2.1A6.97 6.97 0 0 1 12 20z"/>
+    </svg>
+  ),
 };
 
-/* accept friendly names from the dashboard too */
-const ALIAS = {
-  'midnight': 'deep-navy',
-  'cocoa-bronze': 'graphite-ember',
-  'cocoa bronze': 'graphite-ember',
-  'ivory-sand': 'paper-snow',
-  'ivory sand': 'paper-snow',
-  'glacier-mist': 'cloud-blue',
-  'glacier mist': 'cloud-blue',
-};
-
-const normalizeThemeKey = (raw) => {
-  const k = String(raw || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  if (THEMES[k]) return k;
-  if (ALIAS[k]) return ALIAS[k];
-  return 'deep-navy';
-};
-
-const applyTheme = (key) => {
-  const vars = THEMES[key] || THEMES['deep-navy'];
-  const r = document.documentElement;
-  for (const [cssVar, val] of Object.entries(vars)) r.style.setProperty(cssVar, val);
-};
-
-/* make a tel: href from phone or whatsapp */
-const getDialHref = (profile) => {
-  const raw =
-    profile?.phone ??
-    profile?.phone_number ??
-    profile?.tel ??
-    profile?.whatsapp ??
-    '';
-  const cleaned = String(raw).replace(/[^\d+]/g, ''); // keep + and digits only
-  const digits = cleaned.replace(/\D/g, '');
-  return digits.length >= 6 ? `tel:${cleaned}` : null;
-};
-
-/* ---------- page ---------- */
-export default function PublicPage() {
-  const { slug } = useParams();
+export default function Page({ params }) {
+  const slug = params?.slug;
   const [p, setP] = useState(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    if (!slug) return;
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,phone_number,tel,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme')
+        .select(
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,avatar_url,avatar_path,instagram,tiktok,facebook,youtube,x,website'
+        )
         .ilike('slug', slug)
         .maybeSingle();
 
@@ -94,41 +93,50 @@ export default function PublicPage() {
     load();
   }, [slug]);
 
-  // apply theme when data arrives
-  useEffect(() => {
-    if (p?.theme !== undefined) applyTheme(normalizeThemeKey(p.theme));
-  }, [p?.theme]);
+  /** Safe parsed lists */
+  const areas = useMemo(() => toList(p?.areas), [p]);
+  const services = useMemo(() => toList(p?.services), [p]);
+  const priceLines = useMemo(
+    () =>
+      String(p?.prices ?? '')
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    [p]
+  );
+
+  // Build round-icon social buttons list once profile is loaded
+  const socials = useMemo(
+    () =>
+      [
+        ['instagram', asUrl('instagram', p?.instagram), 'IG'],
+        ['tiktok', asUrl('tiktok', p?.tiktok), 't'],
+        ['facebook', asUrl('facebook', p?.facebook), 'f'],
+        ['youtube', asUrl('youtube', p?.youtube), 'YT'],
+        ['x', asUrl('x', p?.x), 'X'],
+        ['website', asUrl('website', p?.website), '🌐'],
+      ].filter(([, url]) => !!url),
+    [p]
+  );
 
   if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p></div>;
   if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
 
-  const areas = useMemo(() => toList(p?.areas), [p]);
-  const services = useMemo(() => toList(p?.services), [p]);
-  const priceLines = useMemo(
-    () => String(p?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
-    [p]
-  );
-
-  const callHref = getDialHref(p);
-  const waHref = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
   const avatarUrl = publicUrlFor(p?.avatar_path);
 
-  const fb = normalizeSocial('facebook',  p?.facebook);
-  const ig = normalizeSocial('instagram', p?.instagram);
-  const tk = normalizeSocial('tiktok',    p?.tiktok);
-  const xx = normalizeSocial('x',         p?.x);
-
+  // --- Share handler (native share on mobile, clipboard fallback on desktop) ---
   const handleShare = () => {
     const url = window.location.href;
     const title = document.title || 'TradePage';
-    if (navigator.share) navigator.share({ title, url }).catch(() => {});
-    else {
+    if (navigator.share) {
+      navigator.share({ title, url }).catch(() => {});
+    } else {
       try {
         navigator.clipboard.writeText(url).then(
           () => alert('Link copied to clipboard'),
           () => window.prompt('Copy this link:', url)
         );
-      } catch {
+      } catch (e) {
         window.prompt('Copy this link:', url);
       }
     }
@@ -136,19 +144,31 @@ export default function PublicPage() {
 
   return (
     <div style={pageWrapStyle}>
-      {/* make sure background & text follow the theme even if layout.jsx is old */}
+      {/* CANARY label (debug) */}
+      <div style={{ position: 'fixed', top: 8, right: 8, fontSize: 12, opacity: .7, background: 'rgba(0,0,0,.4)', color: '#fff', padding: '4px 6px', borderRadius: 6, zIndex: 9999 }}>
+        CANARY-A
+      </div>
+
+      {/* ⬇️ TEMP DEBUG: shows avatar_url/avatar_path values */}
+      {p && (
+        <pre style={{
+          position:'fixed', left:8, bottom:8, zIndex:99999,
+          fontSize:11, padding:'6px 8px', background:'rgba(0,0,0,.55)',
+          color:'#fff', borderRadius:6, maxWidth:'80vw', whiteSpace:'pre-wrap'
+        }}>
+          avatar_url: {String(p.avatar_url || '')}
+          {"\n"}avatar_path: {String(p.avatar_path || '')}
+        </pre>
+      )}
+
+      {/* desktop-only tweak: make only Gallery span both columns on desktop */}
       <style>{`
-        :root { background: var(--bg); color: var(--text); }
-        html,body { background: var(--bg); color: var(--text); }
-        @media (max-width:480px){
-          .hdr-name{ font-size:16px; line-height:20px; }
-          .hdr-sub{ font-size:12px; }
-          .hdr-cta a, .hdr-cta button{ padding:6px 10px; border-radius:10px; font-size:12px; }
-          .hdr-cta{ gap:8px; }
+        @media (min-width: 900px) {
+          section.gallery-wide { grid-column: 1 / -1 !important; }
         }
       `}</style>
 
-      {/* HEADER */}
+      {/* HEADER CARD */}
       <div style={headerCardStyle}>
         <div style={headerLeftStyle}>
           {avatarUrl ? (
@@ -156,43 +176,129 @@ export default function PublicPage() {
               src={avatarUrl}
               alt={`${p.name || p.slug} logo`}
               style={{
-                width: 48, height: 48, borderRadius: 14, objectFit: 'cover',
-                border: '1px solid var(--border)', background: 'var(--card-bg-2)',
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                objectFit: 'cover',
+                border: '1px solid #183153',
+                background: '#0b1524',
               }}
             />
           ) : (
             <div style={logoDotStyle}>★</div>
           )}
+
           <div>
-            <div className="hdr-name" style={headerNameStyle}>{p.name || p.slug}</div>
-            <div className="hdr-sub"  style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
+            <div style={headerNameStyle}>{p.name || p.slug}</div>
+            <div style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
           </div>
         </div>
 
-        <div className="hdr-cta" style={ctaRowStyle}>
-          {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
-          {waHref &&  <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-          <button type="button" onClick={handleShare}
-            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}>
+        <div style={ctaRowStyle}>
+          {/* Call */}
+          {p?.phone && (
+            <a
+              href={telHref(p.phone)}
+              style={{ ...btnBaseStyle, ...btnPrimaryStyle }}
+              className="underline"
+              aria-label={`Call ${p.phone}`}
+              title={`Call ${p.phone}`}
+            >
+              Call
+            </a>
+          )}
+
+          {/* WhatsApp */}
+          {p?.whatsapp && (
+            <a
+              href={waHref(p.whatsapp)}
+              style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+              className="underline"
+              aria-label={`WhatsApp ${p.whatsapp}`}
+              title={`WhatsApp ${p.whatsapp}`}
+            >
+              WhatsApp
+            </a>
+          )}
+
+          {/* Share button */}
+          <button
+            type="button"
+            id="share-btn"
+            onClick={handleShare}
+            style={{
+              padding: '8px 12px',
+              borderRadius: 10,
+              border: '1px solid #213a6b',
+              background: 'transparent',
+              color: '#eaf2ff',
+              fontWeight: 700,
+              cursor: 'pointer',
+              marginLeft: 8,
+            }}
+          >
             Share
           </button>
         </div>
       </div>
 
-      {/* SOCIAL */}
-      {(fb || ig || tk || xx) && (
-        <div style={socialBarWrapStyle}>
-          {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}><span style={socialGlyphStyle}>f</span></a>}
-          {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}><span style={socialGlyphStyle}>IG</span></a>}
-          {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={socialBtnStyle}><span style={socialGlyphStyle}>t</span></a>}
-          {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}><span style={socialGlyphStyle}>X</span></a>}
-        </div>
+      {/* Socials row — place between </header> and <main> */}
+      {socials.length > 0 && (
+        <nav className="max-w-4xl mx-auto mt-3 mb-1">
+          <ul
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '12px',
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+            }}
+          >
+            {socials.map(([key, url, label]) => (
+              <li key={key}>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={key}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: '9999px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--chip-bg)',
+                    color: 'var(--chip-text)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {ICONS[key] || label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
       )}
 
-      {/* GRID */}
+      {/* GRID (acts as main content) */}
       <div style={grid2Style}>
+        {/* About */}
         <Card title="About">
-          <p style={bodyP}>
+          <p
+            style={{
+              marginTop: 0,
+              marginBottom: 0,
+              whiteSpace: 'pre-wrap',
+              overflowWrap: 'anywhere',
+              wordBreak: 'break-word',
+              lineHeight: 1.5,
+              maxWidth: '100%',
+            }}
+          >
             {p.about && p.about.trim().length > 0
               ? p.about
               : (services[0]
@@ -201,42 +307,57 @@ export default function PublicPage() {
           </p>
         </Card>
 
+        {/* Prices */}
         <Card title="Prices">
           <ul style={listResetStyle}>
-            {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
+            {priceLines.length === 0 && (
+              <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>
+            )}
             {priceLines.map((ln, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <li
+                key={i}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}
+              >
+                <span style={tagStyle}>from</span>
                 <span>{ln}</span>
               </li>
             ))}
           </ul>
         </Card>
 
+        {/* Areas / Zones */}
         <Card title="Areas we cover">
           {areas.length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {areas.map((a, i) => (<span key={i} style={chipStyle}>{a}</span>))}
+              {areas.map((a, i) => (
+                <span key={i} style={chipStyle}>{a}</span>
+              ))}
             </div>
-          ) : (<div style={{ opacity: 0.7 }}>No areas listed yet.</div>)}
+          ) : (
+            <div style={{ opacity: 0.7 }}>No areas listed yet.</div>
+          )}
         </Card>
 
+        {/* Services as chips */}
         <Card title="Services">
           {services.length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {services.map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
+              {services.map((s, i) => (
+                <span key={i} style={chipStyle}>{s}</span>
+              ))}
             </div>
-          ) : (<div style={{ opacity: 0.7 }}>No services listed yet.</div>)}
+          ) : (
+            <div style={{ opacity: 0.7 }}>No services listed yet.</div>
+          )}
         </Card>
 
-        <Card title="Hours"><div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div></Card>
+        {/* Hours */}
+        <Card title="Hours">
+          <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
+        </Card>
 
-        {p.other_info && p.other_info.trim().length > 0 && (
-          <Card title="Other useful information" wide>
-            <p style={{ ...bodyP, opacity: 0.95 }}>{p.other_info}</p>
-          </Card>
-        )}
-
-        <Card title="Gallery" wide>
+        {/* Gallery — desktop-only wide */}
+        <Card title="Gallery" className="gallery-wide">
           <div style={galleryGridStyle}>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
             <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
@@ -254,48 +375,115 @@ export default function PublicPage() {
   );
 }
 
-/* ---------- components & styles ---------- */
-function Card({ title, wide=false, children }) {
+/* ---------- Components ---------- */
+function Card({ title, wide = false, className, children }) {
   return (
-    <section style={{ ...cardStyle, gridColumn: wide ? '1 / -1' : 'auto' }}>
+    <section
+      className={className}
+      style={{ ...cardStyle, gridColumn: wide ? '1 / -1' : 'auto' }}
+    >
       {title && <h2 style={h2Style}>{title}</h2>}
       {children}
     </section>
   );
 }
 
-const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
+/* ---------- Styles ---------- */
+const pageWrapStyle = {
+  maxWidth: 980,
+  margin: '28px auto',
+  padding: '0 16px 48px',
+  color: '#eaf2ff',
+  overflowX: 'hidden',
+};
 
 const headerCardStyle = {
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  gap: 16, padding: '16px 18px', borderRadius: 16,
-  border: '1px solid var(--border)',
-  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
-  marginBottom: 12,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 16,
+  padding: '16px 18px',
+  borderRadius: 16,
+  border: '1px solid #183153',
+  background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+  marginBottom: 12, // tighten to make room for socials row
 };
 const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
-const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
+const logoDotStyle = {
+  width: 48,
+  height: 48,
+  borderRadius: 14,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: '#63d3e0',
+  color: '#0a0f1c',
+  fontWeight: 800,
+  fontSize: 20,
+};
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
+const headerSubStyle = { opacity: 0.75, fontSize: 14, marginTop: 4 };
+const ctaRowStyle = { display: 'flex', gap: 10, flexWrap: 'wrap' };
 
-const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
-const socialBtnStyle = { width: 36, height: 36, borderRadius: 999, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', outline: 'none' };
-const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0' };
-
-const btnBaseStyle = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
-const btnPrimaryStyle = { background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color: '#08101e', border: '1px solid var(--border)' };
-const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--text)' };
+const btnBaseStyle = {
+  padding: '10px 16px',
+  borderRadius: 12,
+  border: '1px solid #2f3c4f',
+  textDecoration: 'none',
+};
+const btnPrimaryStyle = {
+  background: 'linear-gradient(135deg,#66e0b9,#8ab4ff)',
+  color: '#08101e',
+  border: '1px solid #2d4e82',
+  fontWeight: 700,
+};
+const btnNeutralStyle = {
+  background: '#1f2937',
+  color: '#ffffff',
+  fontWeight: 700,
+};
 
 const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
-const cardStyle = { padding: 16, borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', minWidth: 0 };
+const cardStyle = {
+  padding: 16,
+  borderRadius: 16,
+  border: '1px solid #183153',
+  background: 'linear-gradient(180deg,#0f213a,#0b1524)',
+  minWidth: 0,
+};
+const grid2Style = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 };
 
-const grid2Style = { display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginTop: 16 };
-const bodyP = { marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word', lineHeight: 1.5 };
-
-const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)', fontSize: 13 };
+const chipStyle = {
+  padding: '6px 12px',
+  borderRadius: 999,
+  border: '1px solid #27406e',
+  background: '#0c1a2e',
+  color: '#d1e1ff',
+  fontSize: 13,
+};
+const tagStyle = {
+  fontSize: 12,
+  padding: '2px 8px',
+  borderRadius: 999,
+  border: '1px solid #27406e',
+  background: '#0c1a2e',
+  color: '#b8ccff',
+};
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
 const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
-const galleryItemStyle = { height: 220, borderRadius: 14, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', overflow: 'hidden' };
-const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
+const galleryItemStyle = {
+  height: 220,
+  borderRadius: 14,
+  border: '1px solid #27406e',
+  background: '#0b1627',
+  overflow: 'hidden',
+};
+const imgPlaceholderStyle = {
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  opacity: 0.75,
+};
