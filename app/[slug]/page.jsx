@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 /* ---------- helpers ---------- */
 const toList = (v) => String(v ?? '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
 const publicUrlFor = (p) => (p ? supabase.storage.from('avatars').getPublicUrl(p).data.publicUrl : null);
+
 const normalizeSocial = (t, raw) => {
   const v = String(raw || '').trim();
   if (!v) return null;
@@ -35,59 +36,93 @@ const THEMES = {
   'cloud-blue':     {'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'},
   'ivory-ink':      {'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'},
 };
-const ALIAS = { 'midnight':'deep-navy','cocoa-bronze':'graphite-ember','cocoa bronze':'graphite-ember','ivory-sand':'paper-snow','ivory sand':'paper-snow','glacier-mist':'cloud-blue','glacier mist':'cloud-blue' };
-const normalizeThemeKey = (raw) => { const k = String(raw || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'); return THEMES[k] ? k : (ALIAS[k] || 'deep-navy'); };
-const applyTheme = (key) => { const vars = THEMES[key] || THEMES['deep-navy']; const r = document.documentElement; for (const [cssVar, val] of Object.entries(vars)) r.style.setProperty(cssVar, val); };
 
-/* Use only the columns you actually have */
-const getDialHref = (profile) => {
-  const raw = profile?.phone ?? profile?.whatsapp ?? '';
-  const cleaned = String(raw).replace(/[^\d+]/g, '');
+const ALIAS = {
+  'midnight': 'deep-navy',
+  'cocoa-bronze': 'graphite-ember',
+  'cocoa bronze': 'graphite-ember',
+  'ivory-sand': 'paper-snow',
+  'ivory sand': 'paper-snow',
+  'glacier-mist': 'cloud-blue',
+  'glacier mist': 'cloud-blue',
+};
+
+const normalizeThemeKey = (raw) => {
+  const k = String(raw || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  if (THEMES[k]) return k;
+  if (ALIAS[k]) return ALIAS[k];
+  return 'deep-navy';
+};
+
+const applyTheme = (key) => {
+  const vars = THEMES[key] || THEMES['deep-navy'];
+  const r = document.documentElement;
+  for (const [cssVar, val] of Object.entries(vars)) r.style.setProperty(cssVar, val);
+};
+
+/* make tel: / wa: links but keep button labels clean (no numbers in text) */
+const buildCallHref = (phone) => {
+  const cleaned = String(phone || '').replace(/[^\d+]/g, '');
   const digits = cleaned.replace(/\D/g, '');
   return digits.length >= 6 ? `tel:${cleaned}` : null;
+};
+const buildWaHref = (wa) => {
+  const digits = String(wa || '').replace(/\D/g, '');
+  return digits ? `https://wa.me/${digits}` : null;
 };
 
 /* ---------- page ---------- */
 export default function PublicPage() {
-  const params = useParams();
-  const slug = typeof params?.slug === 'string'
-    ? params.slug
-    : Array.isArray(params?.slug) ? params.slug[0] : '';
-
+  const { slug } = useParams();
   const [p, setP] = useState(null);
   const [notFound, setNotFound] = useState(false);
-  const [err, setErr] = useState('');
+  const [loadErr, setLoadErr] = useState('');
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      if (!slug) { setNotFound(true); return; }
+    const load = async () => {
+      setLoadErr('');
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme')
-        .eq('slug', slug)                // exact match (use .ilike if your DB slugs are mixed-case)
+        .select(
+          'slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme'
+        )
+        .ilike('slug', slug)
         .maybeSingle();
 
       if (cancelled) return;
-
-      if (error) { console.error('profiles load error', error); setErr(error.message || String(error)); setNotFound(true); return; }
+      if (error) { setLoadErr(error.message || String(error)); setNotFound(!data); return; }
       if (!data) { setNotFound(true); return; }
       setP(data);
-    })();
+    };
+    load();
     return () => { cancelled = true; };
   }, [slug]);
 
-  useEffect(() => { if (p?.theme !== undefined) applyTheme(normalizeThemeKey(p.theme)); }, [p?.theme]);
+  // apply theme when data arrives
+  useEffect(() => {
+    if (p?.theme !== undefined) applyTheme(normalizeThemeKey(p.theme));
+  }, [p?.theme]);
 
-  if (notFound) return <div style={pageWrapStyle}><p>This page doesn’t exist yet.</p>{err && <p style={{opacity:.7}}>{err}</p>}</div>;
-  if (!p)        return <div style={pageWrapStyle}><p>Loading…</p></div>;
+  if (notFound) {
+    return (
+      <div style={pageWrapStyle}>
+        <p>This page doesn’t exist yet.</p>
+        {loadErr && <p style={{ opacity: 0.7 }}>{loadErr}</p>}
+      </div>
+    );
+  }
+  if (!p) return <div style={pageWrapStyle}><p>Loading…</p></div>;
 
-  const areas      = useMemo(() => toList(p?.areas), [p]);
-  const services   = useMemo(() => toList(p?.services), [p]);
-  const priceLines = useMemo(() => String(p?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean), [p]);
+  const areas = useMemo(() => toList(p?.areas), [p]);
+  const services = useMemo(() => toList(p?.services), [p]);
+  const priceLines = useMemo(
+    () => String(p?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
+    [p]
+  );
 
-  const callHref  = getDialHref(p);
-  const waHref    = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
+  const callHref = buildCallHref(p?.phone);
+  const waHref   = buildWaHref(p?.whatsapp);
   const avatarUrl = publicUrlFor(p?.avatar_path);
 
   const fb = normalizeSocial('facebook',  p?.facebook);
@@ -131,7 +166,10 @@ export default function PublicPage() {
             <img
               src={avatarUrl}
               alt={`${p.name || p.slug} logo`}
-              style={{ width: 48, height: 48, borderRadius: 14, objectFit: 'cover', border: '1px solid var(--border)', background: 'var(--card-bg-2)' }}
+              style={{
+                width: 48, height: 48, borderRadius: 14, objectFit: 'cover',
+                border: '1px solid var(--border)', background: 'var(--card-bg-2)',
+              }}
             />
           ) : (
             <div style={logoDotStyle}>★</div>
@@ -155,9 +193,9 @@ export default function PublicPage() {
       {/* SOCIAL */}
       {(fb || ig || tk || xx) && (
         <div style={socialBarWrapStyle}>
-          {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook"  title="Facebook"  style={socialBtnStyle}><span style={socialGlyphStyle}>f</span></a>}
+          {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}><span style={socialGlyphStyle}>f</span></a>}
           {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}><span style={socialGlyphStyle}>IG</span></a>}
-          {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok"    title="TikTok"    style={socialBtnStyle}><span style={socialGlyphStyle}>t</span></a>}
+          {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={socialBtnStyle}><span style={socialGlyphStyle}>t</span></a>}
           {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}><span style={socialGlyphStyle}>X</span></a>}
         </div>
       )}
@@ -186,17 +224,17 @@ export default function PublicPage() {
         </Card>
 
         <Card title="Areas we cover">
-          {areas.length > 0 ? (
+          {toList(p.areas).length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {areas.map((a, i) => (<span key={i} style={chipStyle}>{a}</span>))}
+              {toList(p.areas).map((a, i) => (<span key={i} style={chipStyle}>{a}</span>))}
             </div>
           ) : (<div style={{ opacity: 0.7 }}>No areas listed yet.</div>)}
         </Card>
 
         <Card title="Services">
-          {services.length > 0 ? (
+          {toList(p.services).length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {services.map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
+              {toList(p.services).map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
             </div>
           ) : (<div style={{ opacity: 0.7 }}>No services listed yet.</div>)}
         </Card>
@@ -238,7 +276,14 @@ function Card({ title, wide=false, children }) {
 }
 
 const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
-const headerCardStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '16px 18px', borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', marginBottom: 12 };
+
+const headerCardStyle = {
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+  gap: 16, padding: '16px 18px', borderRadius: 16,
+  border: '1px solid var(--border)',
+  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
+  marginBottom: 12,
+};
 const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
 const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
@@ -247,7 +292,7 @@ const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
 
 const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
 const socialBtnStyle = { width: 36, height: 36, borderRadius: 999, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', outline: 'none' };
-const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1 };
+const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0' };
 
 const btnBaseStyle = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
 const btnPrimaryStyle = { background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color: '#08101e', border: '1px solid var(--border)' };
