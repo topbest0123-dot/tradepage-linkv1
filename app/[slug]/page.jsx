@@ -20,17 +20,8 @@ export default async function Page({ params }) {
       phone,whatsapp,
       about,areas,services,prices,hours,
       facebook,instagram,tiktok,x,youtube,
-      avatar_path,other_info,theme,location,location_url
+      avatar_path,other_info,theme
     `)
-
-    const mapsHref = useMemo(() => {
-  if (p?.location_url && /^https?:\/\//i.test(p.location_url)) return p.location_url;
-
-  // Fallback: build a Google Maps search from name + (location || city)
-  const q = [p?.name, p?.location || p?.city].filter(Boolean).join(' ');
-  return q ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : null;
-}, [p]);
-
     
     .ilike('slug', params.slug)
     .maybeSingle();
