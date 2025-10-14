@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -18,7 +17,7 @@ export default function AuthLinks() {
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s ?? null);
+      if (!ignore) setSession(s ?? null);
     });
 
     return () => {
@@ -27,58 +26,53 @@ export default function AuthLinks() {
     };
   }, []);
 
+  const go = (href) => router.push(href);
   const signOut = async () => {
     await supabase.auth.signOut();
     router.push('/signin');
   };
 
-  return (
-    <>
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {!session ? (
-          pathname !== '/signin' && (
-            <Link href="/signin" style={{ color: '#fff', textDecoration: 'underline', fontWeight: 600 }}>
-              Sign in
-            </Link>
-          )
-        ) : (
-          <>
-            {/* DASHBOARD as a link-lookalike BUTTON → never “visited”, always white */}
-            <button
-              type="button"
-              onClick={() => router.push('/dashboard')}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                margin: 0,
-                cursor: 'pointer',
-                color: '#fff',                 // <- stays white
-                textDecoration: 'underline',
-                font: 'inherit',
-                fontWeight: 600,
-              }}
-            >
-              Dashboard
-            </button>
+  // Same tokens used by Call / WhatsApp buttons on the public page
+  const btnBase = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+    padding: '0 18px',
+    borderRadius: 12,
+    border: '1px solid var(--border)',
+    fontWeight: 700,
+    cursor: 'pointer',
+    background: 'transparent',
+    outline: 'none',
+  };
+  const btnPrimary = {
+    background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
+    color: '#08101e',
+  };
+  const btnNeutral = {
+    background: 'var(--btn-neutral-bg)',
+    color: 'var(--text)',
+  };
 
-            <button
-              onClick={signOut}
-              style={{
-                background: 'transparent',
-                border: '1px solid #213a6b',
-                padding: '6px 10px',
-                borderRadius: 8,
-                cursor: 'pointer',
-                color: '#fff',
-                fontWeight: 600,
-              }}
-            >
-              Sign out
-            </button>
-          </>
-        )}
-      </nav>
-    </>
+  if (!session) {
+    // "Sign in" styled like WhatsApp (neutral)
+    return (
+      <button type="button" onClick={() => go('/signin')} style={{ ...btnBase, ...btnNeutral }}>
+        Sign in
+      </button>
+    );
+  }
+
+  // Authenticated: Dashboard (neutral) + Sign out (primary) — same look as WhatsApp + Call
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <button type="button" onClick={() => go('/dashboard')} style={{ ...btnBase, ...btnNeutral }}>
+        Dashboard
+      </button>
+      <button type="button" onClick={signOut} style={{ ...btnBase, ...btnPrimary }}>
+        Sign out
+      </button>
+    </div>
   );
 }
