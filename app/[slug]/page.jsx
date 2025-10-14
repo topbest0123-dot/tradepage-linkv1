@@ -19,7 +19,7 @@ export default async function Page({ params }) {
       slug,name,trade,city,
       phone,whatsapp,
       about,areas,services,prices,hours,
-      facebook,instagram,tiktok,x,youtube
+      facebook,instagram,tiktok,x,youtube,
       avatar_path,other_info,theme
     `)
     .ilike('slug', params.slug)
