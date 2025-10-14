@@ -38,8 +38,10 @@ const THEMES = {
 const ALIAS = { 'midnight':'deep-navy','cocoa-bronze':'graphite-ember','cocoa bronze':'graphite-ember','ivory-sand':'paper-snow','ivory sand':'paper-snow','glacier-mist':'cloud-blue','glacier mist':'cloud-blue' };
 const normalizeThemeKey = (raw) => { const k = String(raw || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'); return THEMES[k] ? k : (ALIAS[k] || 'deep-navy'); };
 const applyTheme = (key) => { const vars = THEMES[key] || THEMES['deep-navy']; const r = document.documentElement; for (const [cssVar, val] of Object.entries(vars)) r.style.setProperty(cssVar, val); };
+
+/* Use only the columns you actually have */
 const getDialHref = (profile) => {
-  const raw = profile?.phone ?? profile?.phone_number ?? profile?.tel ?? profile?.whatsapp ?? '';
+  const raw = profile?.phone ?? profile?.whatsapp ?? '';
   const cleaned = String(raw).replace(/[^\d+]/g, '');
   const digits = cleaned.replace(/\D/g, '');
   return digits.length >= 6 ? `tel:${cleaned}` : null;
@@ -62,8 +64,8 @@ export default function PublicPage() {
       if (!slug) { setNotFound(true); return; }
       const { data, error } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,phone_number,tel,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme')
-        .eq('slug', slug)               // exact match is safer than ilike here
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,other_info,theme')
+        .eq('slug', slug)                // exact match (use .ilike if your DB slugs are mixed-case)
         .maybeSingle();
 
       if (cancelled) return;
