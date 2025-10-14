@@ -46,7 +46,7 @@ export default function Dashboard() {
     slug: '', name: '', trade: '', city: '',
     phone: '', whatsapp: '', about: '',
     areas: '', services: '', prices: '', hours: '',
-    facebook: '', instagram: '', tiktok: '', x: '',
+    facebook: '', instagram: '', tiktok: '', x: '', youtube: '',
     avatar_path: '',
     theme: 'deep-navy',
     other_info: '',
@@ -61,7 +61,7 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,avatar_path,theme,other_info')
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info')
         .eq('id', me.id).maybeSingle();
 
       if (data) {
@@ -69,7 +69,7 @@ export default function Dashboard() {
           slug: data.slug ?? '', name: data.name ?? '', trade: data.trade ?? '', city: data.city ?? '',
           phone: data.phone ?? '', whatsapp: data.whatsapp ?? '', about: data.about ?? '',
           areas: data.areas ?? '', services: data.services ?? '', prices: data.prices ?? '', hours: data.hours ?? '',
-          facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '',
+          facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '', youtube: data.youtube ?? '',
           avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? ''
         }));
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
@@ -115,7 +115,7 @@ export default function Dashboard() {
       phone: form.phone, whatsapp: form.whatsapp,
       about: form.about, areas: form.areas, services: normalizedServices,
       prices: form.prices, hours: form.hours,
-      facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x,
+      facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x,youtube: form.youtube,
       avatar_path: form.avatar_path,
       theme: form.theme, other_info: form.other_info,
       updated_at: new Date().toISOString(),
@@ -192,6 +192,7 @@ export default function Dashboard() {
       {input('Instagram (URL or @)', 'instagram', 'https://instagram.com/yourname or @yourname')}
       {input('TikTok (URL or @)', 'tiktok', 'https://tiktok.com/@yourname or @yourname')}
       {input('X / Twitter (URL or @)', 'x', 'https://x.com/yourname or @yourname')}
+      {input('YouTube (URL or @handle)', 'youtube', 'https://youtube.com/@yourchannel or @yourhandle')}
 
       {textarea('About (short description)', 'about')}
       {textarea('Zones / Areas (comma separated)', 'areas')}
