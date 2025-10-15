@@ -20,7 +20,7 @@ const normalizeYouTube = (raw) => {
   const v = String(raw || '').trim();
   if (!v) return null;
   if (/^https?:\/\//i.test(v)) return v;
-  const h = v.replace(/^@/, '');        // allow @handle
+  const h = v.replace(/^@/, '');
   return `https://www.youtube.com/@${h}`;
 };
 
@@ -87,10 +87,8 @@ export default function PublicPage({ profile: p }) {
   const mapsHref = useMemo(() => {
     const explicit = String(p?.location_url || '').trim();
     if (explicit && /^https?:\/\//i.test(explicit)) return explicit;
-
     const addr = String(p?.location || '').trim();
     if (!addr) return null;
-
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
   }, [p?.location_url, p?.location]);
 
@@ -127,86 +125,97 @@ export default function PublicPage({ profile: p }) {
       <style>{`
         :root { background: var(--bg); color: var(--text); }
         html,body { background: var(--bg); color: var(--text); }
-        @media (max-width:480px){
-          .hdr-name{ font-size:18px; line-height:22px; }
-          .hdr-sub{ font-size:12px; }
-          .hdr-cta a, .hdr-cta button{ padding:6px 10px; border-radius:10px; font-size:12px; }
-          .hdr-cta{ gap:8px; }
+
+        /* ------- Header grid ------- */
+        .hdr-grid{
+          display:grid;
+          grid-template-columns: 48px 1fr;
+          grid-template-areas:
+            "avatar text"
+            "avatar sub"
+            "avatar cta";
+          gap: 8px 12px;
+          align-items: start;               /* avatar hugs the top (aligns with name) */
+        }
+        .hdr-avatar { grid-area: avatar; width:48px; height:48px; border-radius:14px; object-fit:cover; }
+        .hdr-text   { grid-area: text; }
+        .hdr-sub    { grid-area: sub; opacity:.8; font-size:13px; margin-top:2px; }
+        .hdr-cta    { grid-area: cta; display:flex; gap:8px; flex-wrap:wrap; }
+
+        /* Button sizing for header (CSS so we can vary by viewport) */
+        .hdr-btn { padding: 6px 10px; font-size:12px; border-radius:10px; font-weight:700; }
+        @media (min-width: 900px){
+          /* Desktop: restore old layout (CTA to the right), larger buttons */
+          .hdr-grid{
+            grid-template-columns: 48px 1fr auto;
+            grid-template-areas: "avatar text cta";
+            align-items: center;
+          }
+          .hdr-cta { justify-self: end; }
+          .hdr-btn { padding:10px 16px; font-size:14px; border-radius:12px; }
+          .hdr-sub { font-size:14px; }
         }
 
-        /* ---- Responsive gallery ---- */
-        .gallery-grid {
-          display: grid;
-          grid-template-columns: 1fr;       /* mobile: single, full width */
-          gap: 16px;
-        }
-        @media (min-width: 700px) {
-          .gallery-grid { grid-template-columns: 1fr 1fr; } /* tablet: 2 cols */
-        }
-        @media (min-width: 1024px) {
-          .gallery-grid { grid-template-columns: 1fr 1fr 1fr; } /* desktop: 3 cols */
-        }
-        .gallery-item {
-          border-radius: 14px;
-          border: 1px solid var(--chip-border);
-          background: var(--chip-bg);
-          overflow: hidden;
-        }
-        .gallery-item img {
-          width: 100%;
-          height: auto;
-          display: block;
-          border-radius: 14px;
-        }
-        @media (min-width: 1024px) {
-          .gallery-item { height: 220px; }
-          .gallery-item img { height: 100%; object-fit: cover; }
-        }
+        /* Gallery responsiveness */
+        .gallery-grid { display:grid; grid-template-columns: 1fr; gap:16px; }
+        @media (min-width: 700px){ .gallery-grid{ grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 1024px){ .gallery-grid{ grid-template-columns: 1fr 1fr 1fr; } }
+        .gallery-item{ border-radius:14px; border:1px solid var(--chip-border); background:var(--chip-bg); overflow:hidden; }
+        .gallery-item img{ width:100%; height:auto; display:block; border-radius:14px; }
+        @media (min-width:1024px){ .gallery-item{ height:220px; } .gallery-item img{ height:100%; object-fit:cover; } }
       `}</style>
 
-      {/* HEADER (avatar left; name, subline, buttons stacked) */}
+      {/* HEADER */}
       <div style={headerCardStyle}>
-        <div style={headerLeftStyle}>
+        <div className="hdr-grid">
           {avatarUrl ? (
             <img
               src={avatarUrl}
               alt={`${p.name || p.slug} logo`}
-              style={{
-                width:48, height:48, borderRadius:14, objectFit:'cover',
-                border:'1px solid var(--border)', background:'var(--card-bg-2)'
-              }}
+              className="hdr-avatar"
+              style={{ border:'1px solid var(--border)', background:'var(--card-bg-2)' }}
             />
           ) : (
-            <div style={logoDotStyle}>★</div>
+            <div className="hdr-avatar" style={{ display:'flex', alignItems:'center', justifyContent:'center', background:'var(--btn-primary-1)', color:'#0a0f1c', fontWeight:800, fontSize:20, border:'1px solid var(--border)' }}>★</div>
           )}
 
-          <div style={headerTextColStyle}>
+          <div className="hdr-text">
             <div className="hdr-name" style={headerNameStyle}>{p.name || p.slug}</div>
-            {/* City • Trade on its own line */}
-            <div className="hdr-sub" style={headerSubStyle}>
-              {[p.city, p.trade].filter(Boolean).join(' • ')}
-            </div>
+          </div>
 
-            {/* Buttons under the name (smaller) */}
-            <div className="hdr-cta" style={ctaRowStyleSm}>
-              {callHref && (
-                <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle, ...btnSmStyle }}>
-                  Call
-                </a>
-              )}
-              {waHref && (
-                <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, ...btnSmStyle }}>
-                  WhatsApp
-                </a>
-              )}
-              <button
-                type="button"
-                onClick={handleShare}
-                style={{ ...btnBaseStyle, ...btnSmStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
+          {/* City • Trade line */}
+          <div className="hdr-sub">
+            {[p.city, p.trade].filter(Boolean).join(' • ')}
+          </div>
+
+          {/* CTA row (mobile under the name, desktop on the right) */}
+          <div className="hdr-cta">
+            {callHref && (
+              <a
+                href={callHref}
+                className="hdr-btn"
+                style={{ border:'1px solid var(--border)', background:'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color:'#08101e', textDecoration:'none' }}
               >
-                Share
-              </button>
-            </div>
+                Call
+              </a>
+            )}
+            {waHref && (
+              <a
+                href={waHref}
+                className="hdr-btn"
+                style={{ border:'1px solid var(--border)', background:'var(--btn-neutral-bg)', color:'var(--text)', textDecoration:'none' }}
+              >
+                WhatsApp
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={handleShare}
+              className="hdr-btn"
+              style={{ border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)', cursor:'pointer' }}
+            >
+              Share
+            </button>
           </div>
         </div>
       </div>
@@ -222,7 +231,7 @@ export default function PublicPage({ profile: p }) {
         </div>
       )}
 
-      {/* GRID */}
+      {/* GRID (unchanged below) */}
       <div style={grid2Style}>
         <Card title="About">
           <p style={bodyP}>
@@ -263,7 +272,6 @@ export default function PublicPage({ profile: p }) {
 
         <Card title="Hours"><div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div></Card>
 
-        {/* LOCATION (optional block) */}
         {(p?.location || p?.location_url) && (
           <Card title="Location">
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
@@ -276,7 +284,8 @@ export default function PublicPage({ profile: p }) {
                   href={mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ ...btnBaseStyle, ...btnNeutralStyle, ...btnSmStyle }}
+                  className="hdr-btn"
+                  style={{ border:'1px solid var(--border)', background:'var(--btn-neutral-bg)', color:'var(--text)', textDecoration:'none' }}
                 >
                   Open in Maps
                 </a>
@@ -294,22 +303,18 @@ export default function PublicPage({ profile: p }) {
         {/* GALLERY */}
         <Card title="Gallery" wide>
           {galleryUrls.length ? (
-            <div className="gallery-grid" style={galleryGridStyle}>
+            <div className="gallery-grid">
               {galleryUrls.map((src, i) => (
-                <div key={i} className="gallery-item" style={galleryItemStyle}>
-                  <img
-                    src={src}
-                    alt=""
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}
-                  />
+                <div key={i} className="gallery-item">
+                  <img src={src} alt="" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="gallery-grid" style={galleryGridStyle}>
-              <div className="gallery-item" style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
-              <div className="gallery-item" style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
-              <div className="gallery-item" style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
+            <div className="gallery-grid">
+              <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
+              <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
+              <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
             </div>
           )}
         </Card>
@@ -331,33 +336,18 @@ function Card({ title, wide=false, children }) {
 const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
 
 const headerCardStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 16,
-  padding: '16px 18px',
-  borderRadius: 16,
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
+  borderRadius: 16,
+  padding: '16px 18px',
   marginBottom: 12,
 };
-const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
-const headerTextColStyle = { display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' };
-
-const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
-const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle  = { opacity: 0.8, fontSize: 13, marginTop: 2 };
-
-const ctaRowStyleSm   = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 };
-const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' }; // (kept if you reuse elsewhere)
 
 const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
 const socialBtnStyle = { width: 36, height: 36, borderRadius: 999, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', outline: 'none' };
 const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0' };
 
-const btnBaseStyle = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
-const btnPrimaryStyle = { background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color: '#08101e', border: '1px solid var(--border)' };
-const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--text)' };
-const btnSmStyle = { padding: '6px 10px', borderRadius: 10, fontSize: 12 }; // smaller header buttons
+const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
 
 const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
 const cardStyle = { padding: 16, borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', minWidth: 0 };
@@ -368,7 +358,4 @@ const bodyP = { marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowW
 const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)', fontSize: 13 };
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
-/* Gallery styles now mostly in CSS; inline kept minimal */
-const galleryGridStyle = { display: 'grid', gap: 16 };
-const galleryItemStyle = { borderRadius: 14, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', overflow: 'hidden' };
 const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
