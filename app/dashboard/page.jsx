@@ -47,7 +47,6 @@ export default function Dashboard() {
     phone: '', whatsapp: '', about: '',
     areas: '', services: '', prices: '', hours: '',
     facebook: '', instagram: '', tiktok: '', x: '', youtube: '',
-    location: '', location_url: '',
     avatar_path: '',
     theme: 'deep-navy',
     other_info: '',
@@ -62,7 +61,7 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info,location,location_url')
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info')
         .eq('id', me.id).maybeSingle();
 
       if (data) {
@@ -71,9 +70,7 @@ export default function Dashboard() {
           phone: data.phone ?? '', whatsapp: data.whatsapp ?? '', about: data.about ?? '',
           areas: data.areas ?? '', services: data.services ?? '', prices: data.prices ?? '', hours: data.hours ?? '',
           facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '', youtube: data.youtube ?? '',
-          avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '' , location: data.location ?? '',
-          location_url: data.location_url ?? '',
-
+          avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '' ,
         }));
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
         applyTheme(data.theme ?? 'deep-navy'); // set initial theme on whole page
@@ -197,10 +194,6 @@ export default function Dashboard() {
       {input('TikTok (URL or @)', 'tiktok', 'https://tiktok.com/@yourname or @yourname')}
       {input('X / Twitter (URL or @)', 'x', 'https://x.com/yourname or @yourname')}
       {input('YouTube (URL or @handle)', 'youtube', 'https://youtube.com/@yourchannel or @yourhandle')}
-
-      <div style={{ marginTop: 4, marginBottom: 8, opacity: 0.8 }}>Location (optional)</div>
-      {input('Location (address or place name)', 'location', 'e.g. 221B Baker St, London')}
-      {input('Location link (Google/Apple Maps URL)', 'location_url', 'https://maps.google.com/?q=...')}
 
       {textarea('About (short description)', 'about')}
       {textarea('Zones / Areas (comma separated)', 'areas')}
