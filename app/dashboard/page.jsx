@@ -42,6 +42,7 @@ export default function Dashboard() {
   const publicUrlFor = (path) =>
     path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
 
+  // 2a) Extend form state with gallery
   const [form, setForm] = useState({
     slug: '', name: '', trade: '', city: '',
     phone: '', whatsapp: '', about: '',
@@ -50,6 +51,7 @@ export default function Dashboard() {
     avatar_path: '',
     theme: 'deep-navy',
     other_info: '',
+    gallery: [],            // ← added
   });
 
   /* load profile */
@@ -59,18 +61,21 @@ export default function Dashboard() {
       if (!me) { router.replace('/signin'); return; }
       setUser(me);
 
+      // 2b) Include gallery in SELECT
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info')
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info, gallery')
         .eq('id', me.id).maybeSingle();
 
       if (data) {
-        setForm(prev => ({ ...prev,
+        setForm(prev => ({
+          ...prev,
           slug: data.slug ?? '', name: data.name ?? '', trade: data.trade ?? '', city: data.city ?? '',
           phone: data.phone ?? '', whatsapp: data.whatsapp ?? '', about: data.about ?? '',
           areas: data.areas ?? '', services: data.services ?? '', prices: data.prices ?? '', hours: data.hours ?? '',
           facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '', youtube: data.youtube ?? '',
-          avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '' ,
+          avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '',
+          gallery: Array.isArray(data.gallery) ? data.gallery : [],  // ← added
         }));
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
         applyTheme(data.theme ?? 'deep-navy'); // set initial theme on whole page
@@ -103,22 +108,62 @@ export default function Dashboard() {
     setMsg('Logo uploaded — click Save to keep it.');
   };
 
+  // 2d) Helpers + handlers for gallery
+  const publicGalleryUrlFor = (path) =>
+    path ? supabase.storage.from('gallery').getPublicUrl(path).data.publicUrl : null;
+
+  const onGalleryFiles = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !user) return;
+    setUploading(true); setMsg('');
+
+    const newPaths = [];
+    for (const [i, file] of files.entries()) {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${Date.now()}-${i}.${ext}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('gallery')
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+      if (error) { setMsg(error.message); continue; }
+      newPaths.push(filePath);
+    }
+
+    setUploading(false);
+    if (newPaths.length) {
+      setForm(prev => ({ ...prev, gallery: [...(prev.gallery || []), ...newPaths] }));
+      setMsg(`Added ${newPaths.length} photo${newPaths.length > 1 ? 's' : ''}. Click Save to keep them.`);
+    }
+    e.target.value = '';
+  };
+
+  const removeGalleryItem = async (path) => {
+    // optimistic UI remove
+    setForm(prev => ({ ...prev, gallery: (prev.gallery || []).filter(p => p !== path) }));
+    // try clean up storage (ignore failures)
+    try { await supabase.storage.from('gallery').remove([path]); } catch {}
+  };
+
   const save = async () => {
     setMsg('');
     const slug = (form.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
     if (!slug) return setMsg('Please choose a slug.');
     const normalizedServices = (form.services || '').replace(/\n+/g, ',').replace(/,+/g, ',').trim();
 
+    // 2c) Save gallery on upsert
     const row = {
       id: user.id, slug,
       name: form.name, trade: form.trade, city: form.city,
       phone: form.phone, whatsapp: form.whatsapp,
       about: form.about, areas: form.areas, services: normalizedServices,
       prices: form.prices, hours: form.hours,
-      facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x,youtube: form.youtube,
+      facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x, youtube: form.youtube,
       location: form.location, location_url: form.location_url,
       avatar_path: form.avatar_path,
-      theme: form.theme, other_info: form.other_info, location: form.location,location_url: form.location_url,
+      theme: form.theme, other_info: form.other_info, location: form.location, location_url: form.location_url,
+      gallery: Array.isArray(form.gallery) ? form.gallery : [],    // ← added
       updated_at: new Date().toISOString(),
     };
 
@@ -141,13 +186,13 @@ export default function Dashboard() {
   const input = (label, name, placeholder = '') => (
     <label style={{ display: 'block', marginBottom: 12 }}>
       <div style={{ opacity: 0.8, marginBottom: 6 }}>{label}</div>
-      <input name={name} value={form[name]} onChange={onChange} placeholder={placeholder} style={fieldBase} />
+      <input name={name} value={form[name] ?? ''} onChange={onChange} placeholder={placeholder} style={fieldBase} />
     </label>
   );
   const textarea = (label, name, placeholder = '') => (
     <label style={{ display: 'block', marginBottom: 12 }}>
       <div style={{ opacity: 0.8, marginBottom: 6 }}>{label}</div>
-      <textarea name={name} value={form[name]} onChange={onChange} placeholder={placeholder} rows={4} style={fieldBase} />
+      <textarea name={name} value={form[name] ?? ''} onChange={onChange} placeholder={placeholder} rows={4} style={fieldBase} />
     </label>
   );
 
@@ -181,6 +226,72 @@ export default function Dashboard() {
           <input type="file" accept="image/*" onChange={onAvatarFile} disabled={uploading} style={{ cursor: 'pointer' }} />
         </div>
         <div style={{ opacity: 0.7, marginTop: 6, fontSize: 12 }}>PNG/JPG, up to ~5 MB. {uploading ? 'Uploading…' : ''}</div>
+      </label>
+
+      {/* 2e) Gallery uploader */}
+      <label style={{ display: 'block', marginBottom: 16 }}>
+        <div style={{ opacity: 0.8, marginBottom: 6 }}>Gallery photos</div>
+
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={onGalleryFiles}
+          disabled={uploading}
+          style={{ cursor: 'pointer' }}
+        />
+        <div style={{ opacity: 0.7, marginTop: 6, fontSize: 12 }}>
+          PNG/JPG. You can upload multiple. {uploading ? 'Uploading…' : ''}
+        </div>
+
+        {/* Thumbs */}
+        {Array.isArray(form.gallery) && form.gallery.length > 0 ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+            gap: 12, marginTop: 12
+          }}>
+            {form.gallery.map((p) => {
+              const url = publicGalleryUrlFor(p);
+              return (
+                <div key={p} style={{
+                  position: 'relative',
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  border: '1px solid var(--chip-border)',
+                  background: 'var(--chip-bg)',
+                  height: 120
+                }}>
+                  {url ? (
+                    <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{
+                      width: '100%', height: '100%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.6
+                    }}>no preview</div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeGalleryItem(p)}
+                    title="Remove"
+                    style={{
+                      position: 'absolute', top: 6, right: 6,
+                      border: '1px solid var(--social-border)',
+                      background: 'rgba(0,0,0,0.5)',
+                      color: '#fff',
+                      borderRadius: 8,
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      fontSize: 12
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
       </label>
 
       {input('Trade', 'trade', 'e.g. House Cleaning')}
@@ -251,4 +362,4 @@ export default function Dashboard() {
       {msg ? <p style={{ marginTop: 10 }}>{msg}</p> : null}
     </section>
   );
-                  }
+}
