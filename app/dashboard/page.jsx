@@ -65,7 +65,7 @@ export default function Dashboard() {
       // 2b) Include gallery in SELECT
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info, gallery,location,location_url')
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info,gallery,location,location_url')
         .eq('id', me.id).maybeSingle();
 
       if (data) {
