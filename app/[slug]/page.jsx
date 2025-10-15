@@ -20,9 +20,9 @@ export default async function Page({ params }) {
       phone,whatsapp,
       about,areas,services,prices,hours,
       facebook,instagram,tiktok,x,youtube,
-      avatar_path,other_info,theme
+      avatar_path,other_info,theme,
+      gallery
     `)
-    
     .ilike('slug', params.slug)
     .maybeSingle();
 
