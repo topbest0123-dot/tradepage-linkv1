@@ -48,6 +48,7 @@ export default function Dashboard() {
     phone: '', whatsapp: '', about: '',
     areas: '', services: '', prices: '', hours: '',
     facebook: '', instagram: '', tiktok: '', x: '', youtube: '',
+    location: '', location_url: '',
     avatar_path: '',
     theme: 'deep-navy',
     other_info: '',
@@ -64,7 +65,7 @@ export default function Dashboard() {
       // 2b) Include gallery in SELECT
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info, gallery')
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info, gallery,location,location_url')
         .eq('id', me.id).maybeSingle();
 
       if (data) {
@@ -74,6 +75,7 @@ export default function Dashboard() {
           phone: data.phone ?? '', whatsapp: data.whatsapp ?? '', about: data.about ?? '',
           areas: data.areas ?? '', services: data.services ?? '', prices: data.prices ?? '', hours: data.hours ?? '',
           facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '', youtube: data.youtube ?? '',
+          location: data.location ?? '', location_url: data.location_url ?? '',
           avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '',
           gallery: Array.isArray(data.gallery) ? data.gallery : [],  // ← added
         }));
@@ -161,7 +163,8 @@ export default function Dashboard() {
       prices: form.prices, hours: form.hours,
       facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x, youtube: form.youtube,
       location: form.location, location_url: form.location_url,
-      avatar_path: form.avatar_path,
+      avatar_path: form.avatar_path, location: form.location,
+      location_url: form.location_url,
       theme: form.theme, other_info: form.other_info,
       gallery: Array.isArray(form.gallery) ? form.gallery : [],    // ← added
       updated_at: new Date().toISOString(),
@@ -305,6 +308,10 @@ export default function Dashboard() {
       {input('TikTok (URL or @)', 'tiktok', 'https://tiktok.com/@yourname or @yourname')}
       {input('X / Twitter (URL or @)', 'x', 'https://x.com/yourname or @yourname')}
       {input('YouTube (URL or @handle)', 'youtube', 'https://youtube.com/@yourchannel or @yourhandle')}
+
+      <div style={{ marginTop: 4, marginBottom: 8, opacity: 0.8 }}>Location (optional)</div>
+      {input('Location (address or place name)', 'location', 'e.g. 221B Baker St, London')}
+      {input('Location link (Google/Apple Maps URL)', 'location_url', 'https://maps.google.com/?q=...')}
 
       {textarea('About (short description)', 'about')}
       {textarea('Zones / Areas (comma separated)', 'areas')}
