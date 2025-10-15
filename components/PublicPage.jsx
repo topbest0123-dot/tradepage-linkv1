@@ -38,7 +38,7 @@ const THEMES = {
   'porcelain-mint': {'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'},
   'linen-rose':     {'--bg':'#fbf7f5','--text':'#221a16','--muted':'#6d5c54','--border':'#eaded7','--card-bg-1':'#ffffff','--card-bg-2':'#f6efeb','--chip-bg':'#f2eae6','--chip-border':'#eaded7','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#efe7e3','--social-border':'#e6d9d1'},
   'sandstone':      {'--bg':'#faf7f1','--text':'#191714','--muted':'#6f675f','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6f1e7','--chip-bg':'#f2ece1','--chip-border':'#eadfcd','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#efe9df','--social-border':'#e6dac7'},
-  'cloud-blue':     {'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'},
+  'cloud-blue':     {'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2e6'},
   'ivory-ink':      {'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'},
 };
 const ALIAS = {
@@ -83,7 +83,7 @@ export default function PublicPage({ profile: p }) {
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(p.avatar_path)}`
     : null;
 
-  // Build a Maps link that prefers an explicit URL; else use the address ONLY
+  // Build a Maps link (explicit URL wins; else address only)
   const mapsHref = useMemo(() => {
     const explicit = String(p?.location_url || '').trim();
     if (explicit && /^https?:\/\//i.test(explicit)) return explicit;
@@ -91,11 +91,10 @@ export default function PublicPage({ profile: p }) {
     const addr = String(p?.location || '').trim();
     if (!addr) return null;
 
-    // Search by the exact address the user entered (no business name)
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
   }, [p?.location_url, p?.location]);
 
-  // Gallery public URLs from the "gallery" bucket
+  // Gallery public URLs
   const galleryUrls = useMemo(() => {
     const arr = Array.isArray(p?.gallery) ? p.gallery : [];
     return arr
@@ -129,7 +128,7 @@ export default function PublicPage({ profile: p }) {
         :root { background: var(--bg); color: var(--text); }
         html,body { background: var(--bg); color: var(--text); }
         @media (max-width:480px){
-          .hdr-name{ font-size:16px; line-height:20px; }
+          .hdr-name{ font-size:18px; line-height:22px; }
           .hdr-sub{ font-size:12px; }
           .hdr-cta a, .hdr-cta button{ padding:6px 10px; border-radius:10px; font-size:12px; }
           .hdr-cta{ gap:8px; }
@@ -155,18 +154,17 @@ export default function PublicPage({ profile: p }) {
         }
         .gallery-item img {
           width: 100%;
-          height: auto;         /* mobile/tablet: natural height */
+          height: auto;
           display: block;
           border-radius: 14px;
         }
-        /* On larger screens, unify card heights */
         @media (min-width: 1024px) {
           .gallery-item { height: 220px; }
           .gallery-item img { height: 100%; object-fit: cover; }
         }
       `}</style>
 
-      {/* HEADER */}
+      {/* HEADER (avatar left; name, subline, buttons stacked) */}
       <div style={headerCardStyle}>
         <div style={headerLeftStyle}>
           {avatarUrl ? (
@@ -181,22 +179,35 @@ export default function PublicPage({ profile: p }) {
           ) : (
             <div style={logoDotStyle}>★</div>
           )}
-          <div>
-            <div className="hdr-name" style={headerNameStyle}>{p.name || p.slug}</div>
-            <div className="hdr-sub"  style={headerSubStyle}>{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
-          </div>
-        </div>
 
-        <div className="hdr-cta" style={ctaRowStyle}>
-          {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
-          {waHref   && <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-          <button
-            type="button"
-            onClick={handleShare}
-            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
-          >
-            Share
-          </button>
+          <div style={headerTextColStyle}>
+            <div className="hdr-name" style={headerNameStyle}>{p.name || p.slug}</div>
+            {/* City • Trade on its own line */}
+            <div className="hdr-sub" style={headerSubStyle}>
+              {[p.city, p.trade].filter(Boolean).join(' • ')}
+            </div>
+
+            {/* Buttons under the name (smaller) */}
+            <div className="hdr-cta" style={ctaRowStyleSm}>
+              {callHref && (
+                <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle, ...btnSmStyle }}>
+                  Call
+                </a>
+              )}
+              {waHref && (
+                <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, ...btnSmStyle }}>
+                  WhatsApp
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={handleShare}
+                style={{ ...btnBaseStyle, ...btnSmStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
+              >
+                Share
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -256,18 +267,16 @@ export default function PublicPage({ profile: p }) {
         {(p?.location || p?.location_url) && (
           <Card title="Location">
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
-              {/* only show address text if provided */}
               {p?.location ? (
                 <div style={{ opacity: 0.95 }}>{p.location}</div>
               ) : <div />}
 
-              {/* show button only when we have a URL */}
               {mapsHref && (
                 <a
                   href={mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+                  style={{ ...btnBaseStyle, ...btnNeutralStyle, ...btnSmStyle }}
                 >
                   Open in Maps
                 </a>
@@ -322,17 +331,24 @@ function Card({ title, wide=false, children }) {
 const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
 
 const headerCardStyle = {
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  gap: 16, padding: '16px 18px', borderRadius: 16,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 16,
+  padding: '16px 18px',
+  borderRadius: 16,
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
   marginBottom: 12,
 };
 const headerLeftStyle = { display: 'flex', alignItems: 'center', gap: 12 };
+const headerTextColStyle = { display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' };
+
 const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
 const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
-const headerSubStyle  = { opacity: 0.75, fontSize: 14, marginTop: 4 };
-const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
+const headerSubStyle  = { opacity: 0.8, fontSize: 13, marginTop: 2 };
+
+const ctaRowStyleSm   = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 };
+const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' }; // (kept if you reuse elsewhere)
 
 const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
 const socialBtnStyle = { width: 36, height: 36, borderRadius: 999, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', outline: 'none' };
@@ -341,6 +357,7 @@ const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, li
 const btnBaseStyle = { padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' };
 const btnPrimaryStyle = { background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color: '#08101e', border: '1px solid var(--border)' };
 const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--text)' };
+const btnSmStyle = { padding: '6px 10px', borderRadius: 10, fontSize: 12 }; // smaller header buttons
 
 const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
 const cardStyle = { padding: 16, borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', minWidth: 0 };
@@ -351,7 +368,7 @@ const bodyP = { marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowW
 const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)', fontSize: 13 };
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
-/* NOTE: columns/height now controlled by CSS classes above */
+/* Gallery styles now mostly in CSS; inline kept minimal */
 const galleryGridStyle = { display: 'grid', gap: 16 };
 const galleryItemStyle = { borderRadius: 14, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', overflow: 'hidden' };
 const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
