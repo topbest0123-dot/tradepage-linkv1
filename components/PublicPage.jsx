@@ -147,23 +147,30 @@ export default function PublicPage({ profile: p }) {
   .hdr-name { font-size:18px; line-height:22px; }
   .hdr-sub  { font-size:12px; margin-top:2px; }
 
-  /* >>> Equal-width, full-row CTA buttons on mobile <<< */
-  .hdr-cta {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); /* 2, 3, 4+ buttons scale evenly */
-    gap: 8px;
-    width: 100%;
+  /* === Equal-width buttons in a single row === */
+  .hdr-cta{
+    grid-column:1 / -1;
+    display:flex;
+    gap:8px;
+    width:100%;
   }
   .hdr-cta a,
-  .hdr-cta button {
-    height: 32px;
-    padding: 0 10px;
-    border-radius: 10px;
-    font-size: 12px;
-    width: 100%;               /* fill each grid cell */
-    justify-content: center;   /* center label inside */
+  .hdr-cta button{
+    flex:1 1 0;          /* each takes an equal fraction */
+    width:auto;          /* don’t force a fixed width */
+    height:34px;
+    padding:0 10px;
+    border-radius:10px;
+    font-size:12px;
+    justify-content:center;
   }
+
+  /* keep gallery mobile layout */
+  .gallery-grid{ grid-template-columns:1fr; }
+  .gallery-item{ height:auto; }
+  .gallery-item img{ height:auto; display:block; }
+}
+
 
   /* Gallery: single column on mobile (kept from before) */
   .gallery-grid { grid-template-columns: 1fr; }
