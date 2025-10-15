@@ -36,13 +36,17 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [msg, setMsg] = useState('');
 
+  // slug availability state
+  const [slugTaken, setSlugTaken] = useState(false);
+  const [checkingSlug, setCheckingSlug] = useState(false);
+
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   const publicUrlFor = (path) =>
     path ? supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl : null;
 
-  // 2a) Extend form state with gallery
+  // form state
   const [form, setForm] = useState({
     slug: '', name: '', trade: '', city: '',
     phone: '', whatsapp: '', about: '',
@@ -52,7 +56,7 @@ export default function Dashboard() {
     avatar_path: '',
     theme: 'deep-navy',
     other_info: '',
-    gallery: [],            // ← added
+    gallery: [],
   });
 
   /* load profile */
@@ -62,7 +66,6 @@ export default function Dashboard() {
       if (!me) { router.replace('/signin'); return; }
       setUser(me);
 
-      // 2b) Include gallery in SELECT
       const { data } = await supabase
         .from('profiles')
         .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info,gallery,location,location_url')
@@ -77,10 +80,10 @@ export default function Dashboard() {
           facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '', youtube: data.youtube ?? '',
           location: data.location ?? '', location_url: data.location_url ?? '',
           avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '',
-          gallery: Array.isArray(data.gallery) ? data.gallery : [],  // ← added
+          gallery: Array.isArray(data.gallery) ? data.gallery : [],
         }));
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
-        applyTheme(data.theme ?? 'deep-navy'); // set initial theme on whole page
+        applyTheme(data.theme ?? 'deep-navy');
       } else {
         applyTheme('deep-navy');
       }
@@ -90,8 +93,36 @@ export default function Dashboard() {
     load();
   }, [router]);
 
-  /* live preview on change */
+  /* live theme preview */
   useEffect(() => { applyTheme(form.theme); }, [form.theme]);
+
+  /* live slug availability check */
+  useEffect(() => {
+    const s = (form.slug || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-');
+
+    if (!s || !user) { setSlugTaken(false); return; }
+
+    let alive = true;
+    setCheckingSlug(true);
+
+    supabase
+      .from('profiles')
+      .select('id')
+      .eq('slug', s)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!alive) return;
+        setSlugTaken(!!(data && data.id !== user.id));
+      })
+      .finally(() => { if (alive) setCheckingSlug(false); });
+
+    return () => { alive = false; };
+  }, [form.slug, user]);
 
   const onChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -110,7 +141,7 @@ export default function Dashboard() {
     setMsg('Logo uploaded — click Save to keep it.');
   };
 
-  // 2d) Helpers + handlers for gallery
+  // gallery helpers
   const publicGalleryUrlFor = (path) =>
     path ? supabase.storage.from('gallery').getPublicUrl(path).data.publicUrl : null;
 
@@ -142,19 +173,35 @@ export default function Dashboard() {
   };
 
   const removeGalleryItem = async (path) => {
-    // optimistic UI remove
     setForm(prev => ({ ...prev, gallery: (prev.gallery || []).filter(p => p !== path) }));
-    // try clean up storage (ignore failures)
     try { await supabase.storage.from('gallery').remove([path]); } catch {}
   };
 
   const save = async () => {
     setMsg('');
-    const slug = (form.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+    const slug = (form.slug || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-');
+
     if (!slug) return setMsg('Please choose a slug.');
+
+    // prevent saving if taken (double-check server-side)
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('slug', slug)
+      .limit(1)
+      .maybeSingle();
+
+    if (existing && existing.id !== user.id) {
+      setMsg('This link is taken. Please try another.');
+      return;
+    }
+
     const normalizedServices = (form.services || '').replace(/\n+/g, ',').replace(/,+/g, ',').trim();
 
-    // 2c) Save gallery on upsert
     const row = {
       id: user.id, slug,
       name: form.name, trade: form.trade, city: form.city,
@@ -163,22 +210,30 @@ export default function Dashboard() {
       prices: form.prices, hours: form.hours,
       facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x, youtube: form.youtube,
       location: form.location, location_url: form.location_url,
-      avatar_path: form.avatar_path, location: form.location,
-      location_url: form.location_url,
+      avatar_path: form.avatar_path,
       theme: form.theme, other_info: form.other_info,
-      gallery: Array.isArray(form.gallery) ? form.gallery : [],    // ← added
+      gallery: Array.isArray(form.gallery) ? form.gallery : [],
       updated_at: new Date().toISOString(),
     };
 
     const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' });
-    setMsg(error ? error.message : 'Saved!');
+    if (error) {
+      // 23505 = unique violation
+      if (error.code === '23505') {
+        setMsg('This link is taken. Please try another.');
+      } else {
+        setMsg(error.message);
+      }
+      return;
+    }
+    setMsg('Saved!');
   };
 
   if (loading) return <p>Loading…</p>;
 
   const previewHref = (() => {
     const s = (form.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
-    return s ? `/${s}` : '';
+    return s && !slugTaken ? `/${s}` : '';
   })();
 
   /* UI helpers */
@@ -213,6 +268,18 @@ export default function Dashboard() {
       </p>
 
       {input('Public link (slug)', 'slug', 'e.g. handyman001')}
+
+      {/* availability hint */}
+      {form.slug ? (
+        <div style={{ marginTop: -6, marginBottom: 10, fontSize: 12 }}>
+          {checkingSlug
+            ? 'Checking availability…'
+            : slugTaken
+              ? <span style={{ color: '#ff6b6b' }}>This link is taken. Try a different one.</span>
+              : <span style={{ color: '#78e08f' }}>Available ✓</span>}
+        </div>
+      ) : null}
+
       {input('Business name', 'name', 'e.g. Pro Cleaners')}
 
       {/* Logo / profile photo */}
@@ -231,7 +298,7 @@ export default function Dashboard() {
         <div style={{ opacity: 0.7, marginTop: 6, fontSize: 12 }}>PNG/JPG, up to ~5 MB. {uploading ? 'Uploading…' : ''}</div>
       </label>
 
-      {/* 2e) Gallery uploader */}
+      {/* Gallery uploader */}
       <label style={{ display: 'block', marginBottom: 16 }}>
         <div style={{ opacity: 0.8, marginBottom: 6 }}>Gallery photos</div>
 
@@ -247,7 +314,6 @@ export default function Dashboard() {
           PNG/JPG. You can upload multiple. {uploading ? 'Uploading…' : ''}
         </div>
 
-        {/* Thumbs */}
         {Array.isArray(form.gallery) && form.gallery.length > 0 ? (
           <div style={{
             display: 'grid',
@@ -340,7 +406,15 @@ export default function Dashboard() {
         <button
           type="button"
           onClick={save}
-          style={btn({ background: `linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))`, color: '#08101e', border: '1px solid var(--border)' })}
+          disabled={slugTaken || checkingSlug || !(form.slug || '').trim()}
+          title={slugTaken ? 'This link is taken' : 'Save'}
+          style={btn({
+            background: `linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))`,
+            color: '#08101e',
+            border: '1px solid var(--border)',
+            opacity: slugTaken || checkingSlug || !(form.slug || '').trim() ? 0.6 : 1,
+            cursor: slugTaken || checkingSlug || !(form.slug || '').trim() ? 'not-allowed' : 'pointer'
+          })}
         >
           Save
         </button>
@@ -358,7 +432,7 @@ export default function Dashboard() {
           <button
             type="button"
             disabled
-            title="Enter a slug to preview"
+            title={slugTaken ? 'This link is taken' : 'Enter a slug to preview'}
             style={btn({ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--social-border)', opacity: 0.6, cursor: 'not-allowed' })}
           >
             Preview
