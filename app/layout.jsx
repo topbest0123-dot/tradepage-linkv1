@@ -63,7 +63,7 @@ export default function RootLayout({ children }) {
             }}
           >
             <div>
-              <b>TradePage</b>
+              <b>TradePage.Link</b>
               <div style={{ opacity: 0.7, fontSize: 12, lineHeight: '14px' }}>
                 Your business in a link
               </div>
