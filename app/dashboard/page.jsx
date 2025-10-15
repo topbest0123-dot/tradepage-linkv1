@@ -379,12 +379,47 @@ export default function Dashboard() {
       {input('Location (address or place name)', 'location', 'e.g. 221B Baker St, London')}
       {input('Location link (Google/Apple Maps URL)', 'location_url', 'https://maps.google.com/?q=...')}
 
-      {textarea('About (short description)', 'about')}
-      {textarea('Zones / Areas (comma separated)', 'areas')}
-      {textarea('Services (comma separated)', 'services')}
-      {textarea('Prices (one per line optional)', 'prices')}
-      {textarea('Opening hours', 'hours')}
-      {textarea('Other useful information (optional)', 'other_info')}
+      {textarea(
+  'About (short description)',
+  'about',
+  `Tell customers who you are and what you do.
+Example: Friendly local handyman with 10+ years’ experience. Reliable, insured, free quotes.`
+)}
+
+{textarea(
+  'Zones / Areas (comma separated)',
+  'areas',
+  'e.g. Birmingham City Centre, Digbeth, Edgbaston'
+)}
+
+{textarea(
+  'Services (comma separated)',
+  'services',
+  'e.g. Flat-pack assembly, TV mounting, Painting, Minor plumbing'
+)}
+
+{textarea(
+  'Prices (one per line optional)',
+  'prices',
+  `Call-out — from £25
+Hourly rate — from £35
+Boiler service — £80`
+)}
+
+{textarea(
+  'Opening hours',
+  'hours',
+  `Mon–Fri 08:00–18:00
+Sat 09:00–13:00
+Sun Closed`
+)}
+
+{textarea(
+  'Other useful information (optional)',
+  'other_info',
+  'e.g. Fully insured • DBS checked • Same-day service • Card payments accepted'
+)}
+
 
       {/* Actions row: THEME PICKER + SAVE + PREVIEW */}
       <div style={actionsRow}>
