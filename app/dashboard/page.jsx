@@ -162,7 +162,7 @@ export default function Dashboard() {
       facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x, youtube: form.youtube,
       location: form.location, location_url: form.location_url,
       avatar_path: form.avatar_path,
-      theme: form.theme, other_info: form.other_info, location: form.location, location_url: form.location_url,
+      theme: form.theme, other_info: form.other_info,
       gallery: Array.isArray(form.gallery) ? form.gallery : [],    // ← added
       updated_at: new Date().toISOString(),
     };
