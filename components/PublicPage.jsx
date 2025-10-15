@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
 /* ---------- helpers ---------- */
 const toList = (v) => String(v ?? '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
@@ -67,25 +68,42 @@ export default function PublicPage({ profile: p }) {
   useEffect(() => { if (p?.theme !== undefined) applyTheme(normalizeThemeKey(p.theme)); }, [p?.theme]);
 
   // build fields
-  const areas     = useMemo(() => toList(p?.areas),     [p]);
-  const services  = useMemo(() => toList(p?.services),  [p]);
-  const priceLines= useMemo(() => String(p?.prices ?? '')
-                                .split(/\r?\n/).map(s => s.trim()).filter(Boolean), [p]);
+  const areas      = useMemo(() => toList(p?.areas), [p]);
+  const services   = useMemo(() => toList(p?.services), [p]);
+  const priceLines = useMemo(
+    () => String(p?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
+    [p]
+  );
 
-  const callHref  = getDialHref(p);
-  const waHref    = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
+  const callHref = getDialHref(p);
+  const waHref   = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
 
   // public avatar URL from storage
   const avatarUrl = p?.avatar_path
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(p.avatar_path)}`
     : null;
 
+  // Maps link (prefers saved location_url; falls back to a Google Maps search)
+  const mapsHref = useMemo(() => {
+    if (p?.location_url && /^https?:\/\//i.test(p.location_url)) return p.location_url;
+    const q = [p?.name, p?.location || p?.city].filter(Boolean).join(' ');
+    return q ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : null;
+  }, [p]);
+
+  // Gallery public URLs from the "gallery" bucket
+  const galleryUrls = useMemo(() => {
+    const arr = Array.isArray(p?.gallery) ? p.gallery : [];
+    return arr
+      .map(path => supabase.storage.from('gallery').getPublicUrl(path).data.publicUrl)
+      .filter(Boolean);
+  }, [p]);
+
   const fb = normalizeSocial('facebook',  p?.facebook);
   const ig = normalizeSocial('instagram', p?.instagram);
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
-  const yt  = normalizeYouTube(p?.youtube);
-  
+  const yt = normalizeYouTube(p?.youtube);
+
   const handleShare = () => {
     const url = window.location.href;
     const title = document.title || 'TradePage';
@@ -137,21 +155,24 @@ export default function PublicPage({ profile: p }) {
         <div className="hdr-cta" style={ctaRowStyle}>
           {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
           {waHref   && <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-          <button type="button" onClick={handleShare}
-            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}>
+          <button
+            type="button"
+            onClick={handleShare}
+            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
+          >
             Share
           </button>
         </div>
       </div>
 
       {/* SOCIAL */}
-      {(fb || ig || tk || xx) && (
+      {(fb || ig || tk || xx || yt) && (
         <div style={socialBarWrapStyle}>
           {fb && <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook"  title="Facebook"  style={socialBtnStyle}><span style={socialGlyphStyle}>f</span></a>}
           {ig && <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}><span style={socialGlyphStyle}>IG</span></a>}
           {tk && <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok"    title="TikTok"    style={socialBtnStyle}><span style={socialGlyphStyle}>t</span></a>}
           {xx && <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}><span style={socialGlyphStyle}>X</span></a>}
-          {yt  && <a href={yt}  target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube" style={socialBtnStyle}><span style={socialGlyphStyle}>YT</span></a>}
+          {yt &&  <a href={yt}  target="_blank" rel="noopener noreferrer" aria-label="YouTube"  title="YouTube"  style={socialBtnStyle}><span style={socialGlyphStyle}>YT</span></a>}
         </div>
       )}
 
@@ -196,24 +217,54 @@ export default function PublicPage({ profile: p }) {
 
         <Card title="Hours"><div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div></Card>
 
+        {/* Location */}
+        {(p.location || mapsHref) && (
+          <Card title="Location">
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
+              <div style={{ opacity: 0.95 }}>
+                {p.location || 'Open in Maps'}
+              </div>
+              {mapsHref && (
+                <a
+                  href={mapsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+                >
+                  Open in Maps
+                </a>
+              )}
+            </div>
+          </Card>
+        )}
+
         {p.other_info && p.other_info.trim().length > 0 && (
           <Card title="Other useful information" wide>
             <p style={{ ...bodyP, opacity: 0.95 }}>{p.other_info}</p>
           </Card>
         )}
 
+        {/* Gallery */}
         <Card title="Gallery" wide>
-          <div style={galleryGridStyle}>
-            <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
-            <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
-            <div style={galleryItemStyle}>
-              <img
-                src="https://images.unsplash.com/photo-1581091870673-1e7e1c1a5b1d?q=80&w=1200&auto=format&fit=crop"
-                alt="work"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}
-              />
+          {galleryUrls.length ? (
+            <div style={galleryGridStyle}>
+              {galleryUrls.map((src, i) => (
+                <div key={i} style={galleryItemStyle}>
+                  <img
+                    src={src}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}
+                  />
+                </div>
+              ))}
             </div>
-          </div>
+          ) : (
+            <div style={galleryGridStyle}>
+              <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
+              <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
+              <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
+            </div>
+          )}
         </Card>
       </div>
     </div>
