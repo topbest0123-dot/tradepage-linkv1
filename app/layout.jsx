@@ -9,7 +9,7 @@ export const metadata = {
   openGraph: {
     type: 'website',
     url: '/',
-    siteName: 'TradePage.Link',
+    siteName: 'TradePage',
     title: 'TradePage — Your business in a link',
     description: 'Your business in a link',
     images: [{ url: '/og-default.png', width: 1200, height: 630, alt: 'TradePage' }],
