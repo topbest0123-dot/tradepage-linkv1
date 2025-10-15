@@ -38,7 +38,7 @@ const THEMES = {
   'porcelain-mint': {'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'},
   'linen-rose':     {'--bg':'#fbf7f5','--text':'#221a16','--muted':'#6d5c54','--border':'#eaded7','--card-bg-1':'#ffffff','--card-bg-2':'#f6efeb','--chip-bg':'#f2eae6','--chip-border':'#eaded7','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#efe7e3','--social-border':'#e6d9d1'},
   'sandstone':      {'--bg':'#faf7f1','--text':'#191714','--muted':'#6f675f','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6f1e7','--chip-bg':'#f2ece1','--chip-border':'#eadfcd','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#efe9df','--social-border':'#e6dac7'},
-  'cloud-blue':     {'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2e6'},
+  'cloud-blue':     {'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'},
   'ivory-ink':      {'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'},
 };
 const ALIAS = {
@@ -83,7 +83,7 @@ export default function PublicPage({ profile: p }) {
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(p.avatar_path)}`
     : null;
 
-  // Build a Maps link (explicit URL wins; else address only)
+  // Build a Maps link that prefers an explicit URL; else use the address ONLY
   const mapsHref = useMemo(() => {
     const explicit = String(p?.location_url || '').trim();
     if (explicit && /^https?:\/\//i.test(explicit)) return explicit;
@@ -92,7 +92,7 @@ export default function PublicPage({ profile: p }) {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
   }, [p?.location_url, p?.location]);
 
-  // Gallery public URLs
+  // Gallery public URLs from the "gallery" bucket
   const galleryUrls = useMemo(() => {
     const arr = Array.isArray(p?.gallery) ? p.gallery : [];
     return arr
@@ -126,97 +126,68 @@ export default function PublicPage({ profile: p }) {
         :root { background: var(--bg); color: var(--text); }
         html,body { background: var(--bg); color: var(--text); }
 
-        /* ------- Header grid ------- */
-        .hdr-grid{
-          display:grid;
-          grid-template-columns: 48px 1fr;
-          grid-template-areas:
-            "avatar text"
-            "avatar sub"
-            "avatar cta";
-          gap: 8px 12px;
-          align-items: start;               /* avatar hugs the top (aligns with name) */
-        }
-        .hdr-avatar { grid-area: avatar; width:48px; height:48px; border-radius:14px; object-fit:cover; }
-        .hdr-text   { grid-area: text; }
-        .hdr-sub    { grid-area: sub; opacity:.8; font-size:13px; margin-top:2px; }
-        .hdr-cta    { grid-area: cta; display:flex; gap:8px; flex-wrap:wrap; }
+        /* --- Desktop defaults --- */
+        .hdr         { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+        .hdr-left    { display:flex; align-items:center; gap:12px; min-width:0; }
+        .hdr-text    { display:flex; flex-direction:column; min-width:0; }
+        .hdr-name    { font-size:22px; line-height:24px; font-weight:800; }
+        .hdr-sub     { font-size:14px; opacity:.75; margin-top:4px; }
+        .hdr-cta a, .hdr-cta button { height:36px; padding:0 14px; border-radius:12px; font-weight:700; }
 
-        /* Button sizing for header (CSS so we can vary by viewport) */
-        .hdr-btn { padding: 6px 10px; font-size:12px; border-radius:10px; font-weight:700; }
-        @media (min-width: 900px){
-          /* Desktop: restore old layout (CTA to the right), larger buttons */
-          .hdr-grid{
-            grid-template-columns: 48px 1fr auto;
-            grid-template-areas: "avatar text cta";
-            align-items: center;
-          }
-          .hdr-cta { justify-self: end; }
-          .hdr-btn { padding:10px 16px; font-size:14px; border-radius:12px; }
-          .hdr-sub { font-size:14px; }
-        }
+        /* --- Gallery responsive --- */
+        .gallery-grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; }
+        .gallery-item { height:220px; overflow:hidden; border-radius:14px; border:1px solid var(--chip-border); background:var(--chip-bg); }
+        .gallery-item img { width:100%; height:100%; object-fit:cover; border-radius:14px; }
 
-        /* Gallery responsiveness */
-        .gallery-grid { display:grid; grid-template-columns: 1fr; gap:16px; }
-        @media (min-width: 700px){ .gallery-grid{ grid-template-columns: 1fr 1fr; } }
-        @media (min-width: 1024px){ .gallery-grid{ grid-template-columns: 1fr 1fr 1fr; } }
-        .gallery-item{ border-radius:14px; border:1px solid var(--chip-border); background:var(--chip-bg); overflow:hidden; }
-        .gallery-item img{ width:100%; height:auto; display:block; border-radius:14px; }
-        @media (min-width:1024px){ .gallery-item{ height:220px; } .gallery-item img{ height:100%; object-fit:cover; } }
+        /* --- Mobile tweaks --- */
+        @media (max-width: 900px) {
+          .hdr { display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto auto; align-items:start; row-gap:6px; }
+          .hdr-left { grid-column:1 / -1; }
+          .hdr-avatar { align-self:start; margin-top:2px; }
+          .hdr-name { font-size:18px; line-height:22px; }
+          .hdr-sub  { font-size:12px; margin-top:2px; }
+          .hdr-cta  { grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap; }
+          .hdr-cta a, .hdr-cta button { height:32px; padding:0 10px; border-radius:10px; font-size:12px; }
+
+          .gallery-grid { grid-template-columns: 1fr; }
+          .gallery-item { height:auto; }
+          .gallery-item img { height:auto; display:block; }
+        }
       `}</style>
 
       {/* HEADER */}
-      <div style={headerCardStyle}>
-        <div className="hdr-grid">
+      <div className="hdr" style={headerCardStyle}>
+        <div className="hdr-left" style={headerLeftStyle}>
           {avatarUrl ? (
             <img
               src={avatarUrl}
               alt={`${p.name || p.slug} logo`}
               className="hdr-avatar"
-              style={{ border:'1px solid var(--border)', background:'var(--card-bg-2)' }}
+              style={{
+                width:48, height:48, borderRadius:14, objectFit:'cover',
+                border:'1px solid var(--border)', background:'var(--card-bg-2)'
+              }}
             />
           ) : (
-            <div className="hdr-avatar" style={{ display:'flex', alignItems:'center', justifyContent:'center', background:'var(--btn-primary-1)', color:'#0a0f1c', fontWeight:800, fontSize:20, border:'1px solid var(--border)' }}>★</div>
+            <div className="hdr-avatar" style={logoDotStyle}>★</div>
           )}
 
           <div className="hdr-text">
-            <div className="hdr-name" style={headerNameStyle}>{p.name || p.slug}</div>
+            <div className="hdr-name">{p.name || p.slug}</div>
+            <div className="hdr-sub">{[p.trade, p.city].filter(Boolean).join(' • ')}</div>
           </div>
+        </div>
 
-          {/* City • Trade line */}
-          <div className="hdr-sub">
-            {[p.city, p.trade].filter(Boolean).join(' • ')}
-          </div>
-
-          {/* CTA row (mobile under the name, desktop on the right) */}
-          <div className="hdr-cta">
-            {callHref && (
-              <a
-                href={callHref}
-                className="hdr-btn"
-                style={{ border:'1px solid var(--border)', background:'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color:'#08101e', textDecoration:'none' }}
-              >
-                Call
-              </a>
-            )}
-            {waHref && (
-              <a
-                href={waHref}
-                className="hdr-btn"
-                style={{ border:'1px solid var(--border)', background:'var(--btn-neutral-bg)', color:'var(--text)', textDecoration:'none' }}
-              >
-                WhatsApp
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={handleShare}
-              className="hdr-btn"
-              style={{ border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)', cursor:'pointer' }}
-            >
-              Share
-            </button>
-          </div>
+        <div className="hdr-cta" style={ctaRowStyle}>
+          {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
+          {waHref   && <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
+          <button
+            type="button"
+            onClick={handleShare}
+            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
+          >
+            Share
+          </button>
         </div>
       </div>
 
@@ -231,7 +202,7 @@ export default function PublicPage({ profile: p }) {
         </div>
       )}
 
-      {/* GRID (unchanged below) */}
+      {/* GRID */}
       <div style={grid2Style}>
         <Card title="About">
           <p style={bodyP}>
@@ -272,20 +243,19 @@ export default function PublicPage({ profile: p }) {
 
         <Card title="Hours"><div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div></Card>
 
+        {/* LOCATION (optional block) */}
         {(p?.location || p?.location_url) && (
           <Card title="Location">
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
               {p?.location ? (
                 <div style={{ opacity: 0.95 }}>{p.location}</div>
               ) : <div />}
-
               {mapsHref && (
                 <a
                   href={mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hdr-btn"
-                  style={{ border:'1px solid var(--border)', background:'var(--btn-neutral-bg)', color:'var(--text)', textDecoration:'none' }}
+                  style={{ ...btnBaseStyle, ...btnNeutralStyle }}
                 >
                   Open in Maps
                 </a>
@@ -336,18 +306,22 @@ function Card({ title, wide=false, children }) {
 const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48px', color: 'var(--text)', background: 'var(--bg)', overflowX: 'hidden' };
 
 const headerCardStyle = {
+  gap: 16, padding: '16px 18px', borderRadius: 16,
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
-  borderRadius: 16,
-  padding: '16px 18px',
   marginBottom: 12,
 };
+const headerLeftStyle = { gap: 12, minWidth: 0 };
+const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
+const ctaRowStyle     = { display: 'flex', gap: 10, flexWrap: 'wrap' };
 
 const socialBarWrapStyle = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 12px 0' };
 const socialBtnStyle = { width: 36, height: 36, borderRadius: 999, border: '1px solid var(--social-border)', background: 'transparent', color: 'var(--text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', outline: 'none' };
 const socialGlyphStyle = { fontSize: 13, fontWeight: 800, letterSpacing: 0.2, lineHeight: 1, translate: '0 0' };
 
-const headerNameStyle = { fontWeight: 800, fontSize: 22, lineHeight: '24px' };
+const btnBaseStyle = { padding: '0 14px', borderRadius: 12, border: '1px solid var(--border)', textDecoration: 'none', fontWeight: 700, cursor: 'pointer', height: 36, display:'inline-flex', alignItems:'center' };
+const btnPrimaryStyle = { background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))', color: '#08101e', border: '1px solid var(--border)' };
+const btnNeutralStyle = { background: 'var(--btn-neutral-bg)', color: 'var(--text)' };
 
 const h2Style = { margin: '0 0 10px 0', fontSize: 18 };
 const cardStyle = { padding: 16, borderRadius: 16, border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))', minWidth: 0 };
