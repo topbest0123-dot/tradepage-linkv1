@@ -83,11 +83,16 @@ export default function PublicPage({ profile: p }) {
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(p.avatar_path)}`
     : null;
 
-  // Maps link (prefers saved location_url; falls back to a Google Maps search)
+  // Build a Maps link ONLY if user entered location_url or location
   const mapsHref = useMemo(() => {
-    if (p?.location_url && /^https?:\/\//i.test(p.location_url)) return p.location_url;
-    const q = [p?.name, p?.location || p?.city].filter(Boolean).join(' ');
-    return q ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : null;
+    const explicit = String(p?.location_url || '').trim();
+    if (explicit && /^https?:\/\//i.test(explicit)) return explicit;
+
+    const loc = String(p?.location || '').trim();
+    if (!loc) return null;
+
+    const q = [p?.name || '', loc].filter(Boolean).join(' ');
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
   }, [p]);
 
   // Gallery public URLs from the "gallery" bucket
@@ -217,13 +222,16 @@ export default function PublicPage({ profile: p }) {
 
         <Card title="Hours"><div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div></Card>
 
-        {/* Location */}
-        {(p.location || mapsHref) && (
+        {/* LOCATION (optional block) */}
+        {(p?.location || p?.location_url) && (
           <Card title="Location">
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
-              <div style={{ opacity: 0.95 }}>
-                {p.location || 'Open in Maps'}
-              </div>
+              {/* only show address text if provided */}
+              {p?.location ? (
+                <div style={{ opacity: 0.95 }}>{p.location}</div>
+              ) : <div />}
+
+              {/* show button only when we have a URL */}
               {mapsHref && (
                 <a
                   href={mapsHref}
@@ -244,7 +252,7 @@ export default function PublicPage({ profile: p }) {
           </Card>
         )}
 
-        {/* Gallery */}
+        {/* GALLERY */}
         <Card title="Gallery" wide>
           {galleryUrls.length ? (
             <div style={galleryGridStyle}>
