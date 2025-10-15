@@ -141,18 +141,36 @@ export default function PublicPage({ profile: p }) {
 
         /* --- Mobile tweaks --- */
         @media (max-width: 900px) {
-          .hdr { display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto auto; align-items:start; row-gap:6px; }
-          .hdr-left { grid-column:1 / -1; }
-          .hdr-avatar { align-self:start; margin-top:2px; }
-          .hdr-name { font-size:18px; line-height:22px; }
-          .hdr-sub  { font-size:12px; margin-top:2px; }
-          .hdr-cta  { grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap; }
-          .hdr-cta a, .hdr-cta button { height:32px; padding:0 10px; border-radius:10px; font-size:12px; }
+  .hdr { display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto auto; align-items:start; row-gap:6px; }
+  .hdr-left { grid-column:1 / -1; }
+  .hdr-avatar { align-self:start; margin-top:2px; }
+  .hdr-name { font-size:18px; line-height:22px; }
+  .hdr-sub  { font-size:12px; margin-top:2px; }
 
-          .gallery-grid { grid-template-columns: 1fr; }
-          .gallery-item { height:auto; }
-          .gallery-item img { height:auto; display:block; }
-        }
+  /* >>> Equal-width, full-row CTA buttons on mobile <<< */
+  .hdr-cta {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); /* 2, 3, 4+ buttons scale evenly */
+    gap: 8px;
+    width: 100%;
+  }
+  .hdr-cta a,
+  .hdr-cta button {
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    width: 100%;               /* fill each grid cell */
+    justify-content: center;   /* center label inside */
+  }
+
+  /* Gallery: single column on mobile (kept from before) */
+  .gallery-grid { grid-template-columns: 1fr; }
+  .gallery-item { height:auto; }
+  .gallery-item img { height:auto; display:block; }
+}
+
       `}</style>
 
       {/* HEADER */}
