@@ -247,7 +247,6 @@ export default function PublicPage({ profile: p }) {
       </div>
 
       {/* SOCIAL */}
-      {(fb || ig || tk || xx || yt) && (
   {(fb || ig || tk || xx || yt) && (
   <div style={socialBarWrapStyle}>
     {fb && (
