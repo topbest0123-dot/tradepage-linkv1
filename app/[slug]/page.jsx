@@ -20,7 +20,7 @@ export default async function Page({ params }) {
       phone,whatsapp,
       about,areas,services,prices,hours,
       facebook,instagram,tiktok,x,youtube,
-      location: '', location_url: '',
+      location, location_url,
       avatar_path,other_info,theme,
       gallery
     `)
