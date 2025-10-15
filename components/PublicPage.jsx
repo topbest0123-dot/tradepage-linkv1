@@ -83,17 +83,18 @@ export default function PublicPage({ profile: p }) {
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(p.avatar_path)}`
     : null;
 
-  // Build a Maps link ONLY if user entered location_url or location
-  const mapsHref = useMemo(() => {
-    const explicit = String(p?.location_url || '').trim();
-    if (explicit && /^https?:\/\//i.test(explicit)) return explicit;
+  // Build a Maps link that prefers an explicit URL; else use the address ONLY
+const mapsHref = useMemo(() => {
+  const explicit = String(p?.location_url || '').trim();
+  if (explicit && /^https?:\/\//i.test(explicit)) return explicit;
 
-    const loc = String(p?.location || '').trim();
-    if (!loc) return null;
+  const addr = String(p?.location || '').trim();
+  if (!addr) return null;
 
-    const q = [p?.name || '', loc].filter(Boolean).join(' ');
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
-  }, [p]);
+  // Search by the exact address the user entered (no business name)
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+}, [p?.location_url, p?.location]);
+
 
   // Gallery public URLs from the "gallery" bucket
   const galleryUrls = useMemo(() => {
