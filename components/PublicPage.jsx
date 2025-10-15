@@ -84,17 +84,16 @@ export default function PublicPage({ profile: p }) {
     : null;
 
   // Build a Maps link that prefers an explicit URL; else use the address ONLY
-const mapsHref = useMemo(() => {
-  const explicit = String(p?.location_url || '').trim();
-  if (explicit && /^https?:\/\//i.test(explicit)) return explicit;
+  const mapsHref = useMemo(() => {
+    const explicit = String(p?.location_url || '').trim();
+    if (explicit && /^https?:\/\//i.test(explicit)) return explicit;
 
-  const addr = String(p?.location || '').trim();
-  if (!addr) return null;
+    const addr = String(p?.location || '').trim();
+    if (!addr) return null;
 
-  // Search by the exact address the user entered (no business name)
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
-}, [p?.location_url, p?.location]);
-
+    // Search by the exact address the user entered (no business name)
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+  }, [p?.location_url, p?.location]);
 
   // Gallery public URLs from the "gallery" bucket
   const galleryUrls = useMemo(() => {
@@ -134,6 +133,36 @@ const mapsHref = useMemo(() => {
           .hdr-sub{ font-size:12px; }
           .hdr-cta a, .hdr-cta button{ padding:6px 10px; border-radius:10px; font-size:12px; }
           .hdr-cta{ gap:8px; }
+        }
+
+        /* ---- Responsive gallery ---- */
+        .gallery-grid {
+          display: grid;
+          grid-template-columns: 1fr;       /* mobile: single, full width */
+          gap: 16px;
+        }
+        @media (min-width: 700px) {
+          .gallery-grid { grid-template-columns: 1fr 1fr; } /* tablet: 2 cols */
+        }
+        @media (min-width: 1024px) {
+          .gallery-grid { grid-template-columns: 1fr 1fr 1fr; } /* desktop: 3 cols */
+        }
+        .gallery-item {
+          border-radius: 14px;
+          border: 1px solid var(--chip-border);
+          background: var(--chip-bg);
+          overflow: hidden;
+        }
+        .gallery-item img {
+          width: 100%;
+          height: auto;         /* mobile/tablet: natural height */
+          display: block;
+          border-radius: 14px;
+        }
+        /* On larger screens, unify card heights */
+        @media (min-width: 1024px) {
+          .gallery-item { height: 220px; }
+          .gallery-item img { height: 100%; object-fit: cover; }
         }
       `}</style>
 
@@ -256,9 +285,9 @@ const mapsHref = useMemo(() => {
         {/* GALLERY */}
         <Card title="Gallery" wide>
           {galleryUrls.length ? (
-            <div style={galleryGridStyle}>
+            <div className="gallery-grid" style={galleryGridStyle}>
               {galleryUrls.map((src, i) => (
-                <div key={i} style={galleryItemStyle}>
+                <div key={i} className="gallery-item" style={galleryItemStyle}>
                   <img
                     src={src}
                     alt=""
@@ -268,10 +297,10 @@ const mapsHref = useMemo(() => {
               ))}
             </div>
           ) : (
-            <div style={galleryGridStyle}>
-              <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
-              <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
-              <div style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
+            <div className="gallery-grid" style={galleryGridStyle}>
+              <div className="gallery-item" style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
+              <div className="gallery-item" style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
+              <div className="gallery-item" style={galleryItemStyle}><div style={imgPlaceholderStyle}>work photo</div></div>
             </div>
           )}
         </Card>
@@ -322,6 +351,7 @@ const bodyP = { marginTop: 0, marginBottom: 0, whiteSpace: 'pre-wrap', overflowW
 const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)', fontSize: 13 };
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
-const galleryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
-const galleryItemStyle = { height: 220, borderRadius: 14, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', overflow: 'hidden' };
+/* NOTE: columns/height now controlled by CSS classes above */
+const galleryGridStyle = { display: 'grid', gap: 16 };
+const galleryItemStyle = { borderRadius: 14, border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', overflow: 'hidden' };
 const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
