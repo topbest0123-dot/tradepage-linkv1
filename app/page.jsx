@@ -3,7 +3,7 @@
 
 /**
  * Homepage — keep HERO exactly as-is.
- * From the red line down: remove content and fade page bg into a warm cream.
+ * Below the red line: no content, and a hard cut to a warm cream background.
  */
 
 export default function HomePage() {
@@ -78,7 +78,7 @@ export default function HomePage() {
         <div className="glow g2" />
       </section>
 
-      {/* BELOW THE RED LINE: no content; only a full-width background transition */}
+      {/* BELOW THE RED LINE: no content; just a full-width cream slab */}
       <section className="transition-slab" aria-hidden="true" />
     </main>
   );
@@ -93,11 +93,8 @@ const styles = `
   --muted:#5a6672;
   --border:#1b2230;
 
-  /* warm cream target (like screenshot #2) */
+  /* warm cream target */
   --below-bg:#f6f0e7;
-
-  /* fade strip height (small like pic2) */
-  --blend-h: 110px;
 
   /* phone sizing */
   --phone-w: 360px;
@@ -166,7 +163,7 @@ html,body{
 .g2{width:600px;height:600px;right:-180px;top:-140px;background:radial-gradient(closest-side,#5aa6ff,transparent 70%)}
 
 /* ---- BELOW THE RED LINE ----
-   Full-bleed slab with a SMALL top fade like pic2 */
+   Full-bleed slab with NO fade (clean hard edge) */
 .transition-slab{
   position: relative;
 
@@ -177,23 +174,7 @@ html,body{
 
   min-height: 100vh;
   background: var(--below-bg);
-  overflow: hidden; /* clip the small fade strip */
-}
-
-/* tight fade strip from dark -> transparent over the cream base */
-.transition-slab::before{
-  content:"";
-  position:absolute;
-  top:-1px; left:0; right:0;
-  height: var(--blend-h);
-  pointer-events:none;
-  background: linear-gradient(
-    to bottom,
-    rgba(11,16,23,1) 0%,
-    rgba(11,16,23,.75) 35%,
-    rgba(11,16,23,.25) 85%,
-    rgba(11,16,23,0) 100%
-  );
+  margin: 0; padding: 0; border: 0;
 }
 
 /* DESKTOP ENHANCEMENTS */
