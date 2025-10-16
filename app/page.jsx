@@ -2,11 +2,11 @@
 'use client';
 
 /**
- * Homepage — LIGHT THEME version (local to this page only)
- * Requires assets in /public:
- *  - tradepage-demo.mp4 (and optionally tradepage-demo.webm)
- *  - tradepage-demo.jpg  (poster frame)
- *  - flow-screenshot.jpg (optional static image for FLOW)
+ * Homepage — light theme, with refined phone mock (no corner seams).
+ * Assets in /public:
+ *   - tradepage-demo.mp4 (and optionally tradepage-demo.webm)
+ *   - tradepage-demo.jpg  (poster frame)
+ *   - flow-screenshot.jpg (optional static image for FLOW)
  */
 
 export default function HomePage() {
@@ -29,14 +29,10 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Modern phone mock */}
+          {/* Refined modern phone mock (no seams) */}
           <div className="hero-visual">
-            <div className="device-neo">
-              {/* side reflections */}
-              <i className="edge edge-l" />
-              <i className="edge edge-r" />
-
-              <div className="bezel">
+            <div className="device-ultra">
+              <div className="frame2">
                 <video
                   className="screen"
                   autoPlay
@@ -74,7 +70,7 @@ export default function HomePage() {
                 </div>
 
                 {/* punch-hole camera */}
-                <div className="punch" />
+                <div className="punch2" />
               </div>
             </div>
           </div>
@@ -85,14 +81,12 @@ export default function HomePage() {
         <div className="glow g2" />
       </section>
 
-      {/* FLOW — sticky phone (desktop), linear story (mobile) */}
+      {/* FLOW */}
       <section className="flow">
         <div className="container flow-wrap">
           <div className="flow-phone">
-            <div className="device-neo sticky">
-              <i className="edge edge-l" />
-              <i className="edge edge-r" />
-              <div className="bezel">
+            <div className="device-ultra sticky">
+              <div className="frame2">
                 <img className="screen" src="/flow-screenshot.jpg" alt="Essentials view" loading="lazy" />
                 <div className="statusbar">
                   <span className="time">12:08 PM</span>
@@ -115,7 +109,7 @@ export default function HomePage() {
                     <span className="bat"><i className="lvl" /></span>
                   </div>
                 </div>
-                <div className="punch" />
+                <div className="punch2" />
               </div>
             </div>
           </div>
@@ -171,7 +165,6 @@ export default function HomePage() {
   );
 }
 
-/* Lightweight step row */
 function Step({ n, title, text }) {
   return (
     <div className="step">
@@ -184,86 +177,66 @@ function Step({ n, title, text }) {
   );
 }
 
-/* Styles — LIGHT THEME scoped to .tp-home--light */
+/* Styles */
 const styles = `
-/* ---- Light tokens (scoped) ---- */
-.tp-home--light{
-  --bg: #faf7f2;
-  --text: #101418;
-  --muted: #5a6672;
-  --border: #e9e5dc;
-  --card-bg-1: #ffffff;
-  --card-bg-2: #f4f6fb;
-  --chip-bg: #f6f7f9;
-  --chip-border: #e7e8ec;
-  --btn-primary-1: #5aa6ff;  /* pastel blue */
-  --btn-primary-2: #77e2b3;  /* mint */
+/* -------------- PAGE-WIDE LIGHT THEME --------------- */
+/* Override your global tokens ON THIS PAGE so header/top area switch to light too */
+:root{
+  --bg:#faf7f2; --text:#101418; --muted:#5a6672; --border:#e9e5dc;
+  --card-bg-1:#ffffff; --card-bg-2:#f4f6fb; --chip-bg:#f6f7f9; --chip-border:#e7e8ec;
+  --btn-primary-1:#5aa6ff; --btn-primary-2:#77e2b3;
+}
+/* Paint the entire viewport */
+html,body{
   background:
-    radial-gradient(900px 420px at 70% -10%, rgba(118,186,255,.25), transparent 60%),
-    radial-gradient(800px 380px at -10% -6%, rgba(255,188,143,.22), transparent 60%),
+    radial-gradient(1000px 500px at 70% -10%, rgba(122,186,255,.25), transparent 60%),
+    radial-gradient(900px 420px at -10% -6%, rgba(255,188,143,.22), transparent 60%),
     linear-gradient(180deg, #fff, var(--bg));
-  color: var(--text);
+  color:var(--text);
 }
 
 /* layout helpers */
+.tp-home{color:var(--text)}
 .container{max-width:1180px;margin:0 auto;padding:0 16px}
 
 /* HERO */
 .hero{position:relative;padding:54px 0 12px;border-bottom:1px solid var(--border)}
 .hero .container{display:grid;grid-template-columns:1fr;gap:28px}
-.hero h1{margin:10px 0 8px;font-size:42px;line-height:1.06;font-weight:1000;letter-spacing:.2px;color:var(--text)}
+.hero h1{margin:10px 0 8px;font-size:42px;line-height:1.06;font-weight:1000;letter-spacing:.2px}
 .hero .dot{color:transparent;background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));-webkit-background-clip:text;background-clip:text}
 .lead{font-size:16px;line-height:1.75;color:var(--muted);max-width:760px}
 .hero-visual{display:flex;justify-content:center}
 
-/* --- Realistic modern phone --- */
-.device-neo{
+/* --------- REFINED PHONE MOCK (no corner seams) ---------- */
+.device-ultra{
   position:relative;
-  width:380px;max-width:100%;
+  width:360px;max-width:100%;
   aspect-ratio:9/19;
-  border-radius:42px;
-  background:linear-gradient(180deg,#aeb7c3,#7c818a);
-  box-shadow:
-    0 40px 120px rgba(32,39,68,.18),
-    0 1px 0 rgba(255,255,255,.28) inset,
-    0 -1px 0 rgba(0,0,0,.28) inset;
-  border:1px solid rgba(255,255,255,.35);
+  border-radius:40px;
+  background:linear-gradient(180deg,#b6bcc6,#8c929c);
+  box-shadow:0 40px 120px rgba(32,39,68,.18);
+  border:1px solid rgba(255,255,255,.45);
 }
-
-/* side reflections */
-.device-neo .edge{
-  content:'';position:absolute;top:12px;bottom:12px;width:9px;border-radius:8px;opacity:.8;pointer-events:none;
-  background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.15) 45%,rgba(0,0,0,.25) 55%,rgba(255,255,255,.4));
-  filter:blur(.15px);
+/* Inner black bezel */
+.frame2{
+  position:absolute;inset:10px;border-radius:32px;background:#0a0d12;
+  box-shadow:0 0 0 12px rgba(0,0,0,.18) inset; /* soft depth only, no thin borders */
+  overflow:hidden; /* critical: clips children perfectly to radius */
 }
-.device-neo .edge-l{left:6px}
-.device-neo .edge-r{right:6px;transform:scaleX(-1)}
-
-.bezel{
-  position:absolute;inset:8px;border-radius:36px;
-  background:linear-gradient(180deg,#0f1116,#0a0d12);
-  box-shadow:0 0 0 1px rgba(255,255,255,.18) inset, 0 0 0 12px rgba(0,0,0,.20) inset;
-}
-
-/* punch-hole camera */
-.punch{
-  position:absolute;top:12px;left:50%;transform:translateX(-50%);
-  width:12px;height:12px;border-radius:50%;
-  background:#000;box-shadow:0 0 0 2px rgba(255,255,255,.2) inset, 0 0 8px rgba(0,0,0,.5);
-  opacity:.95;pointer-events:none;
-}
-
-/* screen area */
+/* Screen sits inside bezel with even insets — NO border to avoid seams */
 .screen{
-  position:absolute;inset:16px;border-radius:28px;background:#000;object-fit:cover;width:auto;height:auto;display:block;
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 18px 28px rgba(0,0,0,.45) inset;
-  overflow:hidden;
+  position:absolute;inset:22px;border-radius:24px;background:#000;object-fit:cover;display:block;
 }
-
-/* tiny status bar */
+/* Tiny punch camera */
+.punch2{
+  position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  width:12px;height:12px;border-radius:50%;background:#000;opacity:.95;
+  box-shadow:0 0 0 2px rgba(255,255,255,.22) inset, 0 0 8px rgba(0,0,0,.5);
+  pointer-events:none;
+}
+/* Status bar */
 .statusbar{
-  position:absolute;left:26px;right:26px;top:18px;height:18px;
+  position:absolute;left:30px;right:30px;top:22px;height:18px;
   display:flex;align-items:center;justify-content:space-between;
   color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.95;
 }
@@ -274,7 +247,7 @@ const styles = `
 .bat::after{content:'';position:absolute;right:-3px;top:3px;width:2px;height:4px;background:rgba(255,255,255,.98);border-radius:1px}
 .bat .lvl{position:absolute;left:2px;top:2px;height:6px;width:16px;background:#fff;border-radius:1px}
 
-/* ambient glows — softer for light bg */
+/* ambient glows — soft for light bg */
 .glow{position:absolute;filter:blur(48px);opacity:.35;pointer-events:none}
 .g1{width:620px;height:620px;left:-180px;top:-160px;background:radial-gradient(closest-side,var(--btn-primary-2),transparent 70%)}
 .g2{width:600px;height:600px;right:-180px;top:-140px;background:radial-gradient(closest-side,var(--btn-primary-1),transparent 70%)}
@@ -297,7 +270,7 @@ const styles = `
 .belt-track{display:flex;gap:10px;overflow:auto;padding:0 16px;scroll-snap-type:x mandatory}
 .belt-pill{flex:0 0 auto;scroll-snap-align:start;border:1px solid var(--chip-border);background:#fff;padding:8px 12px;border-radius:999px;font-size:12px;color:var(--text);box-shadow:0 4px 12px rgba(0,0,0,.04)}
 
-/* COMPARE — light cards with soft elevation */
+/* COMPARE */
 .compare{padding:30px 0 12px}
 .cmp-grid{display:grid;grid-template-columns:1fr;gap:16px}
 .cmp{padding:20px;border-radius:18px;border:1px solid var(--border);
