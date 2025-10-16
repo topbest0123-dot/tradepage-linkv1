@@ -164,18 +164,22 @@ html,body{
 
 /* ---- BELOW THE RED LINE ----
    Full-bleed slab with NO fade (clean hard edge) */
+/* ---- BELOW THE RED LINE ----
+   Full-bleed slab with NO fade (clean hard edge) */
 .transition-slab{
   position: relative;
+  display:block;
 
-  /* full-bleed */
+  /* full-bleed, independent of any parent width */
   left: 50%;
-  margin-left: -50vw;
+  transform: translateX(-50%);
   width: 100vw;
 
   min-height: 100vh;
   background: var(--below-bg);
   margin: 0; padding: 0; border: 0;
 }
+
 
 /* DESKTOP ENHANCEMENTS */
 @media (min-width:980px){
