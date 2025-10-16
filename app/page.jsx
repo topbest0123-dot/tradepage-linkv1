@@ -24,9 +24,9 @@ export default function HomePage() {
               One link.
             </h1>
             <p className="lead">
-              TradePageLink removes the fluff and shows your customers only what trully matters:
-              <b> Contact Information</b>, <b>quick quote</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>socials</b>, <b>your covering creas</b>
-              Your customer acts in seconds—no wandering menus, no confusion.
+              TradePageLink removes the fluff and shows your customers only info that trully matters:
+              <b> Contact Information</b>, <b>quick quote</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>socials</b>, <b>your covering creas</b>, <b>location</b>
+              Your customer acts in seconds — no wandering menus, no confusion.
             </p>
 
             {/* removed chips */}
