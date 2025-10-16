@@ -2,11 +2,8 @@
 'use client';
 
 /**
- * Homepage — light theme, with refined phone mock (no corner seams).
- * Assets in /public:
- *   - tradepage-demo.mp4 (and optionally tradepage-demo.webm)
- *   - tradepage-demo.jpg  (poster frame)
- *   - flow-screenshot.jpg (optional static image for FLOW)
+ * Homepage — keep HERO exactly as-is.
+ * From the red line down: remove content and fade page bg into a warm cream.
  */
 
 export default function HomePage() {
@@ -14,7 +11,7 @@ export default function HomePage() {
     <main className="tp-home tp-home--light">
       <style>{styles}</style>
 
-      {/* HERO */}
+      {/* HERO (unchanged) */}
       <section className="hero">
         <div className="container">
           <div className="hero-copy">
@@ -81,124 +78,43 @@ export default function HomePage() {
         <div className="glow g2" />
       </section>
 
-      {/* FLOW */}
-      <section className="flow">
-        <div className="container flow-wrap">
-          <div className="flow-phone">
-            <div className="device-ultra sticky">
-              <div className="frame2">
-                <img className="screen" src="/flow-screenshot.jpg" alt="Essentials view" loading="lazy" />
-                <div className="statusbar">
-                  <span className="time">12:08 PM</span>
-                  <div className="sicons" aria-hidden>
-                    <span className="sig">
-                      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-                        <rect x="0"  y="9" width="2" height="3" fill="white" />
-                        <rect x="4"  y="7" width="2" height="5" fill="white" />
-                        <rect x="8"  y="5" width="2" height="7" fill="white" />
-                        <rect x="12" y="3" width="2" height="9" fill="white" />
-                      </svg>
-                    </span>
-                    <span className="wifi">
-                      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-                        <path d="M2 5.5a9 9 0 0112 0" stroke="white" strokeOpacity=".9" strokeWidth="1.2" strokeLinecap="round"/>
-                        <path d="M4.5 7.5a6 6 0 017 0" stroke="white" strokeOpacity=".85" strokeWidth="1.2" strokeLinecap="round"/>
-                        <circle cx="8" cy="10.5" r="1.4" fill="white"/>
-                      </svg>
-                    </span>
-                    <span className="bat"><i className="lvl" /></span>
-                  </div>
-                </div>
-                <div className="punch2" />
-              </div>
-            </div>
-          </div>
-
-          <div className="flow-steps">
-            <h2>From link to lead in seconds</h2>
-            <Step n="01" title="Open"  text="Your trade, city and contact are instantly visible—no searching for the number." />
-            <Step n="02" title="Skim"  text="Clear prices and services remove guesswork so customers decide faster." />
-            <Step n="03" title="Trust" text="Gallery + socials show real work and proof—without sending people away." />
-            <Step n="04" title="Act"   text="Tap to call or WhatsApp. Or fire a quick quote. Fewer clicks, more bookings." />
-          </div>
-        </div>
-      </section>
-
-      {/* VALUE BELT */}
-      <section className="belt" aria-label="Highlights">
-        <div className="belt-track">
-          {[
-            'Essentials-Only','Ridiculously Fast','Mobile-First',
-            'Looks Professional','Shareable Anywhere','Frictionless',
-            'Simple Pricing','Easy to Edit'
-          ].map((t, i) => <span className="belt-pill" key={t+i}>{t}</span>)}
-        </div>
-      </section>
-
-      {/* COMPARISON */}
-      <section className="compare">
-        <div className="container cmp-grid">
-          <div className="cmp bad">
-            <h3>Typical website</h3>
-            <ul aria-label="Problems">
-              {['Endless menus','Hidden contact','Slow + cluttered','Confusing copy','Too many steps']
-                .map(s => <li key={s}>{s}</li>)}
-            </ul>
-          </div>
-          <div className="cmp good">
-            <h3>Your TradePage</h3>
-            <ul aria-label="Benefits">
-              {['Tap-to-call up-front','WhatsApp in one tap','Prices + services clear','Photos prove quality','Quote in seconds']
-                .map(s => <li key={s}>{s}</li>)}
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOT NOTE */}
-      <section className="note">
-        <p>
-          TradePage<span className="dot">.</span>Link is the essentials-only profile for trades—one link that actually converts.
-        </p>
-      </section>
+      {/* BELOW THE RED LINE:
+          no content; only a full-width background transition */}
+      <section className="transition-slab" aria-hidden="true" />
     </main>
-  );
-}
-
-function Step({ n, title, text }) {
-  return (
-    <div className="step">
-      <div className="step-n">{n}</div>
-      <div className="step-body">
-        <div className="step-title">{title}</div>
-        <div className="step-text">{text}</div>
-      </div>
-    </div>
   );
 }
 
 /* Styles */
 const styles = `
-/* -------------- PAGE-WIDE LIGHT THEME --------------- */
+/* ----------- TOKENS ----------- */
 :root{
-  --bg:#faf7f2; --text:#101418; --muted:#5a6672; --border:#e9e5dc;
-  --card-bg-1:#ffffff; --card-bg-2:#f4f6fb; --chip-bg:#f6f7f9; --chip-border:#e7e8ec;
-  --btn-primary-1:#5aa6ff; --btn-primary-2:#77e2b3;
+  --bg:#0b1017;             /* existing dark/navy top stays */
+  --text:#101418;
+  --muted:#5a6672;
+  --border:#1b2230;
 
-  /* phone sizing tokens so we can scale neatly on mobile */
+  /* new warm cream target (like screenshot #2) */
+  --below-bg:#f6f0e7;
+
+  /* phone sizing */
   --phone-w: 360px;
   --frame-inset: 10px;
   --screen-inset: 22px;
   --punch-top: 16px;
   --statusbar-lr: 30px;
   --statusbar-top: 22px;
+
+  /* estimated hero height to place the fade start */
+  --hero-h: 620px;
 }
-/* Paint the entire viewport */
+
+/* Keep top as-is; subtle dark with glows */
 html,body{
   background:
-    radial-gradient(1000px 500px at 70% -10%, rgba(122,186,255,.25), transparent 60%),
-    radial-gradient(900px 420px at -10% -6%, rgba(255,188,143,.22), transparent 60%),
-    linear-gradient(180deg, #fff, var(--bg));
+    radial-gradient(900px 420px at -10% -6%, rgba(255,188,143,.12), transparent 60%),
+    radial-gradient(1000px 500px at 70% -10%, rgba(122,186,255,.14), transparent 60%),
+    linear-gradient(180deg, var(--bg), var(--bg));
   color:var(--text);
 }
 
@@ -206,93 +122,66 @@ html,body{
 .tp-home{color:var(--text)}
 .container{max-width:1180px;margin:0 auto;padding:0 16px}
 
-/* HERO */
-.hero{position:relative;padding:54px 0 12px;border-bottom:1px solid var(--border)}
+/* HERO (unchanged) */
+.hero{position:relative;padding:54px 0 12px;border-bottom:1px solid rgba(255,255,255,.08)}
 .hero .container{display:grid;grid-template-columns:1fr;gap:28px}
-.hero h1{margin:10px 0 8px;font-size:42px;line-height:1.06;font-weight:1000;letter-spacing:.2px}
-.hero .dot{color:transparent;background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));-webkit-background-clip:text;background-clip:text}
-.lead{font-size:16px;line-height:1.75;color:var(--muted);max-width:760px}
+.hero h1{margin:10px 0 8px;font-size:42px;line-height:1.06;font-weight:1000;letter-spacing:.2px;color:#fff}
+.hero .dot{color:transparent;background:linear-gradient(135deg,#5aa6ff,#77e2b3);-webkit-background-clip:text;background-clip:text}
+.lead{font-size:16px;line-height:1.75;max-width:760px;color:rgba(255,255,255,.75)}
 .hero-visual{display:flex;justify-content:center}
 
-/* --------- REFINED PHONE MOCK (no corner seams) ---------- */
+/* Phone mock */
 .device-ultra{
-  position:relative;
-  width:var(--phone-w); max-width:100%;
-  aspect-ratio:9/19;
-  border-radius:40px;
-  background:linear-gradient(180deg,#b6bcc6,#8c929c);
-  box-shadow:0 40px 120px rgba(32,39,68,.18);
-  border:1px solid rgba(255,255,255,.45);
+  position:relative; width:var(--phone-w); max-width:100%; aspect-ratio:9/19;
+  border-radius:40px; background:linear-gradient(180deg,#b6bcc6,#8c929c);
+  box-shadow:0 40px 120px rgba(32,39,68,.18); border:1px solid rgba(255,255,255,.45);
 }
-/* Inner black bezel */
 .frame2{
   position:absolute; inset:var(--frame-inset); border-radius:32px; background:#0a0d12;
-  box-shadow:0 0 0 12px rgba(0,0,0,.18) inset;
-  overflow:hidden;
+  box-shadow:0 0 0 12px rgba(0,0,0,.18) inset; overflow:hidden;
 }
-/* Screen sits inside bezel with even insets — NO border to avoid seams */
-.screen{
-  position:absolute; inset:var(--screen-inset); border-radius:24px; background:#000; object-fit:cover; display:block;
-}
-/* Tiny punch camera */
+.screen{position:absolute; inset:var(--screen-inset); border-radius:24px; background:#000; object-fit:cover; display:block;}
 .punch2{
   position:absolute; top:var(--punch-top); left:50%; transform:translateX(-50%);
   width:12px;height:12px;border-radius:50%;background:#000;opacity:.95;
   box-shadow:0 0 0 2px rgba(255,255,255,.22) inset, 0 0 8px rgba(0,0,0,.5);
   pointer-events:none;
 }
-/* Status bar */
 .statusbar{
   position:absolute; left:var(--statusbar-lr); right:var(--statusbar-lr); top:var(--statusbar-top); height:18px;
   display:flex;align-items:center;justify-content:space-between;
   color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.95;
 }
-.time{font-weight:700}
-.sicons{display:flex;align-items:center;gap:6px}
+.time{font-weight:700}.sicons{display:flex;align-items:center;gap:6px}
 .sig svg,.wifi svg{display:block}
 .bat{position:relative;width:22px;height:10px;border:1.6px solid rgba(255,255,255,.98);border-radius:2px}
 .bat::after{content:'';position:absolute;right:-3px;top:3px;width:2px;height:4px;background:rgba(255,255,255,.98);border-radius:1px}
 .bat .lvl{position:absolute;left:2px;top:2px;height:6px;width:16px;background:#fff;border-radius:1px}
 
-/* ambient glows — soft for light bg */
+/* ambient glows (keep) */
 .glow{position:absolute;filter:blur(48px);opacity:.35;pointer-events:none}
-.g1{width:620px;height:620px;left:-180px;top:-160px;background:radial-gradient(closest-side,var(--btn-primary-2),transparent 70%)}
-.g2{width:600px;height:600px;right:-180px;top:-140px;background:radial-gradient(closest-side,var(--btn-primary-1),transparent 70%)}
+.g1{width:620px;height:620px;left:-180px;top:-160px;background:radial-gradient(closest-side,#77e2b3,transparent 70%)}
+.g2{width:600px;height:600px;right:-180px;top:-140px;background:radial-gradient(closest-side,#5aa6ff,transparent 70%)}
 
-/* FLOW */
-.flow{padding:28px 0}
-.flow-wrap{display:grid;grid-template-columns:1fr;gap:20px}
-.flow-phone{order:1}
-.flow-steps{order:2}
-.flow-steps h2{margin:0 0 8px;font-size:26px;font-weight:1000;color:var(--text)}
-.step{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed var(--border)}
-.step:last-child{border-bottom:0}
-.step-n{width:40px;height:40px;min-width:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
-  font-weight:900;border:1px solid var(--chip-border);background:#fff;color:var(--text);box-shadow:0 4px 12px rgba(0,0,0,.05)}
-.step-title{font-weight:900;color:var(--text)}
-.step-text{color:var(--muted)}
-
-/* BELT */
-.belt{padding:10px 0 4px}
-.belt-track{display:flex;gap:10px;overflow:auto;padding:0 16px;scroll-snap-type:x mandatory}
-.belt-pill{flex:0 0 auto;scroll-snap-align:start;border:1px solid var(--chip-border);background:#fff;padding:8px 12px;border-radius:999px;font-size:12px;color:var(--text);box-shadow:0 4px 12px rgba(0,0,0,.04)}
-
-/* COMPARE */
-.compare{padding:30px 0 12px}
-.cmp-grid{display:grid;grid-template-columns:1fr;gap:16px}
-.cmp{padding:20px;border-radius:18px;border:1px solid var(--border);
-  background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2));
-  box-shadow:0 20px 40px rgba(16,22,48,.08)}
-.cmp h3{margin:0 0 8px;font-size:16px;font-weight:1000;color:var(--text)}
-.cmp ul{margin:0;padding:0;list-style:none}
-.cmp li{padding:9px 0;border-bottom:1px dashed var(--border);color:var(--muted)}
-.cmp li:last-child{border-bottom:0}
-.cmp.bad li::before{content:'— ';opacity:.6}
-.cmp.good li::before{content:'✓ ';color:#22a06b}
-
-/* NOTE */
-.note{padding:26px 16px 54px;text-align:center;color:var(--muted)}
-.note .dot{color:transparent;background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));-webkit-background-clip:text;background-clip:text}
+/* ---- BELOW THE RED LINE ----
+   No content; this slab only paints a smooth transition
+   from the existing dark to the warm cream. */
+.transition-slab{
+  position:relative;
+  width:100%;
+  min-height:120vh;
+  background:
+    radial-gradient(800px 240px at 60% 0%, rgba(0,0,0,.10), transparent 60%),
+    linear-gradient(
+      180deg,
+      rgba(11,16,23,0) 0%,
+      rgba(11,16,23,0) 6%,
+      var(--below-bg) 18%,
+      var(--below-bg) 100%
+    );
+  /* make sure it abuts the hero with no gap */
+  margin:0; padding:0; border:0;
+}
 
 /* DESKTOP ENHANCEMENTS */
 @media (min-width:980px){
@@ -300,42 +189,26 @@ html,body{
   .hero h1{font-size:66px}
   .lead{font-size:18px}
   .hero-visual{justify-content:flex-end}
-  .flow-wrap{grid-template-columns:0.9fr 1.1fr;align-items:start}
-  .flow-phone{order:1}
-  .flow-steps{order:2;padding-left:10px}
-  .sticky{position:sticky;top:86px}
-  .cmp-grid{grid-template-columns:1fr 1fr}
+  :root{ --hero-h: 680px; }
 }
 
-/* ------- MOBILE SIZE: a bit smaller phone while keeping proportions ------- */
+/* MOBILE sizing kept for the phone mock */
 @media (max-width:900px){
   :root{
-    --phone-w: 340px;
-    --frame-inset: 10px;
-    --screen-inset: 22px;
-    --punch-top: 16px;
-    --statusbar-lr: 28px;
-    --statusbar-top: 20px;
+    --phone-w: 340px; --frame-inset: 10px; --screen-inset: 22px;
+    --punch-top: 16px; --statusbar-lr: 28px; --statusbar-top: 20px;
   }
 }
 @media (max-width:640px){
   :root{
-    --phone-w: 320px;
-    --frame-inset: 9px;
-    --screen-inset: 20px;
-    --punch-top: 15px;
-    --statusbar-lr: 26px;
-    --statusbar-top: 19px;
+    --phone-w: 320px; --frame-inset: 9px; --screen-inset: 20px;
+    --punch-top: 15px; --statusbar-lr: 26px; --statusbar-top: 19px;
   }
 }
 @media (max-width:480px){
   :root{
-    --phone-w: 300px;          /* <= final smaller mobile size */
-    --frame-inset: 8px;
-    --screen-inset: 18px;
-    --punch-top: 14px;
-    --statusbar-lr: 24px;
-    --statusbar-top: 18px;
+    --phone-w: 300px; --frame-inset: 8px; --screen-inset: 18px;
+    --punch-top: 14px; --statusbar-lr: 24px; --statusbar-top: 18px;
   }
 }
 
