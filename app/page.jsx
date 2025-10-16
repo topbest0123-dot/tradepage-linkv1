@@ -2,11 +2,9 @@
 'use client';
 
 /**
- * Homepage with a realistic modern phone mock.
- * Put your assets in /public:
- *  - tradepage-demo.mp4 (and optionally tradepage-demo.webm)
- *  - tradepage-demo.jpg  (poster frame)
- *  - flow-screenshot.jpg (optional static image for FLOW)
+ * Homepage using a pixel-perfect phone shell overlay.
+ * Place your shell at /public/phone-shell.png (PNG with a transparent screen).
+ * Fine-tune the screen insets with CSS variables on .device-img.
  */
 
 export default function HomePage() {
@@ -47,14 +45,20 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Modern phone mock */}
+          {/* Phone mockup with shell overlay */}
           <div className="hero-visual">
-            <div className="device-neo">
-              {/* side reflections */}
-              <i className="edge edge-l" />
-              <i className="edge edge-r" />
-
-              <div className="bezel">
+            <div
+              className="device-img"
+              style={{
+                // TUNE THESE to match your shell’s transparent window
+                // Use % so it scales perfectly with the image.
+                '--inset-top': '7%',
+                '--inset-right': '3.8%',
+                '--inset-bottom': '5%',
+                '--inset-left': '3.8%',
+              }}
+            >
+              <div className="screen-area">
                 <video
                   className="screen"
                   autoPlay
@@ -67,35 +71,8 @@ export default function HomePage() {
                   <source src="/tradepage-demo.webm" type="video/webm" />
                   <source src="/tradepage-demo.mp4" type="video/mp4" />
                 </video>
-
-                {/* status bar */}
-                <div className="statusbar">
-                  <span className="time">12:08 PM</span>
-                  <div className="sicons" aria-hidden>
-                    <span className="sig">
-                      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-                        <rect x="0" y="9" width="2" height="3" fill="white" />
-                        <rect x="4" y="7" width="2" height="5" fill="white" />
-                        <rect x="8" y="5" width="2" height="7" fill="white" />
-                        <rect x="12" y="3" width="2" height="9" fill="white" />
-                      </svg>
-                    </span>
-                    <span className="wifi">
-                      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-                        <path d="M2 5.5a9 9 0 0112 0" stroke="white" strokeOpacity=".9" strokeWidth="1.2" strokeLinecap="round"/>
-                        <path d="M4.5 7.5a6 6 0 017 0" stroke="white" strokeOpacity=".85" strokeWidth="1.2" strokeLinecap="round"/>
-                        <circle cx="8" cy="10.5" r="1.4" fill="white"/>
-                      </svg>
-                    </span>
-                    <span className="bat">
-                      <i className="lvl" />
-                    </span>
-                  </div>
-                </div>
-
-                {/* punch-hole camera */}
-                <div className="punch" />
               </div>
+              <img className="shell" src="/phone-shell.png" alt="" aria-hidden="true" />
             </div>
           </div>
         </div>
@@ -109,36 +86,24 @@ export default function HomePage() {
       <section className="flow">
         <div className="container flow-wrap">
           <div className="flow-phone">
-            <div className="device-neo sticky">
-              <i className="edge edge-l" />
-              <i className="edge edge-r" />
-              <div className="bezel">
-                <img className="screen" src="/flow-screenshot.jpg" alt="Essentials view" loading="lazy" />
-                <div className="statusbar">
-                  <span className="time">12:08 PM</span>
-                  <div className="sicons" aria-hidden>
-                    <span className="sig">
-                      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-                        <rect x="0" y="9" width="2" height="3" fill="white" />
-                        <rect x="4" y="7" width="2" height="5" fill="white" />
-                        <rect x="8" y="5" width="2" height="7" fill="white" />
-                        <rect x="12" y="3" width="2" height="9" fill="white" />
-                      </svg>
-                    </span>
-                    <span className="wifi">
-                      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-                        <path d="M2 5.5a9 9 0 0112 0" stroke="white" strokeOpacity=".9" strokeWidth="1.2" strokeLinecap="round"/>
-                        <path d="M4.5 7.5a6 6 0 017 0" stroke="white" strokeOpacity=".85" strokeWidth="1.2" strokeLinecap="round"/>
-                        <circle cx="8" cy="10.5" r="1.4" fill="white"/>
-                      </svg>
-                    </span>
-                    <span className="bat">
-                      <i className="lvl" />
-                    </span>
-                  </div>
-                </div>
-                <div className="punch" />
+            <div
+              className="device-img sticky"
+              style={{
+                '--inset-top': '7%',
+                '--inset-right': '3.8%',
+                '--inset-bottom': '5%',
+                '--inset-left': '3.8%',
+              }}
+            >
+              <div className="screen-area">
+                <img
+                  className="screen"
+                  src="/flow-screenshot.jpg"
+                  alt="Essentials view"
+                  loading="lazy"
+                />
               </div>
+              <img className="shell" src="/phone-shell.png" alt="" aria-hidden="true" />
             </div>
           </div>
 
@@ -186,7 +151,13 @@ export default function HomePage() {
           <div className="cmp good">
             <h3>Your TradePage</h3>
             <ul aria-label="Benefits">
-              {['Tap-to-call up-front', 'WhatsApp in one tap', 'Prices + services clear', 'Photos prove quality', 'Quote in seconds'].map((s) => (
+              {[
+                'Tap-to-call up-front',
+                'WhatsApp in one tap',
+                'Prices + services clear',
+                'Photos prove quality',
+                'Quote in seconds',
+              ].map((s) => (
                 <li key={s}>{s}</li>
               ))}
             </ul>
@@ -197,14 +168,14 @@ export default function HomePage() {
       {/* FOOT NOTE */}
       <section className="note">
         <p>
-          TradePage<span className="dot">.</span>Link is the essentials-only profile for trades—one link that actually converts.
+          TradePage<span className="dot">.</span>Link is the essentials-only profile for trades—one link that actually
+          converts.
         </p>
       </section>
     </main>
   );
 }
 
-/* Lightweight step row */
 function Step({ n, title, text }) {
   return (
     <div className="step">
@@ -217,9 +188,10 @@ function Step({ n, title, text }) {
   );
 }
 
-/* Styles */
 const styles = `
 .tp-home{color:var(--text);background:var(--bg);}
+
+/* layout helpers */
 .container{max-width:1180px;margin:0 auto;padding:0 16px}
 
 /* HERO */
@@ -233,67 +205,11 @@ const styles = `
 .chip{border:1px solid var(--chip-border);background:var(--chip-bg);padding:6px 10px;border-radius:999px;font-size:12px;white-space:nowrap}
 .hero-visual{display:flex;justify-content:center}
 
-/* --- Realistic modern phone --- */
-.device-neo{
-  position:relative;
-  width:420px;max-width:100%;
-  aspect-ratio:9/19;
-  border-radius:42px;
-  background:linear-gradient(180deg,#7a7f88,#3b3e44);
-  box-shadow:
-    0 40px 120px rgba(0,0,0,.35),
-    0 1px 0 rgba(255,255,255,.12) inset,
-    0 -1px 0 rgba(0,0,0,.45) inset;
-  border:1px solid rgba(255,255,255,.08);
-}
-
-/* side reflections */
-.device-neo .edge{
-  content:'';position:absolute;top:10px;bottom:10px;width:9px;border-radius:8px;opacity:.6;pointer-events:none;
-  background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.05) 45%,rgba(0,0,0,.35) 55%,rgba(255,255,255,.2));
-  filter:blur(.2px);
-}
-.device-neo .edge-l{left:6px}
-.device-neo .edge-r{right:6px;transform:scaleX(-1)}
-
-.bezel{
-  position:absolute;inset:8px;border-radius:36px;
-  background:linear-gradient(180deg,#0f1116,#0a0d12);
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.06) inset,
-    0 0 0 10px rgba(0,0,0,.25) inset;
-}
-
-/* punch-hole camera */
-.punch{
-  position:absolute;top:12px;left:50%;transform:translateX(-50%);
-  width:12px;height:12px;border-radius:50%;
-  background:#000;box-shadow:0 0 0 2px rgba(255,255,255,.12) inset, 0 0 8px rgba(0,0,0,.45);
-  opacity:.9;pointer-events:none;
-}
-
-/* screen area */
-.screen{
-  position:absolute;inset:16px;border-radius:28px;background:#000;object-fit:cover;width:auto;height:auto;display:block;
-  border:1px solid rgba(255,255,255,.06);
-  box-shadow:
-    0 0 0 1px rgba(0,0,0,.5) inset,
-    0 18px 28px rgba(0,0,0,.45) inset;
-  overflow:hidden;
-}
-
-/* tiny status bar */
-.statusbar{
-  position:absolute;left:26px;right:26px;top:18px;height:18px;
-  display:flex;align-items:center;justify-content:space-between;
-  color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.9;
-}
-.time{font-weight:700;opacity:.95}
-.sicons{display:flex;align-items:center;gap:6px}
-.sig svg,.wifi svg{display:block}
-.bat{position:relative;width:22px;height:10px;border:1.6px solid rgba(255,255,255,.95);border-radius:2px}
-.bat::after{content:'';position:absolute;right:-3px;top:3px;width:2px;height:4px;background:rgba(255,255,255,.95);border-radius:1px}
-.bat .lvl{position:absolute;left:2px;top:2px;height:6px;width:16px;background:#fff;border-radius:1px}
+/* PHONE (shell overlay) */
+.device-img{position:relative;width:420px;max-width:100%;aspect-ratio:9/19;filter:drop-shadow(0 30px 60px rgba(0,0,0,.35))}
+.shell{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
+.screen-area{position:absolute;top:var(--inset-top,7%);right:var(--inset-right,4%);bottom:var(--inset-bottom,5%);left:var(--inset-left,4%);border-radius:22px;overflow:hidden}
+.screen{display:block;width:100%;height:100%;object-fit:cover;background:#000}
 
 /* ambient glows */
 .glow{position:absolute;filter:blur(48px);opacity:.5;pointer-events:none}
@@ -333,7 +249,7 @@ const styles = `
 .note .dot{color:transparent;background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));-webkit-background-clip:text;background-clip:text}
 
 /* DESKTOP ENHANCEMENTS */
-@media (min-width:980px){
+@media (min-width: 980px){
   .hero .container{grid-template-columns:1.05fr .95fr;align-items:center}
   .hero h1{font-size:64px}
   .lead{font-size:18px}
@@ -346,5 +262,6 @@ const styles = `
 }
 
 /* tiny helpers */
-.hide-d{display:inline}@media(min-width:980px){.hide-d{display:none}}
+.hide-d{display:inline}
+@media(min-width:980px){.hide-d{display:none}}
 `;
