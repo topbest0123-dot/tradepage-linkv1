@@ -107,7 +107,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* hidden on small screens via CSS */}
+        {/* small screen: we hide these in CSS */}
         <div className="glow g1" />
         <div className="glow g2" />
       </section>
@@ -180,6 +180,7 @@ function Step({ n, title, text }) {
 
 /* Styles */
 const styles = `
+/* Light theme tokens */
 :root{
   --bg:#faf7f2; --text:#101418; --muted:#5a6672; --border:#e9e5dc;
   --card-bg-1:#ffffff; --card-bg-2:#f4f6fb; --chip-bg:#f6f7f9; --chip-border:#e7e8ec;
@@ -187,9 +188,12 @@ const styles = `
 }
 
 /* Background */
-html,body{ background: linear-gradient(180deg, #fff, var(--bg)); color:var(--text); margin:0; }
+html,body{
+  background: linear-gradient(180deg, #fff, var(--bg));
+  color:var(--text);
+}
 
-/* No horizontal scroll */
+/* Universal sizing + no side scroll */
 *, *::before, *::after{ box-sizing:border-box; }
 html, body, .tp-home { overflow-x:hidden; }
 
@@ -216,10 +220,23 @@ html, body, .tp-home { overflow-x:hidden; }
   box-shadow:0 40px 120px rgba(32,39,68,.18);
   border:1px solid rgba(255,255,255,.45);
 }
-.frame2{ position:absolute;inset:10px;border-radius:32px;background:#0a0d12; box-shadow:0 0 0 12px rgba(0,0,0,.18) inset; overflow:hidden; }
-.screen{ position:absolute;inset:22px;border-radius:24px;background:#000;object-fit:cover;display:block; }
-.punch2{ position:absolute;top:16px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#000;opacity:.95;box-shadow:0 0 0 2px rgba(255,255,255,.22) inset, 0 0 8px rgba(0,0,0,.5);pointer-events:none; }
-.statusbar{ position:absolute;left:30px;right:30px;top:22px;height:18px;display:flex;align-items:center;justify-content:space-between;color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.95; }
+.frame2{
+  position:absolute;inset:10px;border-radius:32px;background:#0a0d12;
+  box-shadow:0 0 0 12px rgba(0,0,0,.18) inset;
+  overflow:hidden;
+}
+.screen{position:absolute;inset:22px;border-radius:24px;background:#000;object-fit:cover;display:block;}
+.punch2{
+  position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  width:12px;height:12px;border-radius:50%;background:#000;opacity:.95;
+  box-shadow:0 0 0 2px rgba(255,255,255,.22) inset, 0 0 8px rgba(0,0,0,.5);
+  pointer-events:none;
+}
+.statusbar{
+  position:absolute;left:30px;right:30px;top:22px;height:18px;
+  display:flex;align-items:center;justify-content:space-between;
+  color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.95;
+}
 .time{font-weight:700}
 .sicons{display:flex;align-items:center;gap:6px}
 .sig svg,.wifi svg{display:block}
@@ -265,27 +282,27 @@ html, body, .tp-home { overflow-x:hidden; }
 .note{padding:26px 16px 54px;text-align:center;color:var(--muted)}
 .note .dot{color:transparent;background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));-webkit-background-clip:text;background-clip:text}
 
-/* Desktop */
+/* Desktop enhancements */
 @media (min-width:980px){
   .hero .container{grid-template-columns:1.05fr .95fr;align-items:center}
   .hero h1{font-size:66px}
   .lead{font-size:18px}
   .hero-visual{justify-content:flex-end}
+  .flow-wrap{grid-template-columns:1fr}
 }
 
-/* ----- MOBILE PERFECT CENTERING ----- */
+/* ---------- MOBILE PERFECT CENTERING ---------- */
 @media (max-width:520px){
   .hero .container{
     grid-template-columns:1fr;
-    justify-items:center;       /* center both text and phone */
+    justify-items:center;
     text-align:center;
-    padding-left:16px; padding-right:16px;
   }
-  .hero-copy{width:min(92vw,700px); margin:0 auto;}
+  .hero-copy{width:min(92vw, 700px)}
   .hero h1, .lead{margin-left:auto;margin-right:auto}
   .hero-visual{justify-content:center}
-  .device-ultra{width:min(340px, 92vw); margin:0 auto;}
-  .glow{display:none}
+  .device-ultra{width:min(340px, 92vw);margin:0 auto}
+  .glow{display:none} /* keep copy crisp */
 }
 
 /* helper */
