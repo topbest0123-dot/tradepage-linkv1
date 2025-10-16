@@ -16,13 +16,13 @@ export default function HomePage() {
         <div className="container">
           <div className="hero-copy">
             <h1>
-              The essentials. <br className="hide-d" />
-              One link.
+              All your business essential info in one link <br className="hide-d" />
+             
             </h1>
             <p className="lead">
-              TradePage<span className="dot">.</span>Link removes the fluff and shows only what matters:
-              <b> call</b>, <b>WhatsApp</b>, <b>quick quote</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>socials</b>.
-              Your customer acts in seconds—no wandering menus, no confusion.
+              TradePage<span className="dot">.</span>Link removes the fluff and shows to your customers only the info that trully matters:
+              <b> phone</b>, <b>whatsapp</b>, <b>email</b> <b>quick quote</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas</b>
+              Your customer acts in seconds — no wandering menus, no confusion - more conversions
             </p>
           </div>
 
