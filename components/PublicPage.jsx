@@ -80,11 +80,6 @@ const THEMES = {
   'sunset-apricot':  {'--bg':'#0f0b09','--text':'#fff4ec','--muted':'#ffd9c2','--border':'#3a2a22','--card-bg-1':'#2a1b16','--card-bg-2':'#1a120e','--chip-bg':'#231611','--chip-border':'#4a3329','--btn-primary-1':'#ffb86b','--btn-primary-2':'#ff6aa2','--btn-neutral-bg':'#2b1f1a','--social-border':'#4d3a30'},
   'minted-ivory':    {'--bg':'#fbfffd','--text':'#132018','--muted':'#4d6d5e','--border':'#d7eee4','--card-bg-1':'#ffffff','--card-bg-2':'#f3fbf7','--chip-bg':'#eff9f4','--chip-border':'#d7eee4','--btn-primary-1':'#10b981','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#e7f3ed','--social-border':'#cfe7dc'},
   'citrus-cream':    {'--bg':'#fffef7','--text':'#17160f','--muted':'#6b6a55','--border':'#efe9c9','--card-bg-1':'#ffffff','--card-bg-2':'#faf6e4','--chip-bg':'#f7f3df','--chip-border':'#efe9c9','--btn-primary-1':'#f59e0b','--btn-primary-2':'#34d399','--btn-neutral-bg':'#efe9da','--social-border':'#e7dfc3'},
-  'vapor-sunset': { name:'Vapor Sunset', vars:{'--bg':'linear-gradient(135deg,#f04fb1,#2a6cf4)','--text':'#f6f8ff','--muted':'#cfe0ff','--border':'#2a3b6b','--card-bg-1':'#1a1f3a','--card-bg-2':'#0b1024','--card-angle':'135deg','--chip-bg':'#0f1730','--chip-border':'#334277','--btn-primary-1':'#ff7ad9','--btn-primary-2':'#6db7ff','--btn-neutral-bg':'#151a2e','--social-border':'#2b3a6e'}},
-  'peach-cream-diag': { name:'Peach & Cream', vars:{'--bg':'linear-gradient(135deg,#ffb69e,#ffe8de)','--text':'#3b2b27','--muted':'#7a5f58','--border':'#e9c7b9','--card-bg-1':'#ffffff','--card-bg-2':'#fff3ee','--card-angle':'135deg','--chip-bg':'#fff0ea','--chip-border':'#ecd3c7','--btn-primary-1':'#ff9f80','--btn-primary-2':'#ffd1c2','--btn-neutral-bg':'#f6e9e3','--social-border':'#e6c9bd'}},
-  'retro-pop': { name:'Retro Pop', vars:{'--bg':'linear-gradient(135deg,#f6c21c,#ff6a00)','--text':'#14110a','--muted':'#4e3b12','--border':'#e39b1a','--card-bg-1':'#fff4cf','--card-bg-2':'#ffe3a3','--card-angle':'135deg','--chip-bg':'#fff0c2','--chip-border':'#f0cf78','--btn-primary-1':'#ff9a00','--btn-primary-2':'#ff5400','--btn-neutral-bg':'#ffe7b0','--social-border':'#e2b75e'}},
-  'arctic-frost': { name:'Arctic Frost', vars:{'--bg':'linear-gradient(135deg,#0f2d47,#2fb8ff)','--text':'#eaf7ff','--muted':'#cdeaff','--border':'#1f4c6f','--card-bg-1':'#0a1a28','--card-bg-2':'#0e2436','--card-angle':'135deg','--chip-bg':'#0b2235','--chip-border':'#1d4b6d','--btn-primary-1':'#6bdcff','--btn-primary-2':'#8ff6ea','--btn-neutral-bg':'#10283d','--social-border':'#1e4a6b'}},
-  'noir-gold': { name:'Noir Gold', vars:{'--bg':'linear-gradient(135deg,#0a0b0e,#101f16)','--text':'#f7f5e8','--muted':'#d8d1b3','--border':'#2f2f24','--card-bg-1':'#111214','--card-bg-2':'#0b0c0e','--card-angle':'135deg','--chip-bg':'#111417','--chip-border':'#3a3826','--btn-primary-1':'#f5d36b','--btn-primary-2':'#f5a623','--btn-neutral-bg':'#1a1b1e','--social-border':'#3b3522'}},
 
 };
 const ALIAS = {
@@ -399,7 +394,7 @@ const pageWrapStyle = { maxWidth: 980, margin: '28px auto', padding: '0 16px 48p
 const headerCardStyle = {
   gap: 16, padding: '16px 18px', borderRadius: 16,
   border: '1px solid var(--border)',
-  background: 'linear-gradient(var(--card-angle, 180deg), var(--card-bg-1), var(--card-bg-2))',
+  background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
   marginBottom: 12,
 };
 const headerLeftStyle = { gap: 12, minWidth: 0 };
