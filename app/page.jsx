@@ -187,11 +187,12 @@ export default function HomePage() {
           </div>
 
           {/* Final CTA */}
-          <div className="la-cta">
-            <h3>Be the trade that’s easy to contact.</h3>
-            <a href="/signin" className="btn-primary btn-wide">Create your page</a>
-            <p className="tiny">One link. All the essentials. Built for bookings.</p>
-          </div>
+         <div className="la-cta">
+  <h3>Be the trade that’s easy to contact.</h3>
+  <a href="/signin" className="btn-primary">Create your page</a>
+  <p className="tiny">One link. All the essentials. Built for bookings.</p>
+</div>
+
         </div>
       </section>
     </main>
