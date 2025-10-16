@@ -28,7 +28,8 @@ const THEMES = {
   'icy-lilac':      { name:'Icy Lilac', vars:{'--bg':'#fbf7ff','--text':'#121018','--muted':'#6c6880','--border':'#e2d9fa','--card-bg-1':'#ffffff','--card-bg-2':'#f5f1ff','--chip-bg':'#f3efff','--chip-border':'#e2d9fa','--btn-primary-1':'#9f87ff','--btn-primary-2':'#7adfff','--btn-neutral-bg':'#efeafc','--social-border':'#ddd3fa'}},
   'citrus-cream':   { name:'Citrus Cream', vars:{'--bg':'#fffef6','--text':'#0f1208','--muted':'#6a6f57','--border':'#ece7c9','--card-bg-1':'#ffffff','--card-bg-2':'#faf7e3','--chip-bg':'#f6f3de','--chip-border':'#ece7c9','--btn-primary-1':'#ffb84d','--btn-primary-2':'#79e66f','--btn-neutral-bg':'#f0eddc','--social-border':'#e6e0c6'}},
   'blush-sky':      { name:'Blush Sky', vars:{'--bg':'#fff7f9','--text':'#201416','--muted':'#85636c','--border':'#f0d1da','--card-bg-1':'#ffffff','--card-bg-2':'#fbeef2','--chip-bg':'#f6e6eb','--chip-border':'#f0d1da','--btn-primary-1':'#ff7aa2','--btn-primary-2':'#7acbff','--btn-neutral-bg':'#f3e6ea','--social-border':'#ead0da'}},
- 'mono-ice':        { name:'Mono Ice', vars:{'--bg':'#fdfefe','--text':'#101213','--muted':'#5b6166','--border':'#e6ecef','--card-bg-1':'#ffffff','--card-bg-2':'#f6fafc','--chip-bg':'#f1f6f9','--chip-border':'#e6ecef','--btn-primary-1':'#0f172a','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#eef3f7','--social-border':'#dde6ee'}},
+  'mono-ice':       { name:'Mono Ice', vars:{'--bg':'#fdfefe','--text':'#101213','--muted':'#5b6166','--border':'#e6ecef','--card-bg-1':'#ffffff','--card-bg-2':'#f6fafc','--chip-bg':'#f1f6f9','--chip-border':'#e6ecef','--btn-primary-1':'#0f172a','--btn-primary-2':'#8ab4ff','--btn-neutral-bg':'#eef3f7','--social-border':'#dde6ee'}},
+
 
 /* apply theme to <html> (whole app) */
 const applyTheme = (key) => {
