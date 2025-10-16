@@ -2,10 +2,8 @@
 'use client';
 
 /**
- * Homepage — HERO only (everything below removed).
- * Assets in /public:
- *   - tradepage-demo.mp4 (and optionally tradepage-demo.webm)
- *   - tradepage-demo.jpg  (poster frame)
+ * Homepage — HERO + soft colour band below (for future sections).
+ * Only colours/transition added; hero left intact.
  */
 
 export default function HomePage() {
@@ -13,7 +11,7 @@ export default function HomePage() {
     <main className="tp-home tp-home--light">
       <style>{styles}</style>
 
-      {/* HERO ONLY */}
+      {/* HERO (unchanged) */}
       <section className="hero">
         <div className="container">
           <div className="hero-copy">
@@ -44,7 +42,6 @@ export default function HomePage() {
                   <source src="/tradepage-demo.mp4" type="video/mp4" />
                 </video>
 
-                {/* status bar */}
                 <div className="statusbar">
                   <span className="time">12:08 PM</span>
                   <div className="sicons" aria-hidden>
@@ -67,7 +64,6 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* punch-hole camera */}
                 <div className="punch2" />
               </div>
             </div>
@@ -78,15 +74,29 @@ export default function HomePage() {
         <div className="glow g1" />
         <div className="glow g2" />
       </section>
+
+      {/* NEW: soft light band for the rest of the homepage */}
+      <section className="soft-band">
+        {/* dark→light blend at top */}
+        <div className="blend" aria-hidden />
+
+        <div className="container">
+          {/* placeholder; we’ll add real blocks later */}
+          <div className="soft-placeholder">
+            <h2>Next section starts here</h2>
+            <p>We’ll drop your features/tiles here — background is now light, warm, and readable.</p>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
 
 /* Styles */
 const styles = `
-/* -------- PAGE-WIDE LIGHT THEME -------- */
 :root{
-  --bg:#0b1016; /* page bg behind gradient */
+  /* page tokens (dark hero) */
+  --bg:#0b1016;
   --text:#eaf2ff;
   --muted:#a6b2c2;
   --border:#1f2a36;
@@ -105,7 +115,7 @@ const styles = `
   --statusbar-top: 22px;
 }
 
-/* full-viewport background */
+/* full-viewport dark background for HERO */
 html,body{
   background:
     radial-gradient(900px 420px at 20% -6%, rgba(102,166,255,.25), transparent 60%),
@@ -119,11 +129,7 @@ html,body{
 .container{max-width:1180px;margin:0 auto;padding:0 16px}
 
 /* HERO */
-.hero{
-  position:relative;
-  /* more bottom padding, no divider since page ends here */
-  padding:54px 0 84px;
-}
+.hero{position:relative;padding:54px 0 84px}
 .hero .container{display:grid;grid-template-columns:1fr;gap:28px}
 .hero h1{margin:10px 0 8px;font-size:42px;line-height:1.06;font-weight:1000;letter-spacing:.2px}
 .hero .dot{color:transparent;background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));-webkit-background-clip:text;background-clip:text}
@@ -166,10 +172,38 @@ html,body{
 .bat::after{content:'';position:absolute;right:-3px;top:3px;width:2px;height:4px;background:rgba(255,255,255,.98);border-radius:1px}
 .bat .lvl{position:absolute;left:2px;top:2px;height:6px;width:16px;background:#fff;border-radius:1px}
 
-/* ambient glows */
+/* HERO glows */
 .glow{position:absolute;filter:blur(48px);opacity:.35;pointer-events:none}
 .g1{width:620px;height:620px;left:-180px;top:-160px;background:radial-gradient(closest-side,var(--btn-primary-2),transparent 70%)}
 .g2{width:600px;height:600px;right:-180px;top:-140px;background:radial-gradient(closest-side,var(--btn-primary-1),transparent 70%)}
+
+/* -------- NEW SOFT COLOUR BAND -------- */
+.soft-band{
+  position:relative;
+  padding:64px 0 96px;
+  color:#101418; /* dark text on light */
+  /* warm, creamy base (matches your reference) with subtle accents */
+  background:
+    radial-gradient(900px 420px at 15% 0%, rgba(255,188,143,.20), transparent 60%),
+    radial-gradient(900px 420px at 85% 0%, rgba(122,186,255,.18), transparent 60%),
+    linear-gradient(180deg, #fbf6ef 0%, #f7f0e6 100%);
+}
+
+/* the blend that fades the dark hero into the light band */
+.soft-band .blend{
+  position:absolute; left:0; right:0; top:-140px; height:140px; pointer-events:none; z-index:0;
+  background:linear-gradient(to bottom,
+    rgba(11,17,23,1) 0%,
+    rgba(11,17,23,.65) 28%,
+    rgba(11,17,23,.25) 60%,
+    rgba(11,17,23,0) 100%);
+  filter:blur(0.2px);
+}
+
+/* placeholder */
+.soft-placeholder{max-width:800px;margin:0 auto;text-align:center}
+.soft-placeholder h2{margin:0 0 8px;font-size:28px;font-weight:900}
+.soft-placeholder p{margin:0;opacity:.75}
 
 /* DESKTOP */
 @media (min-width:980px){
