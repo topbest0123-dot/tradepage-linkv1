@@ -3,313 +3,243 @@
 
 export default function HomePage() {
   return (
-    <main className="tp-home">
+    <main className="home">
       <style>{css}</style>
 
-      {/* Top nav */}
-      <header className="tp-nav">
-        <div className="tp-nav__brand">
-          <span className="logo-dot">★</span>
-          <div>
-            <div className="brand-title">TradePage.Link</div>
-            <div className="brand-tag">Your business in a link</div>
-          </div>
-        </div>
-        <nav className="tp-nav__cta">
-          <a className="btn btn-ghost" href="/signin">Sign in</a>
-          <a className="btn btn-primary" href="/dashboard">Create your page</a>
-        </nav>
-      </header>
-
-      {/* HERO */}
+      {/* HERO (no header/CTAs here – we rely on your global header) */}
       <section className="hero">
         <div className="hero__copy">
-          <div className="pill">A professional mini-site for trades—made in minutes</div>
-          <h1>Look premium. Get contacted faster.</h1>
+          <div className="eyebrow">A polished mini-site for trades</div>
+          <h1>Look professional. Be easy to contact.</h1>
           <p className="lead">
-            Put <b>everything</b> clients need on one beautiful link—contact, WhatsApp, services, prices,
-            areas, gallery and socials. No website builder headaches.
+            TradePage.Link puts <b>contact, WhatsApp, services, prices, hours, gallery and socials</b> into one
+            beautiful link that works everywhere. Clients get what they need in seconds.
           </p>
-          <div className="cta-row">
-            <a className="btn btn-primary btn-lg" href="/dashboard">Create your Trade Page</a>
-            <a className="btn btn-ghost btn-lg" href="#how">See how it works</a>
-          </div>
 
-          <ul className="hero-bullets">
-            <li>Tap-to-call & WhatsApp</li>
+          <ul className="bullets">
+            <li>Tap-to-call and WhatsApp</li>
             <li>Works perfectly on mobile</li>
-            <li>SEO & social previews built-in</li>
+            <li>Premium themes and smart previews</li>
           </ul>
+
+          <a href="#benefits" className="btn btn-ghost">Explore the benefits ↓</a>
         </div>
 
+        {/* Abstract art + device mock */}
         <div className="hero__art">
-          <div className="blob b1" />
-          <div className="blob b2" />
+          <div className="glow g1" />
+          <div className="glow g2" />
+          <div className="glow g3" />
           <div className="device">
-            <div className="bar">
-              <div className="dot" />
-              <div className="dot" />
-              <div className="dot" />
+            <div className="device__bar">
+              <i /><i /><i />
             </div>
-            <div className="device-hero">
+            <div className="device__head">
               <div className="avatar">★</div>
-              <div className="lines">
-                <div className="l l1" />
-                <div className="l l2" />
+              <div className="head__text">
+                <div className="line l1" />
+                <div className="line l2" />
               </div>
             </div>
-            <div className="chips">
-              <div className="chip chip-primary">Call</div>
-              <div className="chip">WhatsApp</div>
-              <div className="chip">Share</div>
+            <div className="device__chips">
+              <span className="chip chip-primary">Call</span>
+              <span className="chip">WhatsApp</span>
+              <span className="chip">Share</span>
             </div>
-            <div className="block" />
-            <div className="tags">
-              <span className="tag">Repairs</span>
-              <span className="tag">Painting</span>
-              <span className="tag">Carpentry</span>
+            <div className="device__block" />
+            <div className="device__tags">
+              <span>Repairs</span><span>Deep clean</span><span>Painting</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* TRUST STRIP */}
-      <section className="trust">
-        <div>Used by cleaners, handymen, gardeners, barbers, tutors & more.</div>
+      <section className="strip">
+        <span>Made for cleaners</span>
+        <span>handymen</span>
+        <span>gardeners</span>
+        <span>barbers</span>
+        <span>tutors</span>
+        <span>and more</span>
       </section>
 
       {/* BENEFITS */}
-      <section className="benefits" id="benefits">
-        <h2>Why tradespeople choose TradePage.Link</h2>
-        <div className="benefits__grid">
-          <div className="benefit">
-            <div className="emoji">🔗</div>
-            <h3>One link. Zero friction.</h3>
-            <p>All your details in one place—easy to share on WhatsApp, Instagram, flyers and vans.</p>
-          </div>
-          <div className="benefit">
-            <div className="emoji">📱</div>
-            <h3>Optimized for mobile</h3>
-            <p>Lightning-fast, finger-friendly actions that make customers contact you quickly.</p>
-          </div>
-          <div className="benefit">
-            <div className="emoji">✨</div>
-            <h3>Looks premium</h3>
-            <p>Your logo, clean typography and tasteful themes—no clunky website builder feel.</p>
-          </div>
-          <div className="benefit">
-            <div className="emoji">🖼️</div>
-            <h3>Gallery that converts</h3>
-            <p>Upload work photos to build trust and show quality—results speak for themselves.</p>
-          </div>
-          <div className="benefit">
-            <div className="emoji">🚀</div>
-            <h3>SEO & Social ready</h3>
-            <p>Open Graph and Twitter cards are set, so shares always look sharp.</p>
-          </div>
-          <div className="benefit">
-            <div className="emoji">🛠️</div>
-            <h3>Simple updates</h3>
-            <p>Change prices, areas or hours from your dashboard—no plugins or hosting needed.</p>
+      <section id="benefits" className="benefits">
+        <h2>Why TradePage.Link works</h2>
+        <div className="grid">
+          <Feature emoji="🔗" title="Everything in one place"
+            text="One link for contact, WhatsApp, services, prices, hours, location, socials and gallery." />
+          <Feature emoji="📱" title="Mobile-first actions"
+            text="Buttons your customers actually use. Call and WhatsApp are always front and center." />
+          <Feature emoji="✨" title="Premium presentation"
+            text="Tasteful design and themes that make small businesses look big, and trusted." />
+          <Feature emoji="🖼️" title="Work gallery"
+            text="Show proof. Upload job photos to help people choose you even before they message." />
+          <Feature emoji="🚀" title="Fast & shareable"
+            text="Perfect for Instagram bios, Google Business, text messages and flyers." />
+          <Feature emoji="⚙️" title="Zero maintenance"
+            text="Update anything from your dashboard—no plugins, hosting, or fiddly page builders." />
+        </div>
+      </section>
+
+      {/* SHOWCASE – layered cards */}
+      <section className="showcase">
+        <div className="card c1">
+          <div className="badge">Contact</div>
+          <div className="pill">Tap to Call</div>
+          <div className="pill alt">Open WhatsApp</div>
+        </div>
+        <div className="card c2">
+          <div className="badge">Services & Prices</div>
+          <div className="row w70" /><div className="row w50" /><div className="row w40" />
+        </div>
+        <div className="card c3">
+          <div className="badge">Gallery</div>
+          <div className="gallery">
+            <div /><div /><div /><div />
           </div>
         </div>
       </section>
 
-      {/* CHECKLIST */}
-      <section className="checklist">
-        <div className="checklist__wrap">
-          <div className="checklist__copy">
-            <h2>Everything your client needs—no digging, no guessing</h2>
-            <ul>
-              <li>Business name & logo</li>
-              <li>Tap-to-call & WhatsApp</li>
-              <li>Services, areas & prices</li>
-              <li>Opening hours & location</li>
-              <li>Instagram, Facebook, TikTok, X, YouTube</li>
-              <li>Work gallery & updates</li>
-            </ul>
-            <div className="cta-row">
-              <a className="btn btn-primary" href="/dashboard">Create your page</a>
-              <a className="btn btn-ghost" href="#faq">Common questions</a>
-            </div>
-          </div>
-          <div className="checklist__art">
-            <div className="sheet">
-              <div className="row w60" />
-              <div className="row w40" />
-              <div className="divider" />
-              <div className="row w50" />
-              <div className="row w30" />
-              <div className="chips2">
-                <span>Cleaning</span><span>London</span><span>Free quote</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* HOW IT WORKS */}
+      <section className="how">
+        <h2>Set up in minutes</h2>
+        <ol>
+          <li><b>Pick a link</b> and add your name & logo</li>
+          <li><b>Fill the details</b> — services, prices, areas, hours, socials</li>
+          <li><b>Share</b> your link on WhatsApp, Instagram, Google Business and flyers</li>
+        </ol>
+        <a href="#faq" className="btn btn-ghost">Common questions</a>
       </section>
 
       {/* TESTIMONIALS */}
       <section className="testimonials">
         <h2>What trades say</h2>
-        <div className="t-grid">
-          <blockquote>
-            “Went live in 10 minutes. Clients finally have one place for everything.
-            Calls up 30%.” <span>— Paula, Domestic Cleaning</span>
-          </blockquote>
-          <blockquote>
-            “Looks proper on WhatsApp and Instagram. I just send one link. Done.”
-            <span>— Jay, Handyman</span>
-          </blockquote>
-          <blockquote>
-            “The gallery sold the job before I arrived. Easiest ‘website’ I’ve used.”
-            <span>— Mirela, Painter</span>
-          </blockquote>
+        <div className="tgrid">
+          <Quote text="Went live in 10 minutes. Clients finally have one place for everything. Calls up 30%."
+                 who="Paula — Domestic Cleaning" />
+          <Quote text="Looks proper on WhatsApp and Instagram. I just send one link. Done."
+                 who="Jay — Handyman" />
+          <Quote text="The gallery sold the job before I arrived. Easiest set-up I’ve used."
+                 who="Mirela — Painter" />
         </div>
-      </section>
-
-      {/* HOW */}
-      <section className="how" id="how">
-        <h2>Set up in three quick steps</h2>
-        <ol>
-          <li><b>Create</b> your page and pick a public link</li>
-          <li><b>Add</b> details, prices, areas and photos</li>
-          <li><b>Share</b> the link everywhere and get more enquiries</li>
-        </ol>
       </section>
 
       {/* FAQ */}
-      <section className="faq" id="faq">
+      <section id="faq" className="faq">
         <h2>FAQ</h2>
-        <details>
-          <summary>Do I need hosting or a domain?</summary>
-          <p>No. Your page is hosted for you. You just share your TradePage link.</p>
+        <details><summary>Do I need a domain or hosting?</summary>
+          <p>No. Your page is hosted for you. Share your TradePage link anywhere.</p>
         </details>
-        <details>
-          <summary>Is it mobile friendly?</summary>
-          <p>Yes—designed mobile-first so clients can call or WhatsApp instantly.</p>
+        <details><summary>Is it mobile friendly?</summary>
+          <p>Yes—designed mobile-first so customers can call or WhatsApp without friction.</p>
         </details>
-        <details>
-          <summary>Can I update it anytime?</summary>
-          <p>Absolutely. Edit from your dashboard and it’s live immediately.</p>
+        <details><summary>Can I update it anytime?</summary>
+          <p>Absolutely. Edit from your dashboard and changes are live instantly.</p>
         </details>
       </section>
-
-      {/* FINAL CTA */}
-      <section className="cta-final">
-        <div className="cta-card">
-          <h2>Ready to look more professional?</h2>
-          <p>Create your Trade Page in minutes—no code, no fuss.</p>
-          <div className="cta-row">
-            <a className="btn btn-primary btn-lg" href="/dashboard">Create your page</a>
-            <a className="btn btn-ghost btn-lg" href="/signin">Sign in</a>
-          </div>
-        </div>
-      </section>
-
-      <footer className="footer">
-        <div>© {new Date().getFullYear()} TradePage.Link</div>
-        <div className="muted">Built for trades who value time and presentation.</div>
-      </footer>
     </main>
   );
 }
 
-/* ---------- CSS ---------- */
-const css = `
-.tp-home{ color:var(--text); background:var(--bg); max-width:1160px; margin:28px auto; padding:0 16px 48px; }
-.tp-nav{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
-.tp-nav__brand{ display:flex; align-items:center; gap:10px; }
-.logo-dot{ width:28px; height:28px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background:var(--btn-primary-1); color:#08101e; font-weight:900; border:1px solid var(--border); }
-.brand-title{ font-weight:900; letter-spacing:.2px; font-size:22px; line-height:1; }
-.brand-tag{ opacity:.75; font-size:12px; margin-top:4px; }
-.tp-nav__cta{ display:flex; gap:10px; flex-wrap:wrap; }
-
-.btn{ display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 16px; border-radius:12px; font-weight:800; font-size:14px; text-decoration:none; cursor:pointer; border:1px solid var(--border); }
-.btn-lg{ height:48px; padding:0 22px; font-size:15px; }
-.btn-primary{ background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2)); color:#08101e; }
-.btn-ghost{ background:transparent; color:var(--text); border:1px solid var(--social-border); }
-
-.hero{ position:relative; display:grid; grid-template-columns: 1.1fr .9fr; gap:18px; border-radius:22px; padding:18px; background:radial-gradient(1200px 500px at 0% -10%, color-mix(in oklab, var(--btn-primary-2) 18%, transparent), transparent), linear-gradient(180deg,var(--card-bg-1,rgba(255,255,255,0.02)),var(--card-bg-2,rgba(255,255,255,0.01))); border:1px solid var(--border); overflow:hidden; }
-.hero__copy{ position:relative; z-index:2; }
-.pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--chip-border, var(--border)); background:var(--chip-bg, rgba(255,255,255,0.02)); font-size:12px; opacity:.95; }
-.hero h1{ font-size:44px; line-height:1.1; margin:12px 0 8px; font-weight:900; }
-.lead{ font-size:18px; opacity:.95; line-height:1.6; margin:0; }
-.cta-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
-.hero-bullets{ margin:12px 0 0; padding-left:18px; line-height:1.6; opacity:.95; }
-
-.hero__art{ position:relative; min-height:320px; }
-.blob{ position:absolute; filter:blur(20px); opacity:.55; }
-.blob.b1{ width:420px; height:420px; right:-80px; top:-80px; background:radial-gradient(closest-side,var(--btn-primary-2),transparent 70%); }
-.blob.b2{ width:420px; height:420px; right:60px; bottom:-100px; background:radial-gradient(closest-side,var(--btn-primary-1),transparent 70%); }
-.device{ position:relative; margin:12px auto 0; width:100%; max-width:420px; border-radius:22px; border:1px solid var(--border); background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2)); padding:12px; box-shadow:0 10px 40px rgba(0,0,0,.25); }
-.bar{ display:flex; gap:6px; padding:6px; }
-.bar .dot{ width:8px; height:8px; border-radius:999px; background:var(--chip-bg); border:1px solid var(--chip-border); }
-.device-hero{ display:flex; gap:12px; align-items:center; padding:6px 8px; }
-.avatar{ width:42px; height:42px; border-radius:12px; background:var(--btn-primary-1); display:flex; align-items:center; justify-content:center; color:#08101e; font-weight:900; border:1px solid var(--border); }
-.lines{ flex:1; }
-.l{ height:10px; border-radius:6px; background:var(--chip-bg); border:1px solid var(--chip-border); }
-.l1{ width:70%; margin-bottom:8px; }
-.l2{ width:40%; }
-.chips{ display:flex; gap:8px; flex-wrap:wrap; padding:8px; }
-.chip{ padding:6px 10px; border-radius:999px; border:1px solid var(--chip-border); background:var(--chip-bg); font-size:12px; }
-.chip-primary{ background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2)); color:#08101e; border:1px solid var(--border); }
-.block{ height:72px; border-radius:14px; margin:6px 8px; background:var(--chip-bg); border:1px solid var(--chip-border); }
-.tags{ display:flex; gap:8px; flex-wrap:wrap; padding:0 8px 10px; }
-.tag{ padding:6px 10px; border-radius:999px; border:1px solid var(--chip-border); font-size:12px; opacity:.95; }
-
-.trust{ text-align:center; margin:18px 0 8px; opacity:.85; }
-
-.benefits{ margin-top:22px; }
-.benefits h2{ font-size:26px; margin:0 0 12px; font-weight:900; text-align:center; }
-.benefits__grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:14px; }
-.benefit{ padding:16px; border-radius:18px; border:1px solid var(--border); background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2)); }
-.benefit .emoji{ font-size:22px; }
-.benefit h3{ margin:8px 0 6px; font-size:16px; }
-
-.checklist{ margin-top:28px; }
-.checklist__wrap{ display:grid; grid-template-columns:1.1fr .9fr; gap:16px; align-items:center; }
-.checklist__copy h2{ font-size:26px; margin:0 0 12px; font-weight:900; }
-.checklist__copy ul{ margin:0 0 12px; padding-left:18px; line-height:1.7; }
-.checklist__art .sheet{ border-radius:18px; border:1px solid var(--border); background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2)); padding:14px; }
-.sheet .row{ height:12px; border-radius:8px; background:var(--chip-bg); border:1px solid var(--chip-border); margin-bottom:8px; }
-.sheet .row.w60{ width:60%; } .sheet .row.w40{ width:40%; } .sheet .row.w50{ width:50%; } .sheet .row.w30{ width:30%; }
-.sheet .divider{ height:1px; background:var(--border); margin:10px 0; }
-.chips2{ display:flex; gap:8px; flex-wrap:wrap; }
-.chips2 span{ padding:6px 10px; border-radius:999px; border:1px solid var(--chip-border); background:var(--chip-bg); font-size:12px; }
-
-.testimonials{ margin-top:26px; }
-.testimonials h2{ text-align:center; font-size:24px; margin:0 0 10px; font-weight:900; }
-.t-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-blockquote{ margin:0; padding:16px; border-radius:16px; border:1px solid var(--border); background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2)); line-height:1.6; }
-blockquote span{ display:block; opacity:.8; margin-top:6px; }
-
-.how{ margin-top:26px; text-align:center; }
-.how h2{ font-size:24px; margin:0 0 10px; font-weight:900; }
-.how ol{ margin:0 auto; padding-left:18px; max-width:760px; text-align:left; line-height:1.8; }
-
-.faq{ margin-top:26px; }
-.faq h2{ text-align:center; font-size:24px; margin:0 0 10px; font-weight:900; }
-.faq details{ border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2)); padding:12px 14px; margin-bottom:10px; }
-.faq summary{ cursor:pointer; font-weight:800; }
-.faq p{ margin:8px 0 0; opacity:.95; }
-
-.cta-final{ margin-top:30px; }
-.cta-card{ text-align:center; border:1px solid var(--border); border-radius:20px; padding:22px; background:
-  radial-gradient(900px 400px at 100% 0%, color-mix(in oklab, var(--btn-primary-1) 16%, transparent), transparent),
-  linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2));
+/* ---------- Reusable bits ---------- */
+function Feature({ emoji, title, text }) {
+  return (
+    <div className="feature">
+      <div className="emoji">{emoji}</div>
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </div>
+  );
 }
-.cta-card h2{ margin:0 0 8px; font-size:26px; font-weight:900; }
-.cta-card p{ margin:0 0 12px; opacity:.95; }
+function Quote({ text, who }) {
+  return (
+    <blockquote>
+      “{text}”
+      <span>{who}</span>
+    </blockquote>
+  );
+}
 
-.footer{ margin-top:34px; text-align:center; display:grid; gap:6px; }
-.footer .muted{ opacity:.8; }
+/* ---------- CSS (theme-aware via your CSS variables) ---------- */
+const css = `
+.home{color:var(--text);background:var(--bg);max-width:1160px;margin:28px auto;padding:0 16px 56px;}
+
+.hero{position:relative;display:grid;grid-template-columns:1.1fr .9fr;gap:18px;border-radius:24px;padding:24px;border:1px solid var(--border);
+  background:
+    radial-gradient(1200px 600px at 10% -20%, color-mix(in oklab, var(--btn-primary-2) 15%, transparent), transparent),
+    conic-gradient(from 210deg at 110% -10%, color-mix(in oklab, var(--btn-primary-1) 12%, transparent), transparent 35%),
+    linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2)); overflow:hidden;}
+.eyebrow{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid var(--chip-border);background:var(--chip-bg);font-size:12px;opacity:.95}
+.hero h1{margin:10px 0 8px;font-size:42px;line-height:1.08;font-weight:900;letter-spacing:.1px}
+.lead{font-size:18px;opacity:.95;line-height:1.6;margin:0 0 10px}
+.bullets{margin:8px 0 14px;padding-left:18px;line-height:1.7;opacity:.95}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 16px;border-radius:12px;font-weight:800;font-size:14px;text-decoration:none;border:1px solid var(--social-border)}
+.btn-ghost{background:transparent;color:var(--text)}
+.hero__art{position:relative;min-height:360px}
+.glow{position:absolute;filter:blur(28px);opacity:.55}
+.g1{width:520px;height:520px;right:-120px;top:-160px;background:radial-gradient(closest-side,var(--btn-primary-2),transparent 70%)}
+.g2{width:460px;height:460px;right:40px;bottom:-160px;background:radial-gradient(closest-side,var(--btn-primary-1),transparent 70%)}
+.g3{width:380px;height:380px;left:-140px;bottom:-160px;background:radial-gradient(closest-side,color-mix(in oklab,var(--btn-primary-2) 40%, var(--btn-primary-1)),transparent 70%)}
+.device{position:relative;margin:10px auto 0;width:100%;max-width:440px;border-radius:22px;border:1px solid var(--border);
+  background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2));padding:12px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.device__bar{display:flex;gap:6px;padding:6px}
+.device__bar i{width:8px;height:8px;border-radius:999px;background:var(--chip-bg);border:1px solid var(--chip-border)}
+.device__head{display:flex;gap:12px;align-items:center;padding:6px 8px}
+.avatar{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));display:flex;align-items:center;justify-content:center;color:#08101e;font-weight:900;border:1px solid var(--border)}
+.head__text{flex:1}
+.line{height:10px;border-radius:6px;background:var(--chip-bg);border:1px solid var(--chip-border)}
+.l1{width:72%;margin-bottom:8px}.l2{width:44%}
+.device__chips{display:flex;gap:8px;flex-wrap:wrap;padding:8px}
+.chip{padding:6px 10px;border-radius:999px;border:1px solid var(--chip-border);background:var(--chip-bg);font-size:12px}
+.chip-primary{background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));color:#08101e;border:1px solid var(--border)}
+.device__block{height:78px;border-radius:14px;margin:6px 8px;background:var(--chip-bg);border:1px solid var(--chip-border)}
+.device__tags{display:flex;gap:8px;flex-wrap:wrap;padding:0 8px 10px}
+.device__tags span{padding:6px 10px;border-radius:999px;border:1px solid var(--chip-border);font-size:12px;opacity:.95}
+
+.strip{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;margin:14px 0 8px;opacity:.85}
+.strip span{border:1px solid var(--chip-border);background:var(--chip-bg);padding:6px 10px;border-radius:999px;font-size:12px}
+
+.benefits{margin-top:24px}
+.benefits h2{text-align:center;margin:0 0 14px;font-size:26px;font-weight:900}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feature{padding:16px;border-radius:18px;border:1px solid var(--border);background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))}
+.feature .emoji{font-size:22px}
+.feature h3{margin:8px 0 6px;font-size:16px}
+.feature p{margin:0;opacity:.95}
+
+.showcase{position:relative;margin-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{position:relative;border-radius:18px;border:1px solid var(--border);background:
+  radial-gradient(800px 300px at 120% 0%, color-mix(in oklab,var(--btn-primary-1) 18%, transparent), transparent),
+  linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2));
+  padding:14px;min-height:160px;overflow:hidden}
+.badge{display:inline-block;font-size:12px;border:1px solid var(--chip-border);background:var(--chip-bg);border-radius:999px;padding:6px 10px;margin-bottom:10px}
+.pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));color:#08101e;margin-right:8px;font-size:12px}
+.pill.alt{background:var(--chip-bg);color:var(--text);border:1px solid var(--chip-border)}
+.row{height:10px;border-radius:6px;background:var(--chip-bg);border:1px solid var(--chip-border);margin:8px 0}
+.w70{width:70%}.w50{width:50%}.w40{width:40%}
+.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.gallery div{height:70px;border-radius:10px;border:1px solid var(--chip-border);background:var(--chip-bg)}
+
+.how{margin-top:28px;text-align:center}
+.how h2{font-size:24px;margin:0 0 8px;font-weight:900}
+.how ol{margin:0 auto 10px;padding-left:18px;max-width:720px;text-align:left;line-height:1.8}
+.testimonials{margin-top:26px}
+.testimonials h2{text-align:center;margin:0 0 10px;font-size:24px;font-weight:900}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+blockquote{margin:0;padding:16px;border-radius:16px;border:1px solid var(--border);background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2));line-height:1.6}
+blockquote span{display:block;opacity:.8;margin-top:6px}
+
+.faq{margin-top:26px}
+.faq h2{text-align:center;margin:0 0 10px;font-size:24px;font-weight:900}
+.faq details{border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2));padding:12px 14px;margin-bottom:10px}
+.faq summary{cursor:pointer;font-weight:800}
+.faq p{margin:8px 0 0;opacity:.95}
 
 @media (max-width: 980px){
-  .hero{ grid-template-columns:1fr; }
-  .benefits__grid, .t-grid{ grid-template-columns:1fr; }
-  .checklist__wrap{ grid-template-columns:1fr; }
-  .tp-nav{ gap:8px; }
-  .hero h1{ font-size:34px; }
-  .btn-lg{ height:46px; }
+  .hero{grid-template-columns:1fr;padding:18px}
+  .grid,.showcase,.tgrid{grid-template-columns:1fr}
+  .hero h1{font-size:32px}
 }
 `;
