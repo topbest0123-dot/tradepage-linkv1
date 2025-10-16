@@ -25,11 +25,9 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero__copy">
           <div className="pill">A professional mini-site for trades—made in minutes</div>
-          <h1>
-            Look premium. Get contacted faster.
-          </h1>
+          <h1>Look premium. Get contacted faster.</h1>
           <p className="lead">
-            Put **everything** clients need on one beautiful link—contact, WhatsApp, services, prices,
+            Put <b>everything</b> clients need on one beautiful link—contact, WhatsApp, services, prices,
             areas, gallery and socials. No website builder headaches.
           </p>
           <div className="cta-row">
@@ -44,7 +42,6 @@ export default function HomePage() {
           </ul>
         </div>
 
-        {/* Decorative preview/shape – not the slug layout */}
         <div className="hero__art">
           <div className="blob b1" />
           <div className="blob b2" />
@@ -145,7 +142,7 @@ export default function HomePage() {
               <div className="row w30" />
               <div className="chips2">
                 <span>Cleaning</span><span>London</span><span>Free quote</span>
-              </span></div>
+              </div>
             </div>
           </div>
         </div>
@@ -217,11 +214,9 @@ export default function HomePage() {
   );
 }
 
-/* ---------- CSS (theme-aware via your CSS variables) ---------- */
+/* ---------- CSS ---------- */
 const css = `
 .tp-home{ color:var(--text); background:var(--bg); max-width:1160px; margin:28px auto; padding:0 16px 48px; }
-
-/* NAV */
 .tp-nav{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
 .tp-nav__brand{ display:flex; align-items:center; gap:10px; }
 .logo-dot{ width:28px; height:28px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background:var(--btn-primary-1); color:#08101e; font-weight:900; border:1px solid var(--border); }
@@ -229,13 +224,11 @@ const css = `
 .brand-tag{ opacity:.75; font-size:12px; margin-top:4px; }
 .tp-nav__cta{ display:flex; gap:10px; flex-wrap:wrap; }
 
-/* BUTTONS */
 .btn{ display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 16px; border-radius:12px; font-weight:800; font-size:14px; text-decoration:none; cursor:pointer; border:1px solid var(--border); }
 .btn-lg{ height:48px; padding:0 22px; font-size:15px; }
 .btn-primary{ background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2)); color:#08101e; }
 .btn-ghost{ background:transparent; color:var(--text); border:1px solid var(--social-border); }
 
-/* HERO */
 .hero{ position:relative; display:grid; grid-template-columns: 1.1fr .9fr; gap:18px; border-radius:22px; padding:18px; background:radial-gradient(1200px 500px at 0% -10%, color-mix(in oklab, var(--btn-primary-2) 18%, transparent), transparent), linear-gradient(180deg,var(--card-bg-1,rgba(255,255,255,0.02)),var(--card-bg-2,rgba(255,255,255,0.01))); border:1px solid var(--border); overflow:hidden; }
 .hero__copy{ position:relative; z-index:2; }
 .pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--chip-border, var(--border)); background:var(--chip-bg, rgba(255,255,255,0.02)); font-size:12px; opacity:.95; }
@@ -264,10 +257,8 @@ const css = `
 .tags{ display:flex; gap:8px; flex-wrap:wrap; padding:0 8px 10px; }
 .tag{ padding:6px 10px; border-radius:999px; border:1px solid var(--chip-border); font-size:12px; opacity:.95; }
 
-/* TRUST */
 .trust{ text-align:center; margin:18px 0 8px; opacity:.85; }
 
-/* BENEFITS */
 .benefits{ margin-top:22px; }
 .benefits h2{ font-size:26px; margin:0 0 12px; font-weight:900; text-align:center; }
 .benefits__grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:14px; }
@@ -275,7 +266,6 @@ const css = `
 .benefit .emoji{ font-size:22px; }
 .benefit h3{ margin:8px 0 6px; font-size:16px; }
 
-/* CHECKLIST */
 .checklist{ margin-top:28px; }
 .checklist__wrap{ display:grid; grid-template-columns:1.1fr .9fr; gap:16px; align-items:center; }
 .checklist__copy h2{ font-size:26px; margin:0 0 12px; font-weight:900; }
@@ -287,26 +277,22 @@ const css = `
 .chips2{ display:flex; gap:8px; flex-wrap:wrap; }
 .chips2 span{ padding:6px 10px; border-radius:999px; border:1px solid var(--chip-border); background:var(--chip-bg); font-size:12px; }
 
-/* TESTIMONIALS */
 .testimonials{ margin-top:26px; }
 .testimonials h2{ text-align:center; font-size:24px; margin:0 0 10px; font-weight:900; }
 .t-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
 blockquote{ margin:0; padding:16px; border-radius:16px; border:1px solid var(--border); background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2)); line-height:1.6; }
 blockquote span{ display:block; opacity:.8; margin-top:6px; }
 
-/* HOW */
 .how{ margin-top:26px; text-align:center; }
 .how h2{ font-size:24px; margin:0 0 10px; font-weight:900; }
 .how ol{ margin:0 auto; padding-left:18px; max-width:760px; text-align:left; line-height:1.8; }
 
-/* FAQ */
 .faq{ margin-top:26px; }
 .faq h2{ text-align:center; font-size:24px; margin:0 0 10px; font-weight:900; }
 .faq details{ border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2)); padding:12px 14px; margin-bottom:10px; }
 .faq summary{ cursor:pointer; font-weight:800; }
 .faq p{ margin:8px 0 0; opacity:.95; }
 
-/* FINAL CTA */
 .cta-final{ margin-top:30px; }
 .cta-card{ text-align:center; border:1px solid var(--border); border-radius:20px; padding:22px; background:
   radial-gradient(900px 400px at 100% 0%, color-mix(in oklab, var(--btn-primary-1) 16%, transparent), transparent),
@@ -315,11 +301,9 @@ blockquote span{ display:block; opacity:.8; margin-top:6px; }
 .cta-card h2{ margin:0 0 8px; font-size:26px; font-weight:900; }
 .cta-card p{ margin:0 0 12px; opacity:.95; }
 
-/* FOOTER */
 .footer{ margin-top:34px; text-align:center; display:grid; gap:6px; }
 .footer .muted{ opacity:.8; }
 
-/* Responsive */
 @media (max-width: 980px){
   .hero{ grid-template-columns:1fr; }
   .benefits__grid, .t-grid{ grid-template-columns:1fr; }
