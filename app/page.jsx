@@ -231,6 +231,9 @@ const styles = `
   --card-bg-1:#ffffff; --card-bg-2:#f4f6fb; --chip-bg:#f6f7f9; --chip-border:#e7e8ec;
   --btn-primary-1:#5aa6ff; --btn-primary-2:#77e2b3;
 }
+/* Keep the light theme tokens as-is above this */
+
+/* Desktop/tablet background (subtle accents are fine here) */
 html,body{
   background:
     radial-gradient(1000px 500px at 70% -10%, rgba(122,186,255,.25), transparent 60%),
@@ -238,6 +241,16 @@ html,body{
     linear-gradient(180deg, #fff, var(--bg));
   color:var(--text);
 }
+
+/* --- MOBILE: remove the bluish gradient completely for readability --- */
+@media (max-width: 768px){
+  html,body{
+    background: linear-gradient(180deg, #fff, var(--bg)) !important; /* clean, light */
+  }
+  /* also hide the decorative hero glows on small screens */
+  .glow{ display:none !important; }
+}
+
 
 /* layout helpers */
 .tp-home{color:var(--text)}
