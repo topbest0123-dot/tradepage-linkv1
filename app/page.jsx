@@ -2,11 +2,11 @@
 'use client';
 
 /**
- * Homepage with a realistic modern phone mock.
- * Put your assets in /public:
- *  - tradepage-demo.mp4 (and optionally tradepage-demo.webm)
+ * Homepage with a realistic modern phone mock (smaller, no eyebrow/chips).
+ * Assets in /public:
+ *  - tradepage-demo.mp4 (+ optional tradepage-demo.webm)
  *  - tradepage-demo.jpg  (poster frame)
- *  - flow-screenshot.jpg (optional static image for FLOW)
+ *  - flow-screenshot.jpg (optional for FLOW)
  */
 
 export default function HomePage() {
@@ -18,7 +18,7 @@ export default function HomePage() {
       <section className="hero">
         <div className="container">
           <div className="hero-copy">
-            <p className="eyebrow">A single link customers actually use</p>
+            {/* removed eyebrow */}
             <h1>
               The essentials. <br className="hide-d" />
               One link.
@@ -29,31 +29,14 @@ export default function HomePage() {
               Your customer acts in seconds—no wandering menus, no confusion.
             </p>
 
-            <div className="chips" role="list">
-              {[
-                'Tap-to-Call',
-                'Open WhatsApp',
-                'Quick Quote',
-                'Prices Up-Front',
-                'Services',
-                'Gallery',
-                'Social Proof',
-                'Share Anywhere',
-              ].map((t) => (
-                <span role="listitem" key={t} className="chip">
-                  {t}
-                </span>
-              ))}
-            </div>
+            {/* removed chips */}
           </div>
 
-          {/* Modern phone mock */}
+          {/* Modern phone mock (smaller) */}
           <div className="hero-visual">
             <div className="device-neo">
-              {/* side reflections */}
               <i className="edge edge-l" />
               <i className="edge edge-r" />
-
               <div className="bezel">
                 <video
                   className="screen"
@@ -68,7 +51,6 @@ export default function HomePage() {
                   <source src="/tradepage-demo.mp4" type="video/mp4" />
                 </video>
 
-                {/* status bar */}
                 <div className="statusbar">
                   <span className="time">12:08 PM</span>
                   <div className="sicons" aria-hidden>
@@ -93,19 +75,17 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* punch-hole camera */}
                 <div className="punch" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* ambient glows */}
         <div className="glow g1" />
         <div className="glow g2" />
       </section>
 
-      {/* FLOW — sticky phone (desktop), linear story (mobile) */}
+      {/* FLOW */}
       <section className="flow">
         <div className="container flow-wrap">
           <div className="flow-phone">
@@ -217,7 +197,7 @@ function Step({ n, title, text }) {
   );
 }
 
-/* Styles */
+/* Styles (phone smaller + eyebrow/chips removed) */
 const styles = `
 .tp-home{color:var(--text);background:var(--bg);}
 .container{max-width:1180px;margin:0 auto;padding:0 16px}
@@ -225,91 +205,38 @@ const styles = `
 /* HERO */
 .hero{position:relative;padding:42px 0 10px;border-bottom:1px solid var(--border)}
 .hero .container{display:grid;grid-template-columns:1fr;gap:24px}
-.eyebrow{display:inline-block;font-size:12px;padding:8px 12px;border-radius:999px;border:1px solid var(--chip-border);background:var(--chip-bg);opacity:.95}
+/* eyebrow removed */
 .hero h1{margin:10px 0 6px;font-size:40px;line-height:1.05;font-weight:1000;letter-spacing:.2px}
 .hero .dot{color:transparent;background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));-webkit-background-clip:text;background-clip:text}
 .lead{font-size:16px;line-height:1.7;opacity:.95;max-width:760px}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.chip{border:1px solid var(--chip-border);background:var(--chip-bg);padding:6px 10px;border-radius:999px;font-size:12px;white-space:nowrap}
+/* chips removed */
 .hero-visual{display:flex;justify-content:center}
 
-/* ========== REALISTIC MODERN PHONE (no corner lines) ========== */
+/* === Realistic phone (smaller) === */
 :root{
-  --rim:10px;             /* aluminum rim thickness */
-  --rimR:42px;            /* outer chassis radius */
-  --glassR:34px;          /* glass radius */
-  --screen-gap:14px;      /* black bezel between glass and video */
+  --rim:10px;
+  --rimR:42px;
+  --glassR:34px;
+  --screen-gap:14px;
 }
-
-/* Outer chassis */
 .device-neo{
   position:relative;
-  width:420px;max-width:100%;
+  width:360px; /* was 420px */
+  max-width:100%;
   aspect-ratio:9/19.5;
   border-radius:var(--rimR);
   background:linear-gradient(160deg,#dfe6ef 0%,#aeb8c6 35%,#657182 60%,#cfd8e3 100%);
-  box-shadow:
-    0 40px 120px rgba(0,0,0,.35),
-    0 2px 0 rgba(255,255,255,.22) inset,
-    0 -2px 0 rgba(0,0,0,.38) inset;
+  box-shadow:0 40px 120px rgba(0,0,0,.35),0 2px 0 rgba(255,255,255,.22) inset,0 -2px 0 rgba(0,0,0,.38) inset;
   overflow:hidden;
 }
-
-/* Side reflections */
-.device-neo .edge{
-  content:'';position:absolute;top:12px;bottom:12px;width:8px;border-radius:8px;opacity:.55;pointer-events:none;
-  background:linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,.08) 45%,rgba(0,0,0,.4) 55%,rgba(255,255,255,.22));
-  filter:blur(.2px);
-}
+.device-neo .edge{content:'';position:absolute;top:12px;bottom:12px;width:8px;border-radius:8px;opacity:.55;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,.08) 45%,rgba(0,0,0,.4) 55%,rgba(255,255,255,.22));filter:blur(.2px);}
 .device-neo .edge-l{left:6px}
 .device-neo .edge-r{right:6px;transform:scaleX(-1)}
-
-/* Inner glass */
-.bezel{
-  position:absolute; inset:var(--rim);
-  border-radius:var(--glassR);
-  overflow:hidden;
-  background:linear-gradient(180deg,#0a0f16,#0b121b);
-}
-.bezel::before{
-  content:""; position:absolute; inset:0; border-radius:inherit;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.06),
-    inset 0 16px 28px rgba(255,255,255,.05),
-    inset 0 -28px 40px rgba(0,0,0,.55);
-  pointer-events:none;
-}
-
-/* Punch-hole camera */
-.punch{
-  position:absolute; top:10px; left:50%; transform:translateX(-50%);
-  width:12px; height:12px; border-radius:50%;
-  background:#000;
-  box-shadow:0 0 0 1px rgba(255,255,255,.3) inset, 0 0 10px rgba(0,0,0,.6);
-  z-index:3; pointer-events:none; opacity:.92;
-}
-
-/* Screen (video/image) — NO borders to avoid corner artifacts */
-.screen{
-  position:absolute;
-  inset:calc(var(--screen-gap));
-  border-radius:calc(var(--glassR) - var(--screen-gap));
-  width:calc(100% - var(--screen-gap)*2);
-  height:calc(100% - var(--screen-gap)*2);
-  object-fit:cover;             /* change to 'contain' if you prefer letterboxing */
-  background:#000;
-  border:none; outline:none;    /* important: no borders => no corner lines */
-  display:block;
-  z-index:2;
-}
-
-/* Tiny status bar */
-.statusbar{
-  position:absolute; left:26px; right:26px; top:16px; height:18px;
-  display:flex; align-items:center; justify-content:space-between;
-  color:#fff; font-size:12px; letter-spacing:.2px; text-shadow:0 1px 2px rgba(0,0,0,.45); opacity:.9;
-  z-index:3; pointer-events:none;
-}
+.bezel{position:absolute;inset:var(--rim);border-radius:var(--glassR);overflow:hidden;background:linear-gradient(180deg,#0a0f16,#0b121b);}
+.bezel::before{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 16px 28px rgba(255,255,255,.05),inset 0 -28px 40px rgba(0,0,0,.55);pointer-events:none;}
+.punch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.3) inset,0 0 10px rgba(0,0,0,.6);z-index:3;pointer-events:none;opacity:.92;}
+.screen{position:absolute;inset:calc(var(--screen-gap));border-radius:calc(var(--glassR) - var(--screen-gap));width:calc(100% - var(--screen-gap)*2);height:calc(100% - var(--screen-gap)*2);object-fit:cover;background:#000;border:none;outline:none;display:block;z-index:2;}
+.statusbar{position:absolute;left:26px;right:26px;top:16px;height:18px;display:flex;align-items:center;justify-content:space-between;color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.9;z-index:3;pointer-events:none;}
 .time{font-weight:700;opacity:.95}
 .sicons{display:flex;align-items:center;gap:6px}
 .sig svg,.wifi svg{display:block}
@@ -317,7 +244,7 @@ const styles = `
 .bat::after{content:'';position:absolute;right:-3px;top:3px;width:2px;height:4px;background:rgba(255,255,255,.95);border-radius:1px}
 .bat .lvl{position:absolute;left:2px;top:2px;height:6px;width:16px;background:#fff;border-radius:1px}
 
-/* ambient glows */
+/* glows */
 .glow{position:absolute;filter:blur(48px);opacity:.5;pointer-events:none}
 .g1{width:540px;height:540px;left:-160px;top:-140px;background:radial-gradient(closest-side,var(--btn-primary-2),transparent 70%)}
 .g2{width:520px;height:520px;right:-160px;top:-120px;background:radial-gradient(closest-side,var(--btn-primary-1),transparent 70%)}
@@ -354,7 +281,7 @@ const styles = `
 .note{padding:22px 16px 48px;text-align:center;opacity:.9}
 .note .dot{color:transparent;background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));-webkit-background-clip:text;background-clip:text}
 
-/* DESKTOP ENHANCEMENTS */
+/* DESKTOP */
 @media (min-width:980px){
   .hero .container{grid-template-columns:1.05fr .95fr;align-items:center}
   .hero h1{font-size:64px}
