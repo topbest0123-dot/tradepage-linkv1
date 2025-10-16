@@ -167,9 +167,15 @@ html,body{
    No content; this slab only paints a smooth transition
    from the existing dark to the warm cream. */
 .transition-slab{
-  position:relative;
-  width:100%;
-  min-height:120vh;
+  /* full-bleed background slab */
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  width: 100vw;
+
+  min-height: 120vh;
   background:
     radial-gradient(800px 240px at 60% 0%, rgba(0,0,0,.10), transparent 60%),
     linear-gradient(
@@ -179,9 +185,9 @@ html,body{
       var(--below-bg) 18%,
       var(--below-bg) 100%
     );
-  /* make sure it abuts the hero with no gap */
-  margin:0; padding:0; border:0;
+  margin-top: 0; padding: 0; border: 0;
 }
+
 
 /* DESKTOP ENHANCEMENTS */
 @media (min-width:980px){
