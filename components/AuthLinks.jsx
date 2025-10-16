@@ -62,10 +62,10 @@ export default function AuthLinks() {
       onClick={() => go('/signin')}
       // you can use btnPrimary to make it pop, or keep btnNeutral
       style={{ ...btnBase, ...btnPrimary }}
-      aria-label="Create your own page"
-      title="Create your own page"
+      aria-label="Create your trade page"
+      title="Create your trade page"
     >
-      Create your own page
+      Create your trade page
     </button>
   );
 }
