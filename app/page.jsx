@@ -20,7 +20,7 @@ export default function HomePage() {
             
             </h1>
             <p className="lead">
-              TradePageLink removes the fluff and shows only info that trully matters for your customers, in one link:
+              TradePageLink removes the fluff and shows only info that trully matters for your customers:
               <b> Phone</b>, <b>WhatsApp</b>, <b>quick quote</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>socials media</b>, <b>areas</b>
               Your customer acts in seconds — no wandering menus, no confusion, better conversions
             </p>
