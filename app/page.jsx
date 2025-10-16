@@ -233,60 +233,82 @@ const styles = `
 .chip{border:1px solid var(--chip-border);background:var(--chip-bg);padding:6px 10px;border-radius:999px;font-size:12px;white-space:nowrap}
 .hero-visual{display:flex;justify-content:center}
 
-/* --- Realistic modern phone --- */
+/* ========== REALISTIC MODERN PHONE (no corner lines) ========== */
+:root{
+  --rim:10px;             /* aluminum rim thickness */
+  --rimR:42px;            /* outer chassis radius */
+  --glassR:34px;          /* glass radius */
+  --screen-gap:14px;      /* black bezel between glass and video */
+}
+
+/* Outer chassis */
 .device-neo{
   position:relative;
   width:420px;max-width:100%;
-  aspect-ratio:9/19;
-  border-radius:42px;
-  background:linear-gradient(180deg,#7a7f88,#3b3e44);
+  aspect-ratio:9/19.5;
+  border-radius:var(--rimR);
+  background:linear-gradient(160deg,#dfe6ef 0%,#aeb8c6 35%,#657182 60%,#cfd8e3 100%);
   box-shadow:
     0 40px 120px rgba(0,0,0,.35),
-    0 1px 0 rgba(255,255,255,.12) inset,
-    0 -1px 0 rgba(0,0,0,.45) inset;
-  border:1px solid rgba(255,255,255,.08);
+    0 2px 0 rgba(255,255,255,.22) inset,
+    0 -2px 0 rgba(0,0,0,.38) inset;
+  overflow:hidden;
 }
 
-/* side reflections */
+/* Side reflections */
 .device-neo .edge{
-  content:'';position:absolute;top:10px;bottom:10px;width:9px;border-radius:8px;opacity:.6;pointer-events:none;
-  background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.05) 45%,rgba(0,0,0,.35) 55%,rgba(255,255,255,.2));
+  content:'';position:absolute;top:12px;bottom:12px;width:8px;border-radius:8px;opacity:.55;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,.08) 45%,rgba(0,0,0,.4) 55%,rgba(255,255,255,.22));
   filter:blur(.2px);
 }
 .device-neo .edge-l{left:6px}
 .device-neo .edge-r{right:6px;transform:scaleX(-1)}
 
+/* Inner glass */
 .bezel{
-  position:absolute;inset:8px;border-radius:36px;
-  background:linear-gradient(180deg,#0f1116,#0a0d12);
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.06) inset,
-    0 0 0 10px rgba(0,0,0,.25) inset;
-}
-
-/* punch-hole camera */
-.punch{
-  position:absolute;top:12px;left:50%;transform:translateX(-50%);
-  width:12px;height:12px;border-radius:50%;
-  background:#000;box-shadow:0 0 0 2px rgba(255,255,255,.12) inset, 0 0 8px rgba(0,0,0,.45);
-  opacity:.9;pointer-events:none;
-}
-
-/* screen area */
-.screen{
-  position:absolute;inset:16px;border-radius:28px;background:#000;object-fit:cover;width:auto;height:auto;display:block;
-  border:1px solid rgba(255,255,255,.06);
-  box-shadow:
-    0 0 0 1px rgba(0,0,0,.5) inset,
-    0 18px 28px rgba(0,0,0,.45) inset;
+  position:absolute; inset:var(--rim);
+  border-radius:var(--glassR);
   overflow:hidden;
+  background:linear-gradient(180deg,#0a0f16,#0b121b);
+}
+.bezel::before{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    inset 0 16px 28px rgba(255,255,255,.05),
+    inset 0 -28px 40px rgba(0,0,0,.55);
+  pointer-events:none;
 }
 
-/* tiny status bar */
+/* Punch-hole camera */
+.punch{
+  position:absolute; top:10px; left:50%; transform:translateX(-50%);
+  width:12px; height:12px; border-radius:50%;
+  background:#000;
+  box-shadow:0 0 0 1px rgba(255,255,255,.3) inset, 0 0 10px rgba(0,0,0,.6);
+  z-index:3; pointer-events:none; opacity:.92;
+}
+
+/* Screen (video/image) — NO borders to avoid corner artifacts */
+.screen{
+  position:absolute;
+  inset:calc(var(--screen-gap));
+  border-radius:calc(var(--glassR) - var(--screen-gap));
+  width:calc(100% - var(--screen-gap)*2);
+  height:calc(100% - var(--screen-gap)*2);
+  object-fit:cover;             /* change to 'contain' if you prefer letterboxing */
+  background:#000;
+  border:none; outline:none;    /* important: no borders => no corner lines */
+  display:block;
+  z-index:2;
+}
+
+/* Tiny status bar */
 .statusbar{
-  position:absolute;left:26px;right:26px;top:18px;height:18px;
-  display:flex;align-items:center;justify-content:space-between;
-  color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.9;
+  position:absolute; left:26px; right:26px; top:16px; height:18px;
+  display:flex; align-items:center; justify-content:space-between;
+  color:#fff; font-size:12px; letter-spacing:.2px; text-shadow:0 1px 2px rgba(0,0,0,.45); opacity:.9;
+  z-index:3; pointer-events:none;
 }
 .time{font-weight:700;opacity:.95}
 .sicons{display:flex;align-items:center;gap:6px}
