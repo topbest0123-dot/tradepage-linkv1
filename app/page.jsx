@@ -1,14 +1,9 @@
 // app/page.jsx
 'use client';
 
-/**
- * Homepage — HERO + soft colour band below (for future sections).
- * Only colours/transition added; hero left intact.
- */
-
 export default function HomePage() {
   return (
-    <main className="tp-home tp-home--light">
+    <main className="tp-home">
       <style>{styles}</style>
 
       {/* HERO (unchanged) */}
@@ -55,9 +50,9 @@ export default function HomePage() {
                     </span>
                     <span className="wifi">
                       <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-                        <path d="M2 5.5a9 9 0 0112 0" stroke="white" strokeOpacity=".9" strokeWidth="1.2" strokeLinecap="round" />
-                        <path d="M4.5 7.5a6 6 0 017 0" stroke="white" strokeOpacity=".85" strokeWidth="1.2" strokeLinecap="round" />
-                        <circle cx="8" cy="10.5" r="1.4" fill="white" />
+                        <path d="M2 5.5a9 9 0 0112 0" stroke="white" strokeOpacity=".9" strokeWidth="1.2" strokeLinecap="round"/>
+                        <path d="M4.5 7.5a6 6 0 017 0" stroke="white" strokeOpacity=".85" strokeWidth="1.2" strokeLinecap="round"/>
+                        <circle cx="8" cy="10.5" r="1.4" fill="white"/>
                       </svg>
                     </span>
                     <span className="bat"><i className="lvl" /></span>
@@ -70,21 +65,18 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ambient glows */}
         <div className="glow g1" />
         <div className="glow g2" />
       </section>
 
-      {/* NEW: soft light band for the rest of the homepage */}
+      {/* FULL-WIDTH LIGHT BAND (edge-to-edge, with smooth blend) */}
       <section className="soft-band">
-        {/* dark→light blend at top */}
-        <div className="blend" aria-hidden />
-
         <div className="container">
-          {/* placeholder; we’ll add real blocks later */}
           <div className="soft-placeholder">
             <h2>Next section starts here</h2>
-            <p>We’ll drop your features/tiles here — background is now light, warm, and readable.</p>
+            <p>
+              We’ll add your content here. This area has a warm, light background and a clean fade from the hero.
+            </p>
           </div>
         </div>
       </section>
@@ -94,28 +86,23 @@ export default function HomePage() {
 
 /* Styles */
 const styles = `
+/* ========= base (dark hero) ========= */
 :root{
-  /* page tokens (dark hero) */
-  --bg:#0b1016;
-  --text:#eaf2ff;
-  --muted:#a6b2c2;
-  --border:#1f2a36;
-
-  --card-bg-1:#0e151d; --card-bg-2:#0b121a;
-  --chip-bg:#0f1722;   --chip-border:#1b2835;
-
+  --bg:#0b1016; --text:#eaf2ff; --muted:#a6b2c2; --border:#1f2a36;
   --btn-primary-1:#66a6ff; --btn-primary-2:#77e2b3;
 
-  /* phone sizing tokens */
-  --phone-w: 360px;
-  --frame-inset: 10px;
-  --screen-inset: 22px;
-  --punch-top: 16px;
-  --statusbar-lr: 30px;
-  --statusbar-top: 22px;
+  /* phone tokens */
+  --phone-w:360px; --frame-inset:10px; --screen-inset:22px;
+  --punch-top:16px; --statusbar-lr:30px; --statusbar-top:22px;
+
+  /* light band palette (tweak freely) */
+  --band-bg-1:#fbf6ef;  /* top */
+  --band-bg-2:#f7f0e6;  /* bottom */
+  --band-accent-a:rgba(255,188,143,.24);
+  --band-accent-b:rgba(122,186,255,.22);
 }
 
-/* full-viewport dark background for HERO */
+/* Dark page background for the HERO */
 html,body{
   background:
     radial-gradient(900px 420px at 20% -6%, rgba(102,166,255,.25), transparent 60%),
@@ -124,7 +111,6 @@ html,body{
   color:var(--text);
 }
 
-/* layout */
 .tp-home{color:var(--text)}
 .container{max-width:1180px;margin:0 auto;padding:0 16px}
 
@@ -136,94 +122,60 @@ html,body{
 .lead{font-size:16px;line-height:1.75;color:var(--muted);max-width:760px}
 .hero-visual{display:flex;justify-content:center}
 
-/* PHONE MOCK */
+/* PHONE (unchanged) */
 .device-ultra{
-  position:relative;
-  width:var(--phone-w); max-width:100%;
-  aspect-ratio:9/19;
-  border-radius:40px;
-  background:linear-gradient(180deg,#b6bcc6,#8c929c);
-  box-shadow:0 40px 120px rgba(32,39,68,.18);
+  position:relative;width:var(--phone-w);max-width:100%;aspect-ratio:9/19;border-radius:40px;
+  background:linear-gradient(180deg,#b6bcc6,#8c929c);box-shadow:0 40px 120px rgba(32,39,68,.18);
   border:1px solid rgba(255,255,255,.45);
 }
-.frame2{
-  position:absolute; inset:var(--frame-inset); border-radius:32px; background:#0a0d12;
-  box-shadow:0 0 0 12px rgba(0,0,0,.18) inset;
-  overflow:hidden;
-}
-.screen{
-  position:absolute; inset:var(--screen-inset); border-radius:24px; background:#000; object-fit:cover; display:block;
-}
-.punch2{
-  position:absolute; top:var(--punch-top); left:50%; transform:translateX(-50%);
-  width:12px;height:12px;border-radius:50%;background:#000;opacity:.95;
-  box-shadow:0 0 0 2px rgba(255,255,255,.22) inset, 0 0 8px rgba(0,0,0,.5);
-  pointer-events:none;
-}
-.statusbar{
-  position:absolute; left:var(--statusbar-lr); right:var(--statusbar-lr); top:var(--statusbar-top); height:18px;
-  display:flex;align-items:center;justify-content:space-between;
-  color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.95;
-}
-.time{font-weight:700}
-.sicons{display:flex;align-items:center;gap:6px}
+.frame2{position:absolute;inset:var(--frame-inset);border-radius:32px;background:#0a0d12;box-shadow:0 0 0 12px rgba(0,0,0,.18) inset;overflow:hidden}
+.screen{position:absolute;inset:var(--screen-inset);border-radius:24px;background:#000;object-fit:cover;display:block}
+.punch2{position:absolute;top:var(--punch-top);left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#000;opacity:.95;box-shadow:0 0 0 2px rgba(255,255,255,.22) inset,0 0 8px rgba(0,0,0,.5);pointer-events:none}
+.statusbar{position:absolute;left:var(--statusbar-lr);right:var(--statusbar-lr);top:var(--statusbar-top);height:18px;display:flex;align-items:center;justify-content:space-between;color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.95}
+.time{font-weight:700}.sicons{display:flex;align-items:center;gap:6px}
 .sig svg,.wifi svg{display:block}
 .bat{position:relative;width:22px;height:10px;border:1.6px solid rgba(255,255,255,.98);border-radius:2px}
 .bat::after{content:'';position:absolute;right:-3px;top:3px;width:2px;height:4px;background:rgba(255,255,255,.98);border-radius:1px}
 .bat .lvl{position:absolute;left:2px;top:2px;height:6px;width:16px;background:#fff;border-radius:1px}
 
-/* HERO glows */
+/* Hero glows */
 .glow{position:absolute;filter:blur(48px);opacity:.35;pointer-events:none}
 .g1{width:620px;height:620px;left:-180px;top:-160px;background:radial-gradient(closest-side,var(--btn-primary-2),transparent 70%)}
 .g2{width:600px;height:600px;right:-180px;top:-140px;background:radial-gradient(closest-side,var(--btn-primary-1),transparent 70%)}
 
-/* -------- NEW SOFT COLOUR BAND -------- */
-.soft-band{
-  position:relative;
-  padding:64px 0 96px;
-  color:#101418; /* dark text on light */
-  /* warm, creamy base (matches your reference) with subtle accents */
+/* ========== FULL-WIDTH LIGHT BAND ========== */
+/* We use a full-bleed pseudo element so it ALWAYS spans 100vw,
+   even if a parent gets constrained later. Also adds the smooth blend. */
+.soft-band{position:relative;isolation:isolate;padding:64px 0 96px;color:#101418}
+.soft-band::before{
+  content:"";position:absolute;z-index:-1;top:0;bottom:0;left:50%;right:50%;
+  margin-left:-50vw;margin-right:-50vw;width:100vw; /* full-bleed */
   background:
-    radial-gradient(900px 420px at 15% 0%, rgba(255,188,143,.20), transparent 60%),
-    radial-gradient(900px 420px at 85% 0%, rgba(122,186,255,.18), transparent 60%),
-    linear-gradient(180deg, #fbf6ef 0%, #f7f0e6 100%);
+    radial-gradient(900px 420px at 15% 0%, var(--band-accent-a), transparent 60%),
+    radial-gradient(900px 420px at 85% 0%, var(--band-accent-b), transparent 60%),
+    linear-gradient(180deg, var(--band-bg-1) 0%, var(--band-bg-2) 100%);
+}
+.soft-band::after{
+  content:"";position:absolute;z-index:-1;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;
+  top:-140px;height:140px; /* the dark->light fade */
+  background:linear-gradient(to bottom, rgba(11,17,23,1) 0%, rgba(11,17,23,.65) 28%, rgba(11,17,23,.25) 60%, rgba(11,17,23,0) 100%);
 }
 
-/* the blend that fades the dark hero into the light band */
-.soft-band .blend{
-  position:absolute; left:0; right:0; top:-140px; height:140px; pointer-events:none; z-index:0;
-  background:linear-gradient(to bottom,
-    rgba(11,17,23,1) 0%,
-    rgba(11,17,23,.65) 28%,
-    rgba(11,17,23,.25) 60%,
-    rgba(11,17,23,0) 100%);
-  filter:blur(0.2px);
-}
-
-/* placeholder */
 .soft-placeholder{max-width:800px;margin:0 auto;text-align:center}
 .soft-placeholder h2{margin:0 0 8px;font-size:28px;font-weight:900}
 .soft-placeholder p{margin:0;opacity:.75}
 
-/* DESKTOP */
-@media (min-width:980px){
-  .hero .container{grid-template-columns:1.05fr .95fr;align-items:center}
-  .hero h1{font-size:66px}
-  .lead{font-size:18px}
-  .hero-visual{justify-content:flex-end}
-}
-
-/* RESPONSIVE phone scaling */
+/* Responsive phone scaling */
 @media (max-width:900px){
-  :root{ --phone-w: 340px; --statusbar-lr: 28px; --statusbar-top: 20px; }
+  :root{ --phone-w:340px; --statusbar-lr:28px; --statusbar-top:20px; }
 }
 @media (max-width:640px){
-  :root{ --phone-w: 320px; --frame-inset: 9px; --screen-inset: 20px; --punch-top: 15px; --statusbar-lr: 26px; --statusbar-top: 19px; }
+  :root{ --phone-w:320px; --frame-inset:9px; --screen-inset:20px; --punch-top:15px; --statusbar-lr:26px; --statusbar-top:19px; }
 }
 @media (max-width:480px){
-  :root{ --phone-w: 300px; --frame-inset: 8px; --screen-inset: 18px; --punch-top: 14px; --statusbar-lr: 24px; --statusbar-top: 18px; }
+  :root{ --phone-w:300px; --frame-inset:8px; --screen-inset:18px; --punch-top:14px; --statusbar-lr:24px; --statusbar-top:18px; }
 }
 
-/* tiny helpers */
+/* helpers */
 .hide-d{display:inline}@media(min-width:980px){.hide-d{display:none}}
 `;
