@@ -251,7 +251,6 @@ html,body{
   .glow{ display:none !important; }
 }
 
-
 /* layout helpers */
 .tp-home{color:var(--text)}
 .container{max-width:1180px;margin:0 auto;padding:0 16px}
@@ -352,6 +351,30 @@ html,body{
   .sticky{position:sticky;top:86px}
   .cmp-grid{grid-template-columns:1fr 1fr}
 }
+
+/* ---------- MOBILE CENTERING + NO HORIZONTAL SCROLL ---------- */
+@media (max-width:520px){
+  html, body, .tp-home { overflow-x: hidden; }       /* prevent tiny sideways drift */
+
+  .hero .container{
+    grid-template-columns:1fr;
+    justify-items:center;                            /* center text + phone */
+  }
+
+  .hero-copy{ width:min(92vw, 640px); }
+  .hero h1, .lead{ margin-left:auto; margin-right:auto; }
+
+  .hero-visual{ justify-content:center; }
+  .device-ultra{
+    width:min(340px, 92vw);
+    margin:0 auto;
+  }
+
+  /* optional: glows are already hidden at <=768px, keep it that way */
+}
+
+/* universal sizing sanity */
+*, *::before, *::after{ box-sizing: border-box; }
 
 /* tiny helpers */
 .hide-d{display:inline}@media(min-width:980px){.hide-d{display:none}}
