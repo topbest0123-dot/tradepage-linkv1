@@ -36,8 +36,21 @@ export default function HomePage() {
           {/* On mobile: full width; on desktop: floated right */}
           <div className="hero-visual">
             <div className="device">
-              <div className="notch" />
-              <img src="/tradepage-demo.jpg" alt="TradePage example" className="screen" />
+              <div className="frame">
+                <div className="camera-hole" />
+                <video
+                  className="screen"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  poster="/tradepage-demo.jpg"
+                  preload="metadata"
+                >
+                  <source src="/tradepage-demo.webm" type="video/webm" />
+                  <source src="/tradepage-demo.mp4" type="video/mp4" />
+                </video>
+              </div>
             </div>
           </div>
         </div>
@@ -52,8 +65,15 @@ export default function HomePage() {
         <div className="container flow-wrap">
           <div className="flow-phone">
             <div className="device sticky">
-              <div className="notch" />
-              <img src="/tradepage-demo.jpg" alt="Essentials view" className="screen" />
+              <div className="frame">
+                <div className="camera-hole" />
+                <img
+                  className="screen"
+                  src="/flow-screenshot.jpg"
+                  alt="Essentials view"
+                  loading="lazy"
+                />
+              </div>
             </div>
           </div>
 
@@ -134,6 +154,7 @@ const styles = `
 .chip{border:1px solid var(--chip-border);background:var(--chip-bg);padding:6px 10px;border-radius:999px;font-size:12px;white-space:nowrap}
 .hero-visual{display:flex;justify-content:center}
 .device{width:420px;max-width:100%;aspect-ratio:9/19;border-radius:28px;border:1px solid var(--border);background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2));box-shadow:0 40px 120px rgba(0,0,0,.35),0 0 0 6px rgba(255,255,255,.03) inset}
+/* .notch was used before; we replace markup with .frame/.camera-hole in step 4 */
 .notch{width:44%;height:18px;background:var(--bg);opacity:.6;border-radius:0 0 14px 14px;margin:10px auto 0}
 .screen{display:block;width:86%;height:82%;object-fit:cover;border-radius:18px;margin:14px auto 0;border:1px solid var(--border)}
 .glow{position:absolute;filter:blur(48px);opacity:.5;pointer-events:none}
