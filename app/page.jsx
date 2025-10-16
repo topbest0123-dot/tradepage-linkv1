@@ -78,8 +78,7 @@ export default function HomePage() {
         <div className="glow g2" />
       </section>
 
-      {/* BELOW THE RED LINE:
-          no content; only a full-width background transition */}
+      {/* BELOW THE RED LINE: no content; only a full-width background transition */}
       <section className="transition-slab" aria-hidden="true" />
     </main>
   );
@@ -94,8 +93,11 @@ const styles = `
   --muted:#5a6672;
   --border:#1b2230;
 
-  /* new warm cream target (like screenshot #2) */
+  /* warm cream target (like screenshot #2) */
   --below-bg:#f6f0e7;
+
+  /* fade strip height (small like pic2) */
+  --blend-h: 110px;
 
   /* phone sizing */
   --phone-w: 360px;
@@ -105,7 +107,6 @@ const styles = `
   --statusbar-lr: 30px;
   --statusbar-top: 22px;
 
-  /* estimated hero height to place the fade start */
   --hero-h: 620px;
 }
 
@@ -116,6 +117,7 @@ html,body{
     radial-gradient(1000px 500px at 70% -10%, rgba(122,186,255,.14), transparent 60%),
     linear-gradient(180deg, var(--bg), var(--bg));
   color:var(--text);
+  overflow-x:hidden; /* prevent full-bleed slab from causing scroll */
 }
 
 /* layout helpers */
@@ -164,30 +166,35 @@ html,body{
 .g2{width:600px;height:600px;right:-180px;top:-140px;background:radial-gradient(closest-side,#5aa6ff,transparent 70%)}
 
 /* ---- BELOW THE RED LINE ----
-   No content; this slab only paints a smooth transition
-   from the existing dark to the warm cream. */
+   Full-bleed slab with a SMALL top fade like pic2 */
 .transition-slab{
-  /* full-bleed background slab */
   position: relative;
+
+  /* full-bleed */
   left: 50%;
-  right: 50%;
   margin-left: -50vw;
-  margin-right: -50vw;
   width: 100vw;
 
-  min-height: 120vh;
-  background:
-    radial-gradient(800px 240px at 60% 0%, rgba(0,0,0,.10), transparent 60%),
-    linear-gradient(
-      180deg,
-      rgba(11,16,23,0) 0%,
-      rgba(11,16,23,0) 6%,
-      var(--below-bg) 18%,
-      var(--below-bg) 100%
-    );
-  margin-top: 0; padding: 0; border: 0;
+  min-height: 100vh;
+  background: var(--below-bg);
+  overflow: hidden; /* clip the small fade strip */
 }
 
+/* tight fade strip from dark -> transparent over the cream base */
+.transition-slab::before{
+  content:"";
+  position:absolute;
+  top:-1px; left:0; right:0;
+  height: var(--blend-h);
+  pointer-events:none;
+  background: linear-gradient(
+    to bottom,
+    rgba(11,16,23,1) 0%,
+    rgba(11,16,23,.75) 35%,
+    rgba(11,16,23,.25) 85%,
+    rgba(11,16,23,0) 100%
+  );
+}
 
 /* DESKTOP ENHANCEMENTS */
 @media (min-width:980px){
