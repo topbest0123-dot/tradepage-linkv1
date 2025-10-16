@@ -16,8 +16,8 @@ export default function HomePage() {
         <div className="container">
           <div className="hero-copy">
             <h1>
-              Your business essentials. <br className="hide-d" />
-              In one link.
+              Your business essentials in one link. <br className="hide-d" />
+            
             </h1>
             <p className="lead">
               TradePage<span className="dot">.</span>Link removes the fluff and shows only info that trully matters for your customers:
