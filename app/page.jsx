@@ -3,7 +3,12 @@
 
 /**
  * Modern, mobile-first homepage (no blocky cards).
- * Put a real screenshot at /public/tradepage-demo.jpg
+ * Put your video files at:
+ *   /public/tradepage-demo.mp4
+ *   /public/tradepage-demo.webm (optional, smaller on Chrome/Android)
+ *   /public/tradepage-demo.jpg  (poster image)
+ * And an optional flow static screenshot:
+ *   /public/flow-screenshot.jpg
  */
 
 export default function HomePage() {
@@ -153,10 +158,52 @@ const styles = `
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .chip{border:1px solid var(--chip-border);background:var(--chip-bg);padding:6px 10px;border-radius:999px;font-size:12px;white-space:nowrap}
 .hero-visual{display:flex;justify-content:center}
-.device{width:420px;max-width:100%;aspect-ratio:9/19;border-radius:28px;border:1px solid var(--border);background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2));box-shadow:0 40px 120px rgba(0,0,0,.35),0 0 0 6px rgba(255,255,255,.03) inset}
-/* .notch was used before; we replace markup with .frame/.camera-hole in step 4 */
-.notch{width:44%;height:18px;background:var(--bg);opacity:.6;border-radius:0 0 14px 14px;margin:10px auto 0}
-.screen{display:block;width:86%;height:82%;object-fit:cover;border-radius:18px;margin:14px auto 0;border:1px solid var(--border)}
+
+/* Modern phone frame */
+.device{
+  width:420px;max-width:100%;
+  aspect-ratio:9/19;
+  border-radius:32px;
+  position:relative;
+  background:linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2));
+  box-shadow:
+    0 40px 120px rgba(0,0,0,.35),
+    0 2px 0 rgba(255,255,255,.04) inset,
+    0 -2px 0 rgba(0,0,0,.25) inset;
+  border:1px solid rgba(255,255,255,.06);
+}
+
+/* Metallic edge + inner padding */
+.frame{
+  position:relative;width:100%;height:100%;
+  padding:14px; /* bezel thickness */
+  border-radius:32px;
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(255,255,255,.06), transparent 60%),
+    radial-gradient(120% 120% at 100% 100%, rgba(0,0,0,.25), transparent 60%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.04) inset,
+    0 0 0 10px rgba(0,0,0,.1) inset;
+}
+
+/* Tiny punch-hole camera */
+.camera-hole{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  width:12px;height:12px;border-radius:50%;
+  background:#000;
+  box-shadow:0 0 0 2px rgba(255,255,255,.12) inset, 0 0 8px rgba(0,0,0,.4);
+  opacity:.85;pointer-events:none;
+}
+
+/* The actual content surface (image/video) */
+.screen{
+  position:absolute;inset:14px;
+  border-radius:24px;
+  width:calc(100% - 28px);height:calc(100% - 28px);
+  object-fit:cover;background:#000;
+  border:1px solid var(--border);
+}
+
 .glow{position:absolute;filter:blur(48px);opacity:.5;pointer-events:none}
 .g1{width:540px;height:540px;left:-160px;top:-140px;background:radial-gradient(closest-side,var(--btn-primary-2),transparent 70%)}
 .g2{width:520px;height:520px;right:-160px;top:-120px;background:radial-gradient(closest-side,var(--btn-primary-1),transparent 70%)}
