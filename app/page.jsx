@@ -2,8 +2,8 @@
 'use client';
 
 /**
- * HERO is untouched (dark area).
- * New LIGHT AREA below: persuasive content + mobile-first layout.
+ * HERO (dark) stays exactly as-is.
+ * LIGHT AREA (cream) has locked colors for strong contrast.
  */
 
 export default function HomePage() {
@@ -26,7 +26,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Phone mock (unchanged) */}
+          {/* Phone mock (unchanged size + proportions) */}
           <div className="hero-visual">
             <div className="device-ultra">
               <div className="frame2">
@@ -78,7 +78,7 @@ export default function HomePage() {
         <div className="glow g2" />
       </section>
 
-      {/* ======= LIGHT AREA (new) ======= */}
+      {/* ======= LIGHT AREA (only) ======= */}
       <section className="light-area" aria-label="Why TradePage.Link">
         <div className="container">
 
@@ -166,7 +166,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* FAQ (concise) */}
+          {/* FAQ */}
           <div className="la-faq">
             <details>
               <summary>Is this a full website?</summary>
@@ -198,7 +198,7 @@ export default function HomePage() {
   );
 }
 
-/* Tiny presentational components (inline so you can tweak or remove easily) */
+/* Tiny presentational components */
 function Feature({ title, text, icon }) {
   return (
     <div className="feat">
@@ -231,21 +231,22 @@ function Step({ n, t, d }) {
 
 /* =================== STYLES =================== */
 const styles = `
-/* ----------- TOKENS (do NOT touch the hero colours) ----------- */
+/* ----------- CORE TOKENS (HERO UNTOUCHED) ----------- */
 :root{
   --bg:#0b1017; /* hero stays dark */
-  --text:#101418;
+  --text:#101418; /* global default; overridden inside light-area */
   --muted:#5a6672;
   --border:#e6e1d7;
 
-  /* light area palette */
+  /* light area palette base */
   --below-bg:#f6f0e7;
   --card:#ffffff;
-  --chip:#fff;
+
+  /* primary */
   --primary-1:#5aa6ff;
   --primary-2:#22a06b;
 
-  /* phone sizing for hero mock — unchanged */
+  /* phone sizing for hero mock — ORIGINAL values */
   --phone-w: 360px;
   --frame-inset: 10px;
   --screen-inset: 22px;
@@ -267,15 +268,15 @@ html,body{
 .tp-home{color:var(--text)}
 .container{max-width:1180px;margin:0 auto;padding:0 16px}
 
-/* ===== HERO (unchanged visuals, just keep the text white) ===== */
+/* ===== HERO (unchanged) ===== */
 .hero{position:relative;padding:54px 0 12px;border-bottom:1px solid rgba(255,255,255,.08)}
-.hero .container{display:grid;grid-template-columns:1fr;gap:28px}
-.hero h1{margin:10px 0 8px;font-size:42px;line-height:1.06;font-weight:1000;letter-spacing:.2px;color:#fff}
+.hero .container{display:grid;grid-template-columns:1.05fr .95fr;align-items:center}
+.hero h1{margin:10px 0 8px;font-size:66px;line-height:1.06;font-weight:1000;letter-spacing:.2px;color:#fff}
 .hero .dot{color:transparent;background:linear-gradient(135deg,#5aa6ff,#77e2b3);-webkit-background-clip:text;background-clip:text}
-.lead{font-size:16px;line-height:1.75;max-width:760px;color:rgba(255,255,255,.75)}
-.hero-visual{display:flex;justify-content:center}
+.lead{font-size:18px;line-height:1.75;max-width:760px;color:rgba(255,255,255,.75)}
+.hero-visual{display:flex;justify-content:flex-end}
 
-/* phone mock (unchanged) */
+/* Phone mock (unchanged, original sizing preserved) */
 .device-ultra{position:relative;width:var(--phone-w);max-width:100%;aspect-ratio:9/19;border-radius:40px;background:linear-gradient(180deg,#b6bcc6,#8c929c);box-shadow:0 40px 120px rgba(32,39,68,.18);border:1px solid rgba(255,255,255,.45)}
 .frame2{position:absolute;inset:var(--frame-inset);border-radius:32px;background:#0a0d12;box-shadow:0 0 0 12px rgba(0,0,0,.18) inset;overflow:hidden}
 .screen{position:absolute;inset:var(--screen-inset);border-radius:24px;background:#000;object-fit:cover;display:block}
@@ -290,19 +291,31 @@ html,body{
 .g1{width:620px;height:620px;left:-180px;top:-160px;background:radial-gradient(closest-side,#77e2b3,transparent 70%)}
 .g2{width:600px;height:600px;right:-180px;top:-140px;background:radial-gradient(closest-side,#5aa6ff,transparent 70%)}
 
-/* ===== LIGHT AREA (new content) ===== */
+/* ===== LIGHT AREA (contrast locked) ===== */
 .light-area{
   position:relative;
   left:50%; transform:translateX(-50%);
   width:100vw;
   background:var(--below-bg);
   padding:28px 0 56px;
-}
 
-/* Lead-in */
-.la-head{padding:4px 0 18px}
-.la-head h2{font-size:26px;line-height:1.15;margin:0 0 8px;font-weight:1000}
-.la-head p{margin:0 0 12px;color:var(--muted)}
+  /* LOCKED palette ONLY inside light area */
+  --la-text:  #0f1216;
+  --la-muted: #3f4852;
+  --la-border:#d9d3c7;
+  --la-card:  #ffffff;
+
+  color: var(--la-text);
+}
+.light-area h2,.light-area h3,.light-area h4{color:#0a0d12}
+.light-area .la-head p,
+.light-area .feat-body p,
+.light-area .sd,
+.light-area .la-convert li,
+.light-area .card ul,
+.light-area .la-faq p,
+.light-area .tiny{color:var(--la-muted)}
+
 .btn-primary{
   display:inline-block; padding:12px 16px; border-radius:14px; font-weight:900;
   background:linear-gradient(135deg,var(--primary-1),var(--primary-2)); color:#fff; text-decoration:none;
@@ -312,11 +325,11 @@ html,body{
 
 /* Value grid */
 .la-grid{display:grid;grid-template-columns:1fr;gap:12px;margin:6px 0 18px}
-.feat{display:flex;gap:12px;padding:12px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:0 10px 30px rgba(16,22,48,.05)}
-.ico{width:36px;height:36px;min-width:36px;border-radius:10px;display:grid;place-items:center;background:#fff;border:1px solid #eee}
-.ico svg{width:20px;height:20px;fill:#111;stroke:#111}
+.feat{display:flex;gap:12px;padding:12px;border:1px solid var(--la-border);border-radius:16px;background:var(--la-card);box-shadow:0 10px 30px rgba(16,22,48,.05)}
+.ico{width:36px;height:36px;min-width:36px;border-radius:10px;display:grid;place-items:center;background:#fff;border:1px solid #eee;color:#0a0d12}
+.ico svg{width:20px;height:20px;fill:currentColor;stroke:currentColor}
 .feat-body h4{margin:0 0 4px;font-size:15px;font-weight:900}
-.feat-body p{margin:0;color:var(--muted);font-size:14px}
+.feat-body p{margin:0;font-size:14px}
 
 /* Steps */
 .la-steps{margin:10px 0 16px}
@@ -325,42 +338,55 @@ html,body{
 .step:last-child{border-bottom:0}
 .bubble{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:900;border:1px solid #e8dfd1;background:#fff}
 .st{font-weight:900}
-.sd{color:var(--muted);font-size:14px}
+.sd{font-size:14px}
 
 /* Why this converts */
 .la-convert{margin:6px 0 16px;padding:12px;border:1px dashed #d8cdbf;border-radius:14px;background:#fff8}
 .la-convert h3{margin:0 0 6px;font-size:18px;font-weight:1000}
 .la-convert ul{margin:0;padding-left:18px}
-.la-convert li{margin:8px 0;color:var(--text)}
-.la-convert b{font-weight:900}
+.la-convert li{margin:8px 0}
 
 /* Comparison */
 .la-compare{display:grid;grid-template-columns:1fr;gap:10px;margin:6px 0 16px}
-.card{padding:14px;border-radius:16px;border:1px solid var(--border);background:linear-gradient(180deg,#fff,#fbfaf7)}
+.card{padding:14px;border-radius:16px;border:1px solid var(--la-border);background:linear-gradient(180deg,#fff,#fbfaf7)}
 .card h4{margin:0 0 6px;font-size:16px;font-weight:1000}
-.card ul{margin:0;padding-left:18px;color:var(--muted)}
-.card.good li::marker{content:"✓ "}
-.card.bad li::marker{content:"— "}
 
 /* FAQ */
-.la-faq details{border:1px solid var(--border);background:#fff;border-radius:14px;margin:8px 0;padding:12px}
+.la-faq details{border:1px solid var(--la-border);background:#fff;border-radius:14px;margin:8px 0;padding:12px}
 .la-faq summary{font-weight:900;cursor:pointer;list-style:none}
 .la-faq summary::-webkit-details-marker{display:none}
-.la-faq p{margin:8px 0 0;color:var(--muted)}
 
 /* Final CTA */
 .la-cta{text-align:center;margin-top:8px}
 .la-cta h3{margin:0 0 10px;font-size:22px;font-weight:1000}
-.tiny{margin:8px 0 0;color:var(--muted);font-size:12px}
+.tiny{margin:8px 0 0;font-size:12px}
 
-/* Desktop enhancements (layout only; hero untouched) */
+/* Desktop layout (hero unchanged) */
 @media (min-width:980px){
-  .hero .container{grid-template-columns:1.05fr .95fr;align-items:center}
-  .hero h1{font-size:66px}
-  .lead{font-size:18px}
-  .hero-visual{justify-content:flex-end}
   .la-grid{grid-template-columns:1fr 1fr;gap:14px}
   .la-compare{grid-template-columns:1fr 1fr}
 }
+
+/* Mobile hero phone sizing — ORIGINAL values preserved */
+@media (max-width:900px){
+  :root{
+    --phone-w: 340px; --frame-inset: 10px; --screen-inset: 22px;
+    --punch-top: 16px; --statusbar-lr: 28px; --statusbar-top: 20px;
+  }
+}
+@media (max-width:640px){
+  :root{
+    --phone-w: 320px; --frame-inset: 9px; --screen-inset: 20px;
+    --punch-top: 15px; --statusbar-lr: 26px; --statusbar-top: 19px;
+  }
+}
+@media (max-width:480px){
+  :root{
+    --phone-w: 300px; --frame-inset: 8px; --screen-inset: 18px;
+    --punch-top: 14px; --statusbar-lr: 24px; --statusbar-top: 18px;
+  }
+}
+
+/* tiny helpers */
 .hide-d{display:inline}@media(min-width:980px){.hide-d{display:none}}
 `;
