@@ -180,11 +180,18 @@ function Step({ n, title, text }) {
 /* Styles */
 const styles = `
 /* -------------- PAGE-WIDE LIGHT THEME --------------- */
-/* Override your global tokens ON THIS PAGE so header/top area switch to light too */
 :root{
   --bg:#faf7f2; --text:#101418; --muted:#5a6672; --border:#e9e5dc;
   --card-bg-1:#ffffff; --card-bg-2:#f4f6fb; --chip-bg:#f6f7f9; --chip-border:#e7e8ec;
   --btn-primary-1:#5aa6ff; --btn-primary-2:#77e2b3;
+
+  /* phone sizing tokens so we can scale neatly on mobile */
+  --phone-w: 360px;
+  --frame-inset: 10px;
+  --screen-inset: 22px;
+  --punch-top: 16px;
+  --statusbar-lr: 30px;
+  --statusbar-top: 22px;
 }
 /* Paint the entire viewport */
 html,body{
@@ -210,7 +217,7 @@ html,body{
 /* --------- REFINED PHONE MOCK (no corner seams) ---------- */
 .device-ultra{
   position:relative;
-  width:360px;max-width:100%;
+  width:var(--phone-w); max-width:100%;
   aspect-ratio:9/19;
   border-radius:40px;
   background:linear-gradient(180deg,#b6bcc6,#8c929c);
@@ -219,24 +226,24 @@ html,body{
 }
 /* Inner black bezel */
 .frame2{
-  position:absolute;inset:10px;border-radius:32px;background:#0a0d12;
-  box-shadow:0 0 0 12px rgba(0,0,0,.18) inset; /* soft depth only, no thin borders */
-  overflow:hidden; /* critical: clips children perfectly to radius */
+  position:absolute; inset:var(--frame-inset); border-radius:32px; background:#0a0d12;
+  box-shadow:0 0 0 12px rgba(0,0,0,.18) inset;
+  overflow:hidden;
 }
 /* Screen sits inside bezel with even insets — NO border to avoid seams */
 .screen{
-  position:absolute;inset:22px;border-radius:24px;background:#000;object-fit:cover;display:block;
+  position:absolute; inset:var(--screen-inset); border-radius:24px; background:#000; object-fit:cover; display:block;
 }
 /* Tiny punch camera */
 .punch2{
-  position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  position:absolute; top:var(--punch-top); left:50%; transform:translateX(-50%);
   width:12px;height:12px;border-radius:50%;background:#000;opacity:.95;
   box-shadow:0 0 0 2px rgba(255,255,255,.22) inset, 0 0 8px rgba(0,0,0,.5);
   pointer-events:none;
 }
 /* Status bar */
 .statusbar{
-  position:absolute;left:30px;right:30px;top:22px;height:18px;
+  position:absolute; left:var(--statusbar-lr); right:var(--statusbar-lr); top:var(--statusbar-top); height:18px;
   display:flex;align-items:center;justify-content:space-between;
   color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.95;
 }
@@ -298,6 +305,38 @@ html,body{
   .flow-steps{order:2;padding-left:10px}
   .sticky{position:sticky;top:86px}
   .cmp-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ------- MOBILE SIZE: a bit smaller phone while keeping proportions ------- */
+@media (max-width:900px){
+  :root{
+    --phone-w: 340px;
+    --frame-inset: 10px;
+    --screen-inset: 22px;
+    --punch-top: 16px;
+    --statusbar-lr: 28px;
+    --statusbar-top: 20px;
+  }
+}
+@media (max-width:640px){
+  :root{
+    --phone-w: 320px;
+    --frame-inset: 9px;
+    --screen-inset: 20px;
+    --punch-top: 15px;
+    --statusbar-lr: 26px;
+    --statusbar-top: 19px;
+  }
+}
+@media (max-width:480px){
+  :root{
+    --phone-w: 300px;          /* <= final smaller mobile size */
+    --frame-inset: 8px;
+    --screen-inset: 18px;
+    --punch-top: 14px;
+    --statusbar-lr: 24px;
+    --statusbar-top: 18px;
+  }
 }
 
 /* tiny helpers */
