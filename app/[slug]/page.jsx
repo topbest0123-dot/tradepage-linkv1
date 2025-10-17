@@ -17,7 +17,7 @@ export default async function Page({ params }) {
     .from('profiles')
     .select(`
       slug,name,trade,city,
-      phone,whatsapp,
+      phone,whatsapp,email,
       about,areas,services,prices,hours,
       facebook,instagram,tiktok,x,youtube,
       location, location_url,
