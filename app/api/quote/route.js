@@ -22,6 +22,20 @@ function esc(s = '') {
   })[c]);
 }
 
+/* === Step 2 injection: domain-proxy helpers (do not change) === */
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://tradepage.link').replace(/\/$/, '');
+const extractKey = (fullUrl, bucket = QUOTES_BUCKET) => {
+  try {
+    const marker = `/public/${bucket}/`;
+    const i = fullUrl.indexOf(marker);
+    if (i === -1) return null;
+    return decodeURIComponent(fullUrl.slice(i + marker.length));
+  } catch { return null; }
+};
+// our proxy route is /files/quotes/[...path]
+const linkFromKey = (key) => `${SITE}/files/${QUOTES_BUCKET}/${encodeURIComponent(key).replace(/%2F/g, '/')}`;
+/* === end injection === */
+
 // helper: upload one file, return public/signed URL
 async function uploadFile(file, prefix = '') {
   const arrayBuffer = await file.arrayBuffer();
@@ -76,6 +90,14 @@ export async function POST(req) {
         }
       }
 
+      // === Step 2 injection: generate proxy links under our domain ===
+      const uploadedKeys = uploadedUrls.map((u) => extractKey(u)).filter(Boolean);
+      const uploadedProxyLinks = uploadedKeys.map((k) => linkFromKey(k));
+      const uploadedPhotosHtml = uploadedKeys.length
+        ? uploadedKeys.map((k, i) => `<div><a href="${linkFromKey(k)}">Photo ${i + 1}</a></div>`).join('')
+        : '<div>— none —</div>';
+      // === end injection ===
+
       const subject = `New quote request from ${name || 'Someone'} — ${businessName || profileSlug || 'TradePage'}`;
 
       const html = `
@@ -90,36 +112,32 @@ export async function POST(req) {
           <p style="margin:12px 0 8px"><b>Description</b></p>
           <div style="white-space:pre-wrap">${esc(description)}</div>
           <p style="margin:12px 0 8px"><b>Photos</b></p>
-          ${
-            uploadedUrls.length
-              ? uploadedUrls.map((u, i) => `<div><a href="${u}">Photo ${i + 1}</a></div>`).join('')
-              : '<div>— none —</div>'
-          }
+          ${uploadedPhotosHtml}
         </div>
       `;
 
       await resend.emails.send({
-  from: EMAIL_FROM,          // TradePage <quotes@tradepage.link>
-  to,                        // business recipient
-  subject,
-  html,
-  text: [
-    `Business: ${businessName || ''}${profileSlug ? ` (${profileSlug})` : ''}`,
-    `Name: ${name || ''}`,
-    `Phone: ${phone || ''}`,
-    `Email: ${email || ''}`,
-    '',
-    'Description:',
-    description || '',
-    '',
-    uploadedUrls?.length ? ['Photos:', ...uploadedUrls].join('\n') : 'Photos: none',
-    '',
-    '--',
-    'TradePage',
-    'https://tradepage.link'
-  ].join('\n'),
-  reply_to: email || undefined,  // so you can reply straight to the customer
-});
+        from: EMAIL_FROM,          // TradePage <quotes@tradepage.link>
+        to,                        // business recipient
+        subject,
+        html,
+        text: [
+          `Business: ${businessName || ''}${profileSlug ? ` (${profileSlug})` : ''}`,
+          `Name: ${name || ''}`,
+          `Phone: ${phone || ''}`,
+          `Email: ${email || ''}`,
+          '',
+          'Description:',
+          description || '',
+          '',
+          uploadedProxyLinks?.length ? ['Photos:', ...uploadedProxyLinks].join('\n') : 'Photos: none',
+          '',
+          '--',
+          'TradePage',
+          'https://tradepage.link'
+        ].join('\n'),
+        reply_to: email || undefined,  // so you can reply straight to the customer
+      });
 
       return Response.json({ ok: true, uploaded: uploadedUrls.length });
     }
@@ -132,6 +150,14 @@ export async function POST(req) {
     if (!to) {
       return new Response(JSON.stringify({ error: 'Missing recipient' }), { status: 400 });
     }
+
+    // === Step 2 injection: generate proxy links under our domain (JSON branch) ===
+    const imageKeys = imageUrls.map((u) => extractKey(u)).filter(Boolean);
+    const imageProxyLinks = imageKeys.map((k) => linkFromKey(k));
+    const imagePhotosHtml = imageKeys.length
+      ? imageKeys.map((k, i) => `<div><a href="${linkFromKey(k)}">Photo ${i + 1}</a></div>`).join('')
+      : '<div>— none —</div>';
+    // === end injection ===
 
     const subject = `New quote request from ${name || 'Someone'} — ${businessName || profileSlug || 'TradePage'}`;
     const html = `
@@ -146,31 +172,31 @@ export async function POST(req) {
         <p style="margin:12px 0 8px"><b>Description</b></p>
         <div style="white-space:pre-wrap">${esc(description)}</div>
         <p style="margin:12px 0 8px"><b>Photos</b></p>
-        ${imageUrls.length ? imageUrls.map((u, i) => `<div><a href="${u}">Photo ${i + 1}</a></div>`).join('') : '<div>— none —</div>'}
+        ${imagePhotosHtml}
       </div>
     `;
     await resend.emails.send({
-  from: EMAIL_FROM,
-  to,
-  subject,
-  html,
-  text: [
-    `Business: ${businessName || ''}${profileSlug ? ` (${profileSlug})` : ''}`,
-    `Name: ${name || ''}`,
-    `Phone: ${phone || ''}`,
-    `Email: ${email || ''}`,
-    '',
-    'Description:',
-    description || '',
-    '',
-    imageUrls?.length ? ['Photos:', ...imageUrls].join('\n') : 'Photos: none',
-    '',
-    '--',
-    'TradePage',
-    'https://tradepage.link'
-  ].join('\n'),
-  reply_to: email || undefined,
-});
+      from: EMAIL_FROM,
+      to,
+      subject,
+      html,
+      text: [
+        `Business: ${businessName || ''}${profileSlug ? ` (${profileSlug})` : ''}`,
+        `Name: ${name || ''}`,
+        `Phone: ${phone || ''}`,
+        `Email: ${email || ''}`,
+        '',
+        'Description:',
+        description || '',
+        '',
+        imageProxyLinks?.length ? ['Photos:', ...imageProxyLinks].join('\n') : 'Photos: none',
+        '',
+        '--',
+        'TradePage',
+        'https://tradepage.link'
+      ].join('\n'),
+      reply_to: email || undefined,
+    });
 
     return Response.json({ ok: true, uploaded: imageUrls.length });
   } catch (err) {
