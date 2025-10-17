@@ -60,8 +60,7 @@ export default function Dashboard() {
   // form state
   const [form, setForm] = useState({
     slug: '', name: '', trade: '', city: '',
-    phone: '', whatsapp: '', about: '',
-    contact_email: '',
+    phone: '', whatsapp: '', email:'', about: '',
     areas: '', services: '', prices: '', hours: '',
     facebook: '', instagram: '', tiktok: '', x: '', youtube: '',
     location: '', location_url: '',
@@ -81,7 +80,7 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,contact_email,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info,gallery,location,location_url,other_trades')
+        .select('slug,name,trade,city,phone,whatsapp,email,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info,gallery,location,location_url,other_trades')
         .eq('id', me.id).maybeSingle();
 
       if (data) {
@@ -225,7 +224,7 @@ export default function Dashboard() {
       id: user.id, slug,
       name: form.name, trade: form.trade, city: form.city,
       phone: form.phone, whatsapp: form.whatsapp,
-      contact_email: form.contact_email,
+      email: form.email,
       about: form.about, areas: form.areas, services: normalizedServices,
       prices: form.prices, hours: form.hours,
       facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x, youtube: form.youtube,
