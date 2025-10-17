@@ -268,6 +268,33 @@ export default function PublicPage({ profile: p }) {
       description: qForm.description,
       image_urls: uploadedUrls,
     });
+    // 3) Email the business via our API route
+try {
+  await fetch('/api/quote', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      to: p?.email || 'YOUR-TEST-EMAIL@example.com', // fallback for testing
+      subject: `New quote from ${qForm.name} (${p?.name || p?.slug || 'TradePage'})`,
+      html: `
+        <h2>New Quote Request</h2>
+        <p><b>Name:</b> ${qForm.name}</p>
+        <p><b>Phone:</b> ${qForm.phone || '-'}</p>
+        <p><b>Email:</b> ${qForm.email || '-'}</p>
+        <p><b>Description:</b><br>${qForm.description.replace(/\n/g,'<br>')}</p>
+        ${
+          (uploadedUrls?.length
+            ? `<p><b>Photos:</b><br>${uploadedUrls.map(u => `<div><a href="${u}">${u}</a></div>`).join('')}</p>`
+            : ''
+          )
+        }
+      `,
+    }),
+  });
+} catch (e) {
+  console.error('Email send failed', e);
+}
+
 
     alert('Thanks! Your quote request was sent.');
     setQuoteOpen(false);
