@@ -363,7 +363,7 @@ export default function PublicPage({ profile: p }) {
   </Card>
 
   {/* HOURS */}
-  <Card title="Hours">
+  <Card title="Working Hours">
     <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
   </Card>
 
