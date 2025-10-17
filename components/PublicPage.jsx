@@ -292,7 +292,7 @@ export default function PublicPage({ profile: p }) {
       {/* GRID (reordered after social) */}
 <div style={grid2Style}>
   {/* ABOUT */}
-  <Card title="About">
+  <Card title="About Us">
     <p style={bodyP}>
       {p.about && p.about.trim().length > 0
         ? p.about
