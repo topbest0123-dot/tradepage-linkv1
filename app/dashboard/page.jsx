@@ -230,7 +230,7 @@ export default function Dashboard() {
       avatar_path: form.avatar_path,
       theme: form.theme, other_info: form.other_info,
       gallery: Array.isArray(form.gallery) ? form.gallery : [],
-      other_trades: normalizedOtherTrades,   // ← added
+      other_trades: form.other_trades,   // ← added
       updated_at: new Date().toISOString(),
     };
 
