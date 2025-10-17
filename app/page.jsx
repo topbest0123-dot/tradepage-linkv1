@@ -160,10 +160,10 @@ export default function HomePage() {
             <div className="card good">
               <h4>Your TradePage</h4>
               <ul>
-                <li>✅One tap to call & WhatsApp</li>
+                <li>✅One tap to contact (phone,WhatsApp,email,quote form)</li>
                 <li>✅Prices & services clear</li>
-                <li>✅Photos & social media proofs</li>
-                <li>✅Quote in seconds</li>
+                <li>✅Photos & social media in one place</li>
+                <li>✅Easy quote form access</li>
                 <li>✅Easy shareable link everywhere</li>
                 <li>✅Super easy to edit and manage</li>
                 <li>✅Edit/add info from your phone in 10 seconds</li>
