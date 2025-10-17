@@ -148,17 +148,11 @@ export default function HomePage() {
               <h4>Typical website</h4>
               <ul>
                 <li>❌Endless menus</li>
-                
                 <li>❌Hidden contact</li>
-                
                 <li>❌Slow + cluttered</li>
-                
                 <li>❌Confusing copy</li>
-                
                 <li>❌Too many steps</li>
-                
                 <li>❌Technical skills required</li>
-                
                 <li>❌Can't edit/add info from your phone</li>
               </ul>
             </div>
