@@ -289,102 +289,110 @@ export default function PublicPage({ profile: p }) {
   </div>
 )}
 
-      {/* GRID */}
-      <div style={grid2Style}>
-        <Card title="About">
-          <p style={bodyP}>
-            {p.about && p.about.trim().length > 0
-              ? p.about
-              : (services[0]
-                  ? `${services[0]}. Reliable, friendly and affordable. Free quotes, no hidden fees.`
-                  : 'Reliable, friendly and affordable. Free quotes, no hidden fees.')}
-          </p>
-        </Card>
+      {/* GRID (reordered after social) */}
+<div style={grid2Style}>
+  {/* ABOUT */}
+  <Card title="About">
+    <p style={bodyP}>
+      {p.about && p.about.trim().length > 0
+        ? p.about
+        : (services[0]
+            ? `${services[0]}. Reliable, friendly and affordable. Free quotes, no hidden fees.`
+            : 'Reliable, friendly and affordable. Free quotes, no hidden fees.')}
+    </p>
+  </Card>
 
-        <Card title="Prices">
-          <ul style={listResetStyle}>
-            {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
-            {priceLines.map((ln, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <span>{ln}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-
-        <Card title="Areas we cover">
-          {areas.length > 0 ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {areas.map((a, i) => (<span key={i} style={chipStyle}>{a}</span>))}
-            </div>
-          ) : (<div style={{ opacity: 0.7 }}>No areas listed yet.</div>)}
-        </Card>
-
-        <Card title="Services">
-          {services.length > 0 ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {services.map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
-            </div>
-          ) : (<div style={{ opacity: 0.7 }}>No services listed yet.</div>)}
-        </Card>
-
-        {/* OTHER TRADES (optional, same look as services/areas) */}
-        {otherTrades.length > 0 && (
-          <Card title="Other trades">
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {otherTrades.map((t, i) => (<span key={i} style={chipStyle}>{t}</span>))}
-            </div>
-          </Card>
-        )}
-
-        <Card title="Hours"><div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div></Card>
-
-        {/* LOCATION (optional block) */}
-        {(p?.location || p?.location_url) && (
-          <Card title="Location">
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
-              {p?.location ? (
-                <div style={{ opacity: 0.95 }}>{p.location}</div>
-              ) : <div />}
-              {mapsHref && (
-                <a
-                  href={mapsHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ ...btnBaseStyle, ...btnNeutralStyle }}
-                >
-                  Open in Maps
-                </a>
-              )}
-            </div>
-          </Card>
-        )}
-
-        {p.other_info && p.other_info.trim().length > 0 && (
-          <Card title="Other useful information" wide>
-            <p style={{ ...bodyP, opacity: 0.95 }}>{p.other_info}</p>
-          </Card>
-        )}
-
-        {/* GALLERY */}
-        <Card title="Gallery" wide>
-          {galleryUrls.length ? (
-            <div className="gallery-grid">
-              {galleryUrls.map((src, i) => (
-                <div key={i} className="gallery-item">
-                  <img src={src} alt="" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="gallery-grid">
-              <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
-              <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
-              <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
-            </div>
-          )}
-        </Card>
+  {/* OTHER TRADES (optional) */}
+  {toList(p?.other_trades).length > 0 && (
+    <Card title="Other trades">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {toList(p.other_trades).map((t, i) => (<span key={i} style={chipStyle}>{t}</span>))}
       </div>
+    </Card>
+  )}
+
+  {/* SERVICES */}
+  <Card title="Services">
+    {services.length > 0 ? (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {services.map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
+      </div>
+    ) : (<div style={{ opacity: 0.7 }}>No services listed yet.</div>)}
+  </Card>
+
+  {/* PRICES */}
+  <Card title="Prices">
+    <ul style={listResetStyle}>
+      {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
+      {priceLines.map((ln, i) => (
+        <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <span>{ln}</span>
+        </li>
+      ))}
+    </ul>
+  </Card>
+
+  {/* LOCATION (optional) */}
+  {(p?.location || p?.location_url) && (
+    <Card title="Location">
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
+        {p?.location ? (
+          <div style={{ opacity: 0.95 }}>{p.location}</div>
+        ) : <div />}
+        {mapsHref && (
+          <a
+            href={mapsHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+          >
+            Open in Maps
+          </a>
+        )}
+      </div>
+    </Card>
+  )}
+
+  {/* AREAS */}
+  <Card title="Areas we cover">
+    {areas.length > 0 ? (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {areas.map((a, i) => (<span key={i} style={chipStyle}>{a}</span>))}
+      </div>
+    ) : (<div style={{ opacity: 0.7 }}>No areas listed yet.</div>)}
+  </Card>
+
+  {/* HOURS */}
+  <Card title="Hours">
+    <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
+  </Card>
+
+  {/* OTHER INFO (optional, wide) */}
+  {p.other_info && p.other_info.trim().length > 0 && (
+    <Card title="Other useful information" wide>
+      <p style={{ ...bodyP, opacity: 0.95 }}>{p.other_info}</p>
+    </Card>
+  )}
+
+  {/* GALLERY (unchanged, still wide at the end) */}
+  <Card title="Gallery" wide>
+    {galleryUrls.length ? (
+      <div className="gallery-grid">
+        {galleryUrls.map((src, i) => (
+          <div key={i} className="gallery-item">
+            <img src={src} alt="" />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="gallery-grid">
+        <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
+        <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
+        <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
+      </div>
+    )}
+  </Card>
+</div>
     </div>
   );
 }
