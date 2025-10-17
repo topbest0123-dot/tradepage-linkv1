@@ -209,18 +209,18 @@ export default function PublicPage({ profile: p }) {
     }
     setSendingQuote(true);
     try {
-      // 1) Upload images (bucket: quote_uploads)
+      // 1) Upload images (bucket: quotes)
       const uploadedUrls = [];
       for (const [i, file] of qForm.files.entries()) {
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
         const path = `${p?.slug || 'unknown'}/${Date.now()}-${i}.${ext}`;
         const { error } = await supabase
           .storage
-          .from('quote_uploads')
+          .from('quotes')
           .upload(path, file, { upsert: false });
 
         if (!error) {
-          const publicUrl = supabase.storage.from('quote_uploads').getPublicUrl(path).data.publicUrl;
+          const publicUrl = supabase.storage.from('quotes').getPublicUrl(path).data.publicUrl;
           if (publicUrl) uploadedUrls.push(publicUrl);
         }
       }
