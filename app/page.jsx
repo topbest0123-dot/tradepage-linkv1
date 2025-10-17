@@ -161,7 +161,7 @@ export default function HomePage() {
               <h4>Your TradePage</h4>
               <ul>
                 <li>✅One tap to contact (phone,WhatsApp,email,quote form)</li>
-                <li>✅Prices & services clear</li>
+                <li>✅Prices,services,trades,areas clearly stated</li>
                 <li>✅Photos & social media in one place</li>
                 <li>✅Easy quote form access</li>
                 <li>✅Easy shareable link everywhere</li>
