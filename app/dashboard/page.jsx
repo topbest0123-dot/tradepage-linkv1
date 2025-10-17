@@ -1,3 +1,4 @@
+// app/dashboard/page.jsx
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,7 +11,7 @@ const THEMES = {
   'midnight-teal':  { name:'Midnight Teal', vars:{'--bg':'#071417','--text':'#e9fbff','--muted':'#c0e9f2','--border':'#15444a','--card-bg-1':'#0b2a31','--card-bg-2':'#0a1e24','--chip-bg':'#0a2227','--chip-border':'#1e5660','--btn-primary-1':'#51e1c2','--btn-primary-2':'#6db7ff','--btn-neutral-bg':'#122026','--social-border':'#214e56'}},
   'royal-purple':   { name:'Royal Purple', vars:{'--bg':'#0c0714','--text':'#f0e9ff','--muted':'#d7c9ff','--border':'#3b2b6a','--card-bg-1':'#1b1340','--card-bg-2':'#120e2b','--chip-bg':'#160f33','--chip-border':'#463487','--btn-primary-1':'#8f7bff','--btn-primary-2':'#c48bff','--btn-neutral-bg':'#221a3d','--social-border':'#3d2f72'}},
   'graphite-ember': { name:'Graphite Ember', vars:{'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'}},
-  'sapphire-ice':   { name:'Sapphire Ice', vars:{'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#081827','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'}},
+  'sapphire-ice':   { name:'Sapphire Ice', vars:{'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#0b2235','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'}},
   'forest-emerald': { name:'Forest Emerald', vars:{'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'}},
   // LIGHT
   'porcelain-mint': { name:'Porcelain Mint', vars:{'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'}},
@@ -29,7 +30,6 @@ const THEMES = {
   'sunset-apricot':  { name:'Sunset Apricot', vars:{'--bg':'#0f0b09','--text':'#fff4ec','--muted':'#ffd9c2','--border':'#3a2a22','--card-bg-1':'#2a1b16','--card-bg-2':'#1a120e','--chip-bg':'#231611','--chip-border':'#4a3329','--btn-primary-1':'#ffb86b','--btn-primary-2':'#ff6aa2','--btn-neutral-bg':'#2b1f1a','--social-border':'#4d3a30'}},
   'minted-ivory':    { name:'Minted Ivory',   vars:{'--bg':'#fbfffd','--text':'#132018','--muted':'#4d6d5e','--border':'#d7eee4','--card-bg-1':'#ffffff','--card-bg-2':'#f3fbf7','--chip-bg':'#eff9f4','--chip-border':'#d7eee4','--btn-primary-1':'#10b981','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#e7f3ed','--social-border':'#cfe7dc'}},
   'citrus-cream':    { name:'Citrus Cream',   vars:{'--bg':'#fffef7','--text':'#17160f','--muted':'#6b6a55','--border':'#efe9c9','--card-bg-1':'#ffffff','--card-bg-2':'#faf6e4','--chip-bg':'#f7f3df','--chip-border':'#efe9c9','--btn-primary-1':'#f59e0b','--btn-primary-2':'#34d399','--btn-neutral-bg':'#efe9da','--social-border':'#e7dfc3'}},
-
 };
 
 /* apply theme to <html> (whole app) */
@@ -68,6 +68,7 @@ export default function Dashboard() {
     theme: 'deep-navy',
     other_info: '',
     gallery: [],
+    other_trades: '',            // ← added
   });
 
   /* load profile */
@@ -79,7 +80,7 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info,gallery,location,location_url')
+        .select('slug,name,trade,city,phone,whatsapp,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info,gallery,location,location_url,other_trades')
         .eq('id', me.id).maybeSingle();
 
       if (data) {
@@ -92,6 +93,7 @@ export default function Dashboard() {
           location: data.location ?? '', location_url: data.location_url ?? '',
           avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '',
           gallery: Array.isArray(data.gallery) ? data.gallery : [],
+          other_trades: data.other_trades ?? '',   // ← added
         }));
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
         applyTheme(data.theme ?? 'deep-navy');
@@ -212,6 +214,10 @@ export default function Dashboard() {
     }
 
     const normalizedServices = (form.services || '').replace(/\n+/g, ',').replace(/,+/g, ',').trim();
+    const normalizedOtherTrades = (form.other_trades || '')
+      .replace(/\n+/g, ',')
+      .replace(/,+/g, ',')
+      .trim();
 
     const row = {
       id: user.id, slug,
@@ -224,6 +230,7 @@ export default function Dashboard() {
       avatar_path: form.avatar_path,
       theme: form.theme, other_info: form.other_info,
       gallery: Array.isArray(form.gallery) ? form.gallery : [],
+      other_trades: normalizedOtherTrades,   // ← added
       updated_at: new Date().toISOString(),
     };
 
@@ -410,6 +417,12 @@ Example: Friendly local handyman with 10+ years’ experience. Reliable, insured
 )}
 
 {textarea(
+  'Other trades (comma separated) [optional]',
+  'other_trades',
+  'e.g. Electrician, Tiler, Plasterer, Painter'
+)}
+
+{textarea(
   'Prices (one per line optional)',
   'prices',
   `Call-out — from £25
@@ -489,4 +502,4 @@ Sun Closed`
       {msg ? <p style={{ marginTop: 10 }}>{msg}</p> : null}
     </section>
   );
-}
+  }
