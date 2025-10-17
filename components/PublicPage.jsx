@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 /* ---------- helpers ---------- */
@@ -119,6 +119,23 @@ export default function PublicPage({ profile: p }) {
 
   const callHref = getDialHref(p);
   const waHref   = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
+
+  // --- Contacts modal state ---
+const [contactsOpen, setContactsOpen] = useState(false);
+
+// Try to read a public contact email if you have one in the profile.
+// (Supports either `email` or `contact_email` if you later add it to the table.)
+const contactEmail = String(p?.email || p?.contact_email || '').trim();
+const emailHref = contactEmail ? `mailto:${contactEmail}` : null;
+
+// Request button target: prefer WhatsApp, else email, else call (fallback '#')
+const REQUEST_LABEL = 'Request a Code';
+const requestHref =
+  waHref
+    || (emailHref ? `${emailHref}?subject=${encodeURIComponent('Request')}` : null)
+    || callHref
+    || '#';
+
 
   // public avatar URL from storage
   const avatarUrl = p?.avatar_path
@@ -245,17 +262,34 @@ export default function PublicPage({ profile: p }) {
           </div>
         </div>
 
-        <div className="hdr-cta" style={ctaRowStyle}>
-          {callHref && <a href={callHref} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>Call</a>}
-          {waHref   && <a href={waHref}  style={{ ...btnBaseStyle, ...btnNeutralStyle }}>WhatsApp</a>}
-          <button
-            type="button"
-            onClick={handleShare}
-            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
-          >
-            Share
-          </button>
-        </div>
+       <div className="hdr-cta" style={ctaRowStyle}>
+  {(callHref || waHref || emailHref) && (
+    <button
+      type="button"
+      onClick={() => setContactsOpen(true)}
+      style={{ ...btnBaseStyle, ...btnPrimaryStyle }}
+      title="Contacts"
+    >
+      Contacts
+    </button>
+  )}
+
+  <a
+    href={requestHref}
+    style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+  >
+    {REQUEST_LABEL}
+  </a>
+
+  <button
+    type="button"
+    onClick={handleShare}
+    style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
+  >
+    Share
+  </button>
+</div>
+
       </div>
 
       {/* SOCIAL */}
@@ -395,6 +429,55 @@ export default function PublicPage({ profile: p }) {
     )}
   </Card>
 </div>
+      {contactsOpen && (
+  <div
+    style={modalOverlayStyle}
+    onClick={() => setContactsOpen(false)}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="contactsTitle"
+  >
+    <section
+      style={modalCardStyle}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        onClick={() => setContactsOpen(false)}
+        style={modalCloseBtnStyle}
+        aria-label="Close"
+        title="Close"
+      >
+        ×
+      </button>
+
+      <h2 id="contactsTitle" style={h2Style}>Contacts</h2>
+
+      <div style={modalListStyle}>
+        {callHref && (
+          <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
+            Call {p?.phone ? `(${p.phone})` : ''}
+          </a>
+        )}
+        {waHref && (
+          <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
+            WhatsApp {p?.whatsapp ? `(${p.whatsapp})` : ''}
+          </a>
+        )}
+        {emailHref && (
+          <a href={emailHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
+            Email {contactEmail ? `(${contactEmail})` : ''}
+          </a>
+        )}
+
+        {!callHref && !waHref && !emailHref && (
+          <div style={{ opacity:.75 }}>No contact methods available yet.</div>
+        )}
+      </div>
+    </section>
+  </div>
+)}
+
     </div>
   );
 }
@@ -439,3 +522,44 @@ const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid v
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
 const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
+
+const modalOverlayStyle = {
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(0,0,0,.45)',
+  backdropFilter: 'blur(3px)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 1000,
+  padding: 16,
+};
+
+const modalCardStyle = {
+  ...cardStyle,
+  width: '100%',
+  maxWidth: 520,
+  position: 'relative',
+};
+
+const modalCloseBtnStyle = {
+  position: 'absolute',
+  top: 10,
+  right: 10,
+  border: '1px solid var(--social-border)',
+  background: 'transparent',
+  color: 'var(--text)',
+  borderRadius: 10,
+  padding: '4px 10px',
+  cursor: 'pointer',
+  fontSize: 16,
+  lineHeight: 1,
+};
+
+const modalListStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10,
+  marginTop: 8,
+};
+
