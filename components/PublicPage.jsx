@@ -289,6 +289,52 @@ const requestHref =
     Share
   </button>
 </div>
+       {contactsOpen && (
+  <div
+    style={modalOverlayStyle}
+    onClick={() => setContactsOpen(false)}
+    aria-modal="true"
+    role="dialog"
+  >
+    <section
+      style={modalCardStyle}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        onClick={() => setContactsOpen(false)}
+        style={modalCloseBtnStyle}
+        aria-label="Close"
+        title="Close"
+      >
+        ×
+      </button>
+
+      <h2 style={h2Style}>Contacts</h2>
+
+      <div style={modalListStyle}>
+        {callHref && (
+          <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+            Phone {p?.phone ? `— ${p.phone}` : ''}
+          </a>
+        )}
+
+        {waHref && (
+          <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+            WhatsApp {p?.whatsapp ? `— ${p.whatsapp}` : ''}
+          </a>
+        )}
+
+        {contactEmail && (
+          <a href={emailHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+            Email {contactEmail}
+          </a>
+        )}
+      </div>
+    </section>
+  </div>
+)}
+ 
 
       </div>
 
