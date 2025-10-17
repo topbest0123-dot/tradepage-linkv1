@@ -111,6 +111,7 @@ export default function PublicPage({ profile: p }) {
   // build fields
   const areas      = useMemo(() => toList(p?.areas), [p]);
   const services   = useMemo(() => toList(p?.services), [p]);
+  const otherTrades = useMemo(() => toList(p?.other_trades), [p]); // ← added
   const priceLines = useMemo(
     () => String(p?.prices ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean),
     [p]
@@ -326,6 +327,15 @@ export default function PublicPage({ profile: p }) {
             </div>
           ) : (<div style={{ opacity: 0.7 }}>No services listed yet.</div>)}
         </Card>
+
+        {/* OTHER TRADES (optional, same look as services/areas) */}
+        {otherTrades.length > 0 && (
+          <Card title="Other trades">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {otherTrades.map((t, i) => (<span key={i} style={chipStyle}>{t}</span>))}
+            </div>
+          </Card>
+        )}
 
         <Card title="Hours"><div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div></Card>
 
