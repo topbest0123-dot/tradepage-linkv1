@@ -292,6 +292,47 @@ const requestHref =
 
       </div>
 
+      {/* CONTACTS POPUP */}
+{contactsOpen && (
+  <div style={modalOverlayStyle} onClick={() => setContactsOpen(false)}>
+    <div style={modalCardStyle} onClick={(e) => e.stopPropagation()}>
+      <Card title="Contacts" wide>
+        <div style={{ display:'grid', gap:10 }}>
+          {callHref && (
+            <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+              Phone{p?.phone ? `: ${p.phone}` : ''}
+            </a>
+          )}
+          {waHref && (
+            <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+              WhatsApp{p?.whatsapp ? `: ${p.whatsapp}` : ''}
+            </a>
+          )}
+          {emailHref && (
+            <a href={emailHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+              Email{contactEmail ? `: ${contactEmail}` : ''}
+            </a>
+          )}
+          {!callHref && !waHref && !emailHref && (
+            <div style={{ opacity:.7 }}>No contact methods provided yet.</div>
+          )}
+        </div>
+
+        <div style={{ display:'flex', justifyContent:'flex-end', marginTop:12 }}>
+          <button
+            type="button"
+            onClick={() => setContactsOpen(false)}
+            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
+          >
+            Close
+          </button>
+        </div>
+      </Card>
+    </div>
+  </div>
+)}
+
+
       {/* SOCIAL */}
   {(fb || ig || tk || xx || yt) && (
   <div style={socialBarWrapStyle}>
@@ -562,4 +603,14 @@ const modalListStyle = {
   gap: 10,
   marginTop: 8,
 };
+
+const modalOverlayStyle = {
+  position:'fixed', inset:0,
+  background:'rgba(0,0,0,.4)',
+  backdropFilter:'blur(2px)',
+  display:'flex', alignItems:'center', justifyContent:'center',
+  padding:16, zIndex:50
+};
+const modalCardStyle = { maxWidth:520, width:'100%' };
+
 
