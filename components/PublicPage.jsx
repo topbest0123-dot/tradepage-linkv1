@@ -304,7 +304,7 @@ export default function PublicPage({ profile: p }) {
 
   {/* OTHER TRADES (optional) */}
   {toList(p?.other_trades).length > 0 && (
-    <Card title="My Trades">
+    <Card title="Our Trades">
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {toList(p.other_trades).map((t, i) => (<span key={i} style={chipStyle}>{t}</span>))}
       </div>
@@ -312,7 +312,7 @@ export default function PublicPage({ profile: p }) {
   )}
 
   {/* SERVICES */}
-  <Card title="Services">
+  <Card title="Our Services">
     {services.length > 0 ? (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {services.map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
