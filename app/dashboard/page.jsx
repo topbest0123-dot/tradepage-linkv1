@@ -88,7 +88,7 @@ export default function Dashboard() {
           ...prev,
           slug: data.slug ?? '', name: data.name ?? '', trade: data.trade ?? '', city: data.city ?? '',
           phone: data.phone ?? '', whatsapp: data.whatsapp ?? '',
-          contact_email: data.contact_email ?? '', about: data.about ?? '',
+          email: data.email ?? '', about: data.about ?? '',
           areas: data.areas ?? '', services: data.services ?? '', prices: data.prices ?? '', hours: data.hours ?? '',
           facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '', youtube: data.youtube ?? '',
           location: data.location ?? '', location_url: data.location_url ?? '',
@@ -387,7 +387,7 @@ export default function Dashboard() {
       {input('City', 'city', 'e.g. London')}
       {input('Phone (tap to call)', 'phone', 'e.g. +44 7700 900123')}
       {input('WhatsApp number', 'whatsapp', 'e.g. +44 7700 900123')}
-      {input('Contact email (for quotes & Contacts popup)', 'contact_email', 'e.g. hello@yourbusiness.com')}
+      {input('Contact email (for quotes & Contacts popup)', 'email', 'e.g. hello@yourbusiness.com')}
 
 
       <div style={{ marginTop: 4, marginBottom: 8, opacity: 0.8 }}>Social (optional)</div>
