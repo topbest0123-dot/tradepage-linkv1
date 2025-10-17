@@ -304,7 +304,7 @@ export default function PublicPage({ profile: p }) {
 
   {/* OTHER TRADES (optional) */}
   {toList(p?.other_trades).length > 0 && (
-    <Card title="Other trades">
+    <Card title="My Trades">
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {toList(p.other_trades).map((t, i) => (<span key={i} style={chipStyle}>{t}</span>))}
       </div>
