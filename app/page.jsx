@@ -152,6 +152,8 @@ export default function HomePage() {
                 <li>❌Slow + cluttered</li>
                 <li>❌Confusing copy</li>
                 <li>❌Too many steps</li>
+                <li>❌Technical skills required</li>
+                <li>❌Can't edit/add info from your phone</li>
               </ul>
             </div>
 
@@ -163,6 +165,8 @@ export default function HomePage() {
                 <li>✅Photos & social media proofs</li>
                 <li>✅Quote in seconds</li>
                 <li>✅Easy shareable link everywhere</li>
+                <li>✅Super easy to edit and manage</li>
+                <li>✅Edit/add info from your phone in 10 seconds</li>
               </ul>
             </div>
           </div>
