@@ -363,9 +363,11 @@ export default function PublicPage({ profile: p }) {
   </Card>
 
   {/* HOURS */}
-  <Card title="Working Hours">
-    <div style={{ opacity: 0.9 }}>{p.hours || 'Mon–Sat 08:00–18:00'}</div>
-  </Card>
+  <Card title="Hours">
+  <div style={{ opacity: 0.95, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+    { (p?.hours && p.hours.trim()) || 'Mon–Sat 08:00–18:00' }
+  </div>
+</Card>
 
   {/* OTHER INFO (optional, wide) */}
   {p.other_info && p.other_info.trim().length > 0 && (
