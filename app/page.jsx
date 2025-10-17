@@ -147,21 +147,21 @@ export default function HomePage() {
             <div className="card bad">
               <h4>Typical website</h4>
               <ul>
-                <li>Endless menus</li>
-                <li>Hidden contact</li>
-                <li>Slow + cluttered</li>
-                <li>Confusing copy</li>
-                <li>Too many steps</li>
+                <li>Endless menus 👎</li>
+                <li>Hidden contact 👎</li>
+                <li>Slow + cluttered 👎</li>
+                <li>Confusing copy 👎</li>
+                <li>Too many steps 👎</li>
               </ul>
             </div>
             <div className="card good">
               <h4>Your TradePage</h4>
               <ul>
-                <li>Tap-to-call & WhatsApp</li>
-                <li>Prices & services clear</li>
-                <li>Photos prove quality</li>
-                <li>Quote in seconds</li>
-                <li>Shareable everywhere</li>
+                <li>Tap-to-call & contact 👌</li>
+                <li>Prices & services clear 👌</li>
+                <li>Photos prove quality 👌</li>
+                <li>Quote requests in seconds 👌</li>
+                <li>Easy shareable everywhere 👌</li>
               </ul>
             </div>
           </div>
