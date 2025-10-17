@@ -201,52 +201,84 @@ export default function PublicPage({ profile: p }) {
   };
 
   // Submit handler (quote form)
-  const submitQuote = async (e) => {
-    e.preventDefault();
-    if (!qForm.name.trim() || !qForm.description.trim()) {
-      alert('Please enter your name and job description.');
-      return;
-    }
-    setSendingQuote(true);
-    try {
-      // 1) Upload images (bucket: quotes)
-      const uploadedUrls = [];
-      for (const [i, file] of qForm.files.entries()) {
-        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-        const path = `${p?.slug || 'unknown'}/${Date.now()}-${i}.${ext}`;
-        const { error } = await supabase
-          .storage
-          .from('quotes')
-          .upload(path, file, { upsert: false });
+ const submitQuote = async (e) => {
+  e.preventDefault();
+  if (!qForm.name.trim() || !qForm.description.trim()) {
+    alert('Please enter your name and job description.');
+    return;
+  }
 
-        if (!error) {
-          const publicUrl = supabase.storage.from('quotes').getPublicUrl(path).data.publicUrl;
-          if (publicUrl) uploadedUrls.push(publicUrl);
-        }
-      }
+  setSendingQuote(true);
+  try {
+    // Use the actual bucket name you created in Supabase:
+    const BUCKET = 'quotes'; // <- if your bucket is "quote_uploads", change this
 
-      // 2) Save request to a simple table
-      await supabase.from('quotes').insert({
-        profile_slug: p?.slug || null,
-        business_name: p?.name || null,
-        to_email: p?.email || null,     // who should receive it
-        customer_name: qForm.name,
-        customer_phone: qForm.phone,
-        customer_email: qForm.email,
-        description: qForm.description,
-        image_urls: uploadedUrls,
+    const uploadedUrls = [];
+    for (const [i, file] of qForm.files.entries()) {
+      const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const uniq = `${Date.now()}-${i}-${Math.random().toString(36).slice(2,8)}`;
+      const path = `${p?.slug || 'unknown'}/${uniq}.${ext}`;
+
+      console.log('[UPLOAD] start', {
+        bucket: BUCKET,
+        path,
+        name: file.name,
+        type: file.type,
+        sizeKB: Math.round((file.size || 0) / 1024),
       });
 
-      alert('Thanks! Your quote request was sent.');
-      setQuoteOpen(false);
-      setQForm({ name: '', phone: '', email: '', description: '', files: [] });
-    } catch (err) {
-      console.error(err);
-      alert('Could not send your request. Please try again.');
-    } finally {
-      setSendingQuote(false);
+      const { data, error } = await supabase
+        .storage
+        .from(BUCKET)
+        .upload(path, file, {
+          upsert: false,
+          contentType: file.type || 'image/jpeg',
+          cacheControl: '3600',
+        });
+
+      if (error) {
+        console.error('[UPLOAD] failed', { path, error });
+        const hint =
+          error.status === 404 ? 'Bucket name is wrong or missing.'
+        : error.status === 401 || error.status === 403 ? 'Storage policy/RLS is blocking uploads.'
+        : error.status === 409 ? 'Filename already exists; try again.'
+        : error.status === 413 ? 'File too large.'
+        : 'See console for details.';
+        alert(`Photo upload failed (${error.status}). ${hint}`);
+        throw error;
+      }
+
+      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      if (pub?.publicUrl) {
+        console.log('[UPLOAD] success', { path, publicUrl: pub.publicUrl });
+        uploadedUrls.push(pub.publicUrl);
+      } else {
+        console.warn('[UPLOAD] no publicUrl (bucket may not be Public)', { path });
+      }
     }
-  };
+
+    // Save the request
+    await supabase.from('quotes').insert({
+      profile_slug: p?.slug || null,
+      business_name: p?.name || null,
+      to_email: p?.email || null,
+      customer_name: qForm.name,
+      customer_phone: qForm.phone,
+      customer_email: qForm.email,
+      description: qForm.description,
+      image_urls: uploadedUrls,
+    });
+
+    alert('Thanks! Your quote request was sent.');
+    setQuoteOpen(false);
+    setQForm({ name: '', phone: '', email: '', description: '', files: [] });
+  } catch (err) {
+    console.error('Quote submit error:', err);
+    alert('Could not send your request. Please try again.');
+  } finally {
+    setSendingQuote(false);
+  }
+};
 
   return (
     <div style={pageWrapStyle}>
