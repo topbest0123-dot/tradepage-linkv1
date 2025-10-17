@@ -564,17 +564,6 @@ const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
 const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
 
-const modalOverlayStyle = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(0,0,0,.45)',
-  backdropFilter: 'blur(3px)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 1000,
-  padding: 16,
-};
 
 const modalCardStyle = {
   ...cardStyle,
