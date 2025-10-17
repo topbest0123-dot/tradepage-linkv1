@@ -174,7 +174,7 @@ export default function HomePage() {
             </details>
             <details>
               <summary>Do customers need an app?</summary>
-              <p>No. It opens in any browser. Tap once to call or WhatsApp.</p>
+              <p>No. It opens in any browser on any device. They can contact you with one click.</p>
             </details>
             <details>
               <summary>Can I show my prices?</summary>
