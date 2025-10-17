@@ -98,7 +98,29 @@ export async function POST(req) {
         </div>
       `;
 
-      await resend.emails.send({ from: EMAIL_FROM, to, subject, html });
+      await resend.emails.send({
+  from: EMAIL_FROM,          // TradePage <quotes@tradepage.link>
+  to,                        // business recipient
+  subject,
+  html,
+  text: [
+    `Business: ${businessName || ''}${profileSlug ? ` (${profileSlug})` : ''}`,
+    `Name: ${name || ''}`,
+    `Phone: ${phone || ''}`,
+    `Email: ${email || ''}`,
+    '',
+    'Description:',
+    description || '',
+    '',
+    uploadedUrls?.length ? ['Photos:', ...uploadedUrls].join('\n') : 'Photos: none',
+    '',
+    '--',
+    'TradePage',
+    'https://tradepage.link'
+  ].join('\n'),
+  reply_to: email || undefined,  // so you can reply straight to the customer
+});
+
       return Response.json({ ok: true, uploaded: uploadedUrls.length });
     }
 
@@ -127,7 +149,29 @@ export async function POST(req) {
         ${imageUrls.length ? imageUrls.map((u, i) => `<div><a href="${u}">Photo ${i + 1}</a></div>`).join('') : '<div>— none —</div>'}
       </div>
     `;
-    await resend.emails.send({ from: EMAIL_FROM, to, subject, html });
+    await resend.emails.send({
+  from: EMAIL_FROM,
+  to,
+  subject,
+  html,
+  text: [
+    `Business: ${businessName || ''}${profileSlug ? ` (${profileSlug})` : ''}`,
+    `Name: ${name || ''}`,
+    `Phone: ${phone || ''}`,
+    `Email: ${email || ''}`,
+    '',
+    'Description:',
+    description || '',
+    '',
+    imageUrls?.length ? ['Photos:', ...imageUrls].join('\n') : 'Photos: none',
+    '',
+    '--',
+    'TradePage',
+    'https://tradepage.link'
+  ].join('\n'),
+  reply_to: email || undefined,
+});
+
     return Response.json({ ok: true, uploaded: imageUrls.length });
   } catch (err) {
     console.error(err);
