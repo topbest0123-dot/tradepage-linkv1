@@ -143,29 +143,29 @@ export default function HomePage() {
           </div>
 
           {/* Comparison */}
-<div className="la-compare">
-  <div className="card bad">
-    <h4>Typical website</h4>
-    <ul>
-      <li>Endless menus</li>
-      <li>Hidden contact</li>
-      <li>Slow + cluttered</li>
-      <li>Confusing copy</li>
-      <li>Too many steps</li>
-    </ul>
-  </div>
+          <div className="la-compare">
+            <div className="card bad">
+              <h4>Typical website</h4>
+              <ul>
+                <li>Endless menus</li>
+                <li>Hidden contact</li>
+                <li>Slow + cluttered</li>
+                <li>Confusing copy</li>
+                <li>Too many steps</li>
+              </ul>
+            </div>
 
-  <div className="card good">
-    <h4>Your TradePage</h4>
-    <ul>
-      <li>Tap-to-call & WhatsApp</li>
-      <li>Prices & services clear</li>
-      <li>Photos prove quality</li>
-      <li>Quote in seconds</li>
-      <li>Shareable everywhere</li>
-    </ul>
-  </div>
-</div>
+            <div className="card good">
+              <h4>Your TradePage</h4>
+              <ul>
+               <li>Tap-to-call & WhatsApp</li>
+                <li>Prices & services clear</li>
+                <li>Photos prove quality</li>
+                <li>Quote in seconds</li>
+                <li>Shareable everywhere</li>
+              </ul>
+            </div>
+          </div>
 
 
           {/* FAQ */}
