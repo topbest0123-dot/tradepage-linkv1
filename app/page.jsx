@@ -157,11 +157,11 @@ export default function HomePage() {
             <div className="card good">
               <h4>Your TradePage</h4>
               <ul>
-               </li>  One tap to call & contact  </li>
-               </li>  Prices & services clear    </li>
-               </li>  Photos & all social links  </li>
-               </li>  Quote requests in one tap  </li>
-               </li>  Easy shareable everywhere  </li>
+               </li> One tap to call & contact  </li>
+               </li> Prices & services clear    </li>
+               </li> Photos & all social links  </li>
+               </li> Quote requests in one tap  </li>
+               </li> Easy shareable everywhere  </li>
               </ul>
             </div>
           </div>
