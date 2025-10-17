@@ -121,20 +121,41 @@ export default function PublicPage({ profile: p }) {
   const waHref   = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
 
   // --- Contacts modal state ---
-const [contactsOpen, setContactsOpen] = useState(false);
+  const [contactsOpen, setContactsOpen] = useState(false);
 
-// Try to read a public contact email if you have one in the profile.
-// (Supports either `email` or `contact_email` if you later add it to the table.)
-const contactEmail = String(p?.email || p?.contact_email || '').trim();
-const emailHref = contactEmail ? `mailto:${contactEmail}` : null;
+  // --- Quote modal state + form ---
+  const [quoteOpen, setQuoteOpen] = useState(false);
+  const [sendingQuote, setSendingQuote] = useState(false);
+  const [qForm, setQForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    description: '',
+    files: [],        // File[]
+  });
 
-// Request button target: prefer WhatsApp, else email, else call (fallback '#')
-const REQUEST_LABEL = 'Request a Code';
-const requestHref =
-  waHref
-    || (emailHref ? `${emailHref}?subject=${encodeURIComponent('Request')}` : null)
-    || callHref
-    || '#';
+  const onQuoteFiles = (e) => {
+    const files = Array.from(e.target.files || []).slice(0, 10); // cap at 10
+    setQForm((prev) => ({ ...prev, files }));
+  };
+
+  const onQChange = (e) => {
+    const { name, value } = e.target;
+    setQForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Try to read a public contact email if you have one in the profile.
+  // (Supports either `email` or `contact_email` if you later add it to the table.)
+  const contactEmail = String(p?.email || p?.contact_email || '').trim();
+  const emailHref = contactEmail ? `mailto:${contactEmail}` : null;
+
+  // Request button target: prefer WhatsApp, else email, else call (fallback '#')
+  const REQUEST_LABEL = 'Request a Code';
+  const requestHref =
+    waHref
+      || (emailHref ? `${emailHref}?subject=${encodeURIComponent('Request')}` : null)
+      || callHref
+      || '#';
 
 
   // public avatar URL from storage
@@ -176,6 +197,54 @@ const requestHref =
           () => window.prompt('Copy this link:', url)
         );
       } catch { window.prompt('Copy this link:', url); }
+    }
+  };
+
+  // Submit handler (quote form)
+  const submitQuote = async (e) => {
+    e.preventDefault();
+    if (!qForm.name.trim() || !qForm.description.trim()) {
+      alert('Please enter your name and job description.');
+      return;
+    }
+    setSendingQuote(true);
+    try {
+      // 1) Upload images (bucket: quote_uploads)
+      const uploadedUrls = [];
+      for (const [i, file] of qForm.files.entries()) {
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const path = `${p?.slug || 'unknown'}/${Date.now()}-${i}.${ext}`;
+        const { error } = await supabase
+          .storage
+          .from('quote_uploads')
+          .upload(path, file, { upsert: false });
+
+        if (!error) {
+          const publicUrl = supabase.storage.from('quote_uploads').getPublicUrl(path).data.publicUrl;
+          if (publicUrl) uploadedUrls.push(publicUrl);
+        }
+      }
+
+      // 2) Save request to a simple table
+      await supabase.from('quotes').insert({
+        profile_slug: p?.slug || null,
+        business_name: p?.name || null,
+        to_email: p?.email || null,     // who should receive it
+        customer_name: qForm.name,
+        customer_phone: qForm.phone,
+        customer_email: qForm.email,
+        description: qForm.description,
+        image_urls: uploadedUrls,
+      });
+
+      alert('Thanks! Your quote request was sent.');
+      setQuoteOpen(false);
+      setQForm({ name: '', phone: '', email: '', description: '', files: [] });
+    } catch (err) {
+      console.error(err);
+      alert('Could not send your request. Please try again.');
+    } finally {
+      setSendingQuote(false);
     }
   };
 
@@ -274,12 +343,13 @@ const requestHref =
     </button>
   )}
 
-  <a
-    href={requestHref}
+  <button
+    type="button"
+    onClick={() => setQuoteOpen(true)}
     style={{ ...btnBaseStyle, ...btnNeutralStyle }}
   >
-    {REQUEST_LABEL}
-  </a>
+    Request a Quote
+  </button>
 
   <button
     type="button"
@@ -337,6 +407,96 @@ const requestHref =
  
 
       </div>
+
+      {/* QUOTE MODAL */}
+      {quoteOpen && (
+        <div
+          style={modalOverlayStyle}
+          onClick={(e) => e.target === e.currentTarget && setQuoteOpen(false)}
+        >
+          <form onSubmit={submitQuote} style={modalCardStyle}>
+            <button
+              type="button"
+              onClick={() => setQuoteOpen(false)}
+              aria-label="Close"
+              style={modalCloseBtnStyle}
+            >
+              ×
+            </button>
+
+            <h2 style={h2Style}>Request a Quote</h2>
+
+            <div style={{ display: 'grid', gap: 10, marginTop: 8 }}>
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ opacity: .85 }}>Your name</span>
+                <input
+                  name="name"
+                  value={qForm.name}
+                  onChange={onQChange}
+                  required
+                  style={btnBaseStyle}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ opacity: .85 }}>Phone</span>
+                <input
+                  name="phone"
+                  value={qForm.phone}
+                  onChange={onQChange}
+                  style={btnBaseStyle}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ opacity: .85 }}>Email</span>
+                <input
+                  type="email"
+                  name="email"
+                  value={qForm.email}
+                  onChange={onQChange}
+                  style={btnBaseStyle}
+                  placeholder="you@example.com"
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ opacity: .85 }}>Job description</span>
+                <textarea
+                  name="description"
+                  value={qForm.description}
+                  onChange={onQChange}
+                  rows={4}
+                  required
+                  style={{ ...btnBaseStyle, height: 'auto' }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ opacity: .85 }}>Photos (up to 10)</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={onQuoteFiles}
+                />
+                <div style={{ fontSize: 12, opacity: .7 }}>
+                  {qForm.files.length} / 10 selected
+                </div>
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+              <button type="submit" disabled={sendingQuote} style={{ ...btnBaseStyle, ...btnPrimaryStyle }}>
+                {sendingQuote ? 'Sending…' : 'Send Request'}
+              </button>
+              <button type="button" onClick={() => setQuoteOpen(false)} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* CONTACTS POPUP */}
 {contactsOpen && (
@@ -646,6 +806,3 @@ const modalOverlayStyle = {
   display:'flex', alignItems:'center', justifyContent:'center',
   padding:16, zIndex:50
 };
-
-
-
