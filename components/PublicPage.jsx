@@ -600,6 +600,6 @@ const modalOverlayStyle = {
   display:'flex', alignItems:'center', justifyContent:'center',
   padding:16, zIndex:50
 };
-const modalCardStyle = { maxWidth:520, width:'100%' };
+
 
 
