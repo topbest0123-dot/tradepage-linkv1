@@ -293,7 +293,7 @@ try {
 }
 
 
-    alert('Thanks! Your quote request was sent.');
+    alert('Thanks! Your quote request was sent, we will get back to you very soon.');
     setQuoteOpen(false);
     setQForm({ name: '', phone: '', email: '', description: '', files: [] });
   } catch (err) {
