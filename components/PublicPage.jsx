@@ -404,7 +404,7 @@ try {
     onClick={() => setQuoteOpen(true)}
     style={{ ...btnBaseStyle, ...btnNeutralStyle }}
   >
-    Request a Quote
+    Get a Quote
   </button>
 
   <button
