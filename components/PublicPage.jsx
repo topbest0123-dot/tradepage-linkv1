@@ -150,7 +150,7 @@ export default function PublicPage({ profile: p }) {
   const emailHref = contactEmail ? `mailto:${contactEmail}` : null;
 
   // Request button target: prefer WhatsApp, else email, else call (fallback '#')
-  const REQUEST_LABEL = 'Request a Code';
+  const REQUEST_LABEL = 'Get a quote';
   const requestHref =
     waHref
       || (emailHref ? `${emailHref}?subject=${encodeURIComponent('Request')}` : null)
