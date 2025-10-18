@@ -161,12 +161,12 @@ export default function HomePage() {
               <h4>Your TradePage</h4>
               <ul>
                 <li>✅One tap to contact you everywhere</li>
-                <li>✅Prices,services,trades etc. clearly stated</li>
+                <li>✅Prices,services,trades clearly stated</li>
                 <li>✅Photos & social media in one place</li>
                 <li>✅Easy quote form access</li>
                 <li>✅Easy shareable link everywhere</li>
                 <li>✅Super easy to edit and manage</li>
-                <li>✅Edit your page from your phone in seconds</li>
+                <li>✅Edit from your phone in seconds</li>
               </ul>
             </div>
           </div>
