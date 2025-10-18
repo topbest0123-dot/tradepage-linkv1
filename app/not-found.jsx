@@ -4,63 +4,76 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <main style={wrap}>
-      {/* keep colors in sync with your global theme */}
-      <style>{`html,body{background:var(--bg,#0a0f14);color:var(--text,#eaf2ff)}`}</style>
+      {/* Use the lighter card gradient sitewide on this page */}
+      <style>{`
+        html,body{
+          background: linear-gradient(180deg,var(--card-bg-1,#0f213a),var(--card-bg-2,#0b1524));
+          color: var(--text,#eaf2ff);
+        }
+        @keyframes headTilt { 0%,100%{ transform: rotate(0deg) } 50%{ transform: rotate(-6deg) } }
+        @keyframes scratch { 0%,100%{ transform: rotate(12deg) } 50%{ transform: rotate(-8deg) } }
+        .hero { display:grid; gap:14px; justify-items:center; text-align:center }
+        .figure { width:110px; height:110px; border-radius:24px;
+          display:grid; place-items:center;
+          border:1px solid var(--chip-border,#27406e);
+          background: var(--chip-bg,#0c1a2e); color: var(--text,#eaf2ff);
+          box-shadow: 0 8px 20px rgba(0,0,0,.25);
+        }
+        .face { transform-origin: 50% 60%; animation: headTilt 2.6s ease-in-out infinite }
+        .hand { transform-origin: 72px 75px; animation: scratch 1.8s ease-in-out infinite }
+      `}</style>
 
-      <section style={card} aria-labelledby="nf-title">
-        <div style={iconBox} aria-hidden>
-          {/* small broken-link icon using currentColor */}
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.5 13.5l-3 3a3 3 0 1 1-4.2-4.2l3-3" />
-            <path d="M13.5 10.5l3-3a3 3 0 1 1 4.2 4.2l-3 3" />
-            <path d="M8 16l8-8" />
+      <section style={card} className="hero" aria-labelledby="nf-title">
+        {/* little “scratching head” SVG */}
+        <div className="figure" aria-hidden>
+          <svg viewBox="0 0 120 120" width="64" height="64" fill="none" stroke="currentColor" strokeWidth="2">
+            {/* head */}
+            <g className="face">
+              <circle cx="60" cy="54" r="22" fill="currentColor" opacity=".12" />
+              <circle cx="60" cy="54" r="22" />
+              <circle cx="54" cy="50" r="2.5" fill="currentColor" />
+              <circle cx="66" cy="50" r="2.5" fill="currentColor" />
+              <path d="M52 60c5 5 11 5 16 0" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            </g>
+            {/* raised hand scratching */}
+            <g className="hand">
+              <path d="M79 76c6-6 8-15 4-20" />
+              <path d="M83 55l6-6" />
+              <circle cx="91" cy="48" r="3.5" fill="currentColor" />
+            </g>
+            {/* shoulders */}
+            <path d="M38 92c7-9 37-9 44 0" />
           </svg>
         </div>
 
-        <h1 id="nf-title" style={title}>ups, we can’t find that link</h1>
+        <h1 id="nf-title" style={title}>oops… we can’t find that link</h1>
 
-        <Link href="/" style={{ ...btnBase, ...btnPrimary }}>Go home</Link>
+        <Link href="/" style={{ ...btn, ...btnPrimary }}>Go home</Link>
       </section>
     </main>
   );
 }
 
-/* ------- styles (uses your CSS variables with safe fallbacks) ------- */
+/* ---------- styles (same tokens as homepage) ---------- */
 const wrap = {
   maxWidth: 980,
   margin: "40px auto",
   padding: "0 16px 64px",
   color: "var(--text,#eaf2ff)",
-  background: "var(--bg,#0a0f14)",
 };
 
 const card = {
-  padding: 24,
+  padding: 28,
   borderRadius: 16,
   border: "1px solid var(--border,#183153)",
   background: "linear-gradient(180deg,var(--card-bg-1,#0f213a),var(--card-bg-2,#0b1524))",
-  display: "grid",
-  gap: 14,
-  justifyItems: "center",
-  textAlign: "center",
+  minWidth: 0,
 };
 
-const iconBox = {
-  width: 72,
-  height: 72,
-  borderRadius: 16,
-  display: "grid",
-  placeItems: "center",
-  border: "1px solid var(--chip-border,#27406e)",
-  background: "var(--chip-bg,#0c1a2e)",
-  color: "var(--text,#eaf2ff)",
-};
+const title = { margin: "6px 0 2px", fontSize: 22, fontWeight: 800, textWrap: "balance" };
 
-const title = { margin: "2px 0 6px", fontSize: 22, fontWeight: 800 };
-
-const btnBase = {
-  padding: "0 14px",
+const btn = {
+  padding: "0 16px",
   height: 38,
   borderRadius: 12,
   border: "1px solid var(--border,#183153)",
@@ -73,7 +86,6 @@ const btnBase = {
 };
 
 const btnPrimary = {
-  background:
-    "linear-gradient(135deg,var(--btn-primary-1,#66e0b9),var(--btn-primary-2,#8ab4ff))",
+  background: "linear-gradient(135deg,var(--btn-primary-1,#66e0b9),var(--btn-primary-2,#8ab4ff))",
   color: "#08101e",
 };
