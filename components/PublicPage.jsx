@@ -480,7 +480,7 @@ try {
               ×
             </button>
 
-            <h2 style={h2Style}>Get a Quote</h2>
+            <h2 style={h2Style}>Request a Quote</h2>
 
             <div style={{ display: 'grid', gap: 10, marginTop: 8 }}>
               <label style={{ display: 'grid', gap: 6 }}>
