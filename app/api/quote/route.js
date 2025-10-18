@@ -98,12 +98,11 @@ export async function POST(req) {
         : '<div>— none —</div>';
       // === end injection ===
 
-      const subject = `New quote request from ${name || 'Someone'} — ${businessName || profileSlug || 'TradePage'}`;
+      const subject = `New quote request from ${name || 'Someone'}`;
 
       const html = `
         <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5">
           <h2 style="margin:0 0 8px">New quote request</h2>
-          <p style="margin:0 0 8px"><b>Business:</b> ${esc(businessName || '')} ${profileSlug ? `(${esc(profileSlug)})` : ''}</p>
           <p style="margin:0 0 8px">
             <b>Name:</b> ${esc(name)}<br/>
             <b>Phone:</b> ${esc(phone)}<br/>
@@ -122,7 +121,6 @@ export async function POST(req) {
         subject,
         html,
         text: [
-          `Business: ${businessName || ''}${profileSlug ? ` (${profileSlug})` : ''}`,
           `Name: ${name || ''}`,
           `Phone: ${phone || ''}`,
           `Email: ${email || ''}`,
@@ -163,7 +161,6 @@ export async function POST(req) {
     const html = `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5">
         <h2 style="margin:0 0 8px">New quote request</h2>
-        <p style="margin:0 0 8px"><b>Business:</b> ${esc(businessName || '')} ${profileSlug ? `(${esc(profileSlug)})` : ''}</p>
         <p style="margin:0 0 8px">
           <b>Name:</b> ${esc(name)}<br/>
           <b>Phone:</b> ${esc(phone)}<br/>
@@ -181,7 +178,6 @@ export async function POST(req) {
       subject,
       html,
       text: [
-        `Business: ${businessName || ''}${profileSlug ? ` (${profileSlug})` : ''}`,
         `Name: ${name || ''}`,
         `Phone: ${phone || ''}`,
         `Email: ${email || ''}`,
