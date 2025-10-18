@@ -1,5 +1,5 @@
 // app/[slug]/page.jsx  (SERVER COMPONENT)
-
+import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import PublicPage from '@/components/PublicPage'; // client component below
 
@@ -27,17 +27,9 @@ export default async function Page({ params }) {
     .ilike('slug', params.slug)
     .maybeSingle();
 
-  if (error) {
-    return (
-      <div style={{ padding: 24 }}>
-        <p style={{ opacity: .8 }}>This page doesn’t exist yet.</p>
-        <pre style={{ opacity: .7 }}>{error.message}</pre>
-      </div>
-    );
-  }
-  if (!p) {
-    return <div style={{ padding: 24 }}>This page doesn’t exist yet.</div>;
-  }
+ if (error) return notFound();
+ if (!p)   return notFound();
+
 
   return <PublicPage profile={p} />;
 }
