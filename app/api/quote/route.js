@@ -102,7 +102,7 @@ export async function POST(req) {
 
       const html = `
         <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5">
-          <h2 style="margin:0 0 8px">New quote request</h2>
+          <h2 style="margin:0 0 8px">New quote request from your TradePageLink</h2>
           <p style="margin:0 0 8px">
             <b>Name:</b> ${esc(name)}<br/>
             <b>Phone:</b> ${esc(phone)}<br/>
