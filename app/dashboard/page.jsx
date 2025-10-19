@@ -300,7 +300,7 @@ export default function Dashboard() {
         </div>
       ) : null}
 
-      {input('Business name', 'name', 'e.g. Pro Cleaners')}
+      {input('Business name', 'name', 'e.g. A&B House Maintenance')}
 
       {/* Logo / profile photo */}
       <label style={{ display: 'block', marginBottom: 16 }}>
@@ -383,7 +383,7 @@ export default function Dashboard() {
         ) : null}
       </label>
 
-      {input('Trade', 'trade', 'e.g. Plumbing')}
+      {input('Trade', 'trade', 'e.g. Handyman')}
       {input('City', 'city', 'e.g. London')}
       {input('Phone (tap to call)', 'phone', 'e.g. +44 7700 900123')}
       {input('WhatsApp number', 'whatsapp', 'e.g. +44 7700 900123')}
