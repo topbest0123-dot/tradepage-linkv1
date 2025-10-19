@@ -21,7 +21,7 @@ export default function HomePage() {
             </h1>
             <p className="lead">
               TradePage<span className="dot">.</span>Link removes the fluff and shows your customers only what trully matters:
-              <b>contact details</b>, <b>quick quote</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas.</b>            
+              <b>contact details</b>, <b>quote form</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas.</b>            
                 Customers acts in seconds — no wandering menus, no confusion — more conversions!
             </p>
           </div>
