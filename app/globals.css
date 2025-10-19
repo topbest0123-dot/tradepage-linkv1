@@ -39,7 +39,7 @@ ul.good-list {
 ul.bad-list li,
 ul.good-list li {
   margin: 8px 0;         /* more space between lines */
-  line-height: 1.55;     /* easier to read */
+  line-height: 1.20;     /* easier to read */
 }
 
 /* Replace default bullet with icon using ::marker */
