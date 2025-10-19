@@ -16,7 +16,7 @@ export default function HomePage() {
         <div className="container">
           <div className="hero-copy">
             <h1>
-              Online presence for TradesPeople done the right way <br className="hide-d" />
+              Tradespeople: your online presence in one link! <br className="hide-d" />
              
             </h1>
             <p className="lead">
