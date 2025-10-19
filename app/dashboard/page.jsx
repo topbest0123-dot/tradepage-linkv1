@@ -383,7 +383,7 @@ export default function Dashboard() {
         ) : null}
       </label>
 
-      {input('your main trade', 'trade', 'e.g. Handyman')}
+      {input('Your main trade', 'trade', 'e.g. Handyman')}
       {input('City', 'city', 'e.g. London')}
       {input('Phone', 'phone', 'e.g. +44 7700 900123')}
       {input('WhatsApp number', 'whatsapp', 'e.g. +44 7700 900123')}
