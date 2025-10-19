@@ -16,7 +16,7 @@ export default function HomePage() {
         <div className="container">
           <div className="hero-copy">
             <h1>
-              Get more jobs by sharing all your info in one link <br className="hide-d" />
+              Tradespeople's online presence done right <br className="hide-d" />
              
             </h1>
             <p className="lead">
