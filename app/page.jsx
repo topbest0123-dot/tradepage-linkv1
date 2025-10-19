@@ -159,16 +159,16 @@ export default function HomePage() {
 
             <div className="card good">
               <h4>Your TradePage</h4>
-              <ul>
-                <li>✅One tap to contact you everywhere</li>
-                <li>✅Prices,services,trades clearly stated</li>
-                <li>✅Photos & social media in one place</li>
-                <li>✅Easy quote form access</li>
-                <li>✅Easy shareable link everywhere</li>
-                <li>✅Perfectly optimised for mobile</li>
-                <li>✅Super easy to edit and manage</li>
-                <li>✅Edit from your phone in seconds</li>
-              </ul>
+              <ul className="good-list">  {/* “Your TradePage” */}
+               <li>One tap to contact you everywhere</li>
+               <li>Prices, services, trades clearly stated</li>
+               <li>Photos & social media in one place</li>
+               <li>Easy quote form access</li>
+               <li>Easy shareable link everywhere</li>
+               <li>Perfectly optimised for mobile</li>
+               <li>Super easy to edit and manage</li>
+               <li>Edit from your phone in seconds</li>
+             </ul>
             </div>
           </div>
 
