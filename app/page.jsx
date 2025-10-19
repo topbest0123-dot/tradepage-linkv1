@@ -16,13 +16,12 @@ export default function HomePage() {
         <div className="container">
           <div className="hero-copy">
             <h1>
-              Tradespeople: get more jobs by having all your information in one link <br className="hide-d" />
+              Tradespeople: get more jobs by having all your info in one link <br className="hide-d" />
              
             </h1>
             <p className="lead">
               TradePage<span className="dot">.</span>Link removes the fluff and shows your customers only what trully matters:
-              <b>contact details</b>, <b>quote form</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas.</b>            
-                Customers acts in seconds — no wandering menus, no confusion — more conversions!
+              <b>contact details</b>, <b>quote form</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas.</b> Customers act in seconds — no wandering menus, no confusion — more conversions!
             </p>
           </div>
 
