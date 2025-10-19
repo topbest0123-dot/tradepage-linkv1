@@ -151,7 +151,7 @@ export default function HomePage() {
                 <li>❌Slow + cluttered</li>
                 <li>❌Confusing copy</li>
                 <li>❌Too many steps</li>
-                <li>❌Bad mobile layout/li>
+                <li>❌Bad mobile interface <li>
                 <li>❌Technical skills required</li>
                 <li>❌Can't edit/add info from your phone</li>
               </ul>
