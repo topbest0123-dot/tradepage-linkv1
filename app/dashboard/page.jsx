@@ -383,9 +383,9 @@ export default function Dashboard() {
         ) : null}
       </label>
 
-      {input('Trade', 'trade', 'e.g. Handyman')}
+      {input('your main trade', 'trade', 'e.g. Handyman')}
       {input('City', 'city', 'e.g. London')}
-      {input('Phone (tap to call)', 'phone', 'e.g. +44 7700 900123')}
+      {input('Phone', 'phone', 'e.g. +44 7700 900123')}
       {input('WhatsApp number', 'whatsapp', 'e.g. +44 7700 900123')}
       {input('Contact email (to receive quote requests)', 'email', 'e.g. hello@yourbusiness.com')}
 
