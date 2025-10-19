@@ -164,7 +164,7 @@ export default function HomePage() {
                <li>Prices, services, trades clearly stated</li>
                <li>Photos & social media in one place</li>
                <li>Easy quote form access</li>
-               <li>Easy shareable link everywhere</li>
+               <li>One tap to share your link everywhere</li>
                <li>Perfectly optimised for mobile</li>
                <li>Super easy to edit and manage</li>
                <li>Edit your page from your phone in seconds</li>
