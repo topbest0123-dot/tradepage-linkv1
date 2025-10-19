@@ -28,3 +28,31 @@ header a:active,
 header a:focus-visible {
   color: #fff !important;
 }
+
+/* Marketing lists: spacing + custom markers */
+ul.bad-list,
+ul.good-list {
+  padding-left: 1.25rem; /* nice indent */
+  margin: 0;
+}
+
+ul.bad-list li,
+ul.good-list li {
+  margin: 8px 0;         /* more space between lines */
+  line-height: 1.55;     /* easier to read */
+}
+
+/* Replace default bullet with icon using ::marker */
+ul.bad-list li::marker {
+  content: "✖ ";
+  color: #ef4444;        /* red */
+  font-size: 1.1em;
+  font-weight: 900;
+}
+
+ul.good-list li::marker {
+  content: "✔ ";
+  color: #22c55e;        /* green */
+  font-size: 1.1em;
+  font-weight: 900;
+}
