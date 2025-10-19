@@ -390,7 +390,7 @@ export default function Dashboard() {
       {input('Contact email (to receive quote requests)', 'email', 'e.g. hello@yourbusiness.com')}
 
 
-    
+      <div style={{ marginTop: 4, marginBottom: 8, opacity: 0.8 }}>Social Media </div>
       {input('Facebook (URL or @)', 'facebook', 'https://facebook.com/yourpage or @yourpage')}
       {input('Instagram (URL or @)', 'instagram', 'https://instagram.com/yourname or @yourname')}
       {input('TikTok (URL or @)', 'tiktok', 'https://tiktok.com/@yourname or @yourname')}
