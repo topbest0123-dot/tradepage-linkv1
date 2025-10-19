@@ -287,7 +287,7 @@ export default function Dashboard() {
         Signed in as <b>{user.email}</b>
       </p>
 
-      {input('Public link (slug)', 'slug', 'e.g. handyman001')}
+      {input('Public link (slug)', 'slug', 'e.g. best handyman')}
 
       {/* availability hint */}
       {form.slug ? (
@@ -383,11 +383,11 @@ export default function Dashboard() {
         ) : null}
       </label>
 
-      {input('Trade', 'trade', 'e.g. House Cleaning')}
+      {input('Trade', 'trade', 'e.g. Plumbing')}
       {input('City', 'city', 'e.g. London')}
       {input('Phone (tap to call)', 'phone', 'e.g. +44 7700 900123')}
       {input('WhatsApp number', 'whatsapp', 'e.g. +44 7700 900123')}
-      {input('Contact email (for quotes & Contacts popup)', 'email', 'e.g. hello@yourbusiness.com')}
+      {input('Contact email (to receive quote requests)', 'email', 'e.g. hello@yourbusiness.com')}
 
 
       <div style={{ marginTop: 4, marginBottom: 8, opacity: 0.8 }}>Social (optional)</div>
