@@ -167,7 +167,7 @@ export default function HomePage() {
                <li>Easy shareable link everywhere</li>
                <li>Perfectly optimised for mobile</li>
                <li>Super easy to edit and manage</li>
-               <li>Edit from your phone in seconds</li>
+               <li>Edit your page from your phone in seconds</li>
              </ul>
             </div>
           </div>
