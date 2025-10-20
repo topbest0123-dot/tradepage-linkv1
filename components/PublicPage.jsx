@@ -880,7 +880,7 @@ export default function PublicPage({ profile: p }) {
             <h2 style={h2Style}>Save this page</h2>
             <div style={{ display:'grid', gap:10, marginTop:8 }}>
               <button type="button" style={{ ...btnBaseStyle, ...btnPrimaryStyle, justifyContent:'center' }} onClick={saveVCard}>
-                Save contact (.vcf)
+                Save contact
               </button>
 
               <button
