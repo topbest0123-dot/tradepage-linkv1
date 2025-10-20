@@ -80,7 +80,6 @@ const THEMES = {
   'sunset-apricot':  {'--bg':'#0f0b09','--text':'#fff4ec','--muted':'#ffd9c2','--border':'#3a2a22','--card-bg-1':'#2a1b16','--card-bg-2':'#1a120e','--chip-bg':'#231611','--chip-border':'#4a3329','--btn-primary-1':'#ffb86b','--btn-primary-2':'#ff6aa2','--btn-neutral-bg':'#2b1f1a','--social-border':'#4d3a30'},
   'minted-ivory':    {'--bg':'#fbfffd','--text':'#132018','--muted':'#4d6d5e','--border':'#d7eee4','--card-bg-1':'#ffffff','--card-bg-2':'#f3fbf7','--chip-bg':'#eff9f4','--chip-border':'#d7eee4','--btn-primary-1':'#10b981','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#e7f3ed','--social-border':'#cfe7dc'},
   'citrus-cream':    {'--bg':'#fffef7','--text':'#17160f','--muted':'#6b6a55','--border':'#efe9c9','--card-bg-1':'#ffffff','--card-bg-2':'#faf6e4','--chip-bg':'#f7f3df','--chip-border':'#efe9c9','--btn-primary-1':'#f59e0b','--btn-primary-2':'#34d399','--btn-neutral-bg':'#efe9da','--social-border':'#e7dfc3'},
-
 };
 const ALIAS = {
   'midnight':'deep-navy','cocoa-bronze':'graphite-ember','cocoa bronze':'graphite-ember',
@@ -157,7 +156,6 @@ export default function PublicPage({ profile: p }) {
       || callHref
       || '#';
 
-
   // public avatar URL from storage
   const avatarUrl = p?.avatar_path
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${encodeURIComponent(p.avatar_path)}`
@@ -200,109 +198,181 @@ export default function PublicPage({ profile: p }) {
     }
   };
 
-  // Submit handler (quote form)
- const submitQuote = async (e) => {
-  e.preventDefault();
-  if (!qForm.name.trim() || !qForm.description.trim()) {
-    alert('Please enter your name and job description.');
-    return;
-  }
+  // --- Save button state (chooser + iOS tip + deferred prompt) ---
+  const [chooserOpen, setChooserOpen] = useState(false);
+  const [iosTipOpen, setIosTipOpen]   = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/i.test(navigator.userAgent);
 
-  setSendingQuote(true);
-  try {
-    // Use the actual bucket name you created in Supabase:
-    const BUCKET = 'quotes'; // <- if your bucket is "quote_uploads", change this
+  useEffect(() => {
+    const onBIP = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener('beforeinstallprompt', onBIP);
+    return () => window.removeEventListener('beforeinstallprompt', onBIP);
+  }, []);
 
-    const uploadedUrls = [];
-    for (const [i, file] of qForm.files.entries()) {
-      const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();
-      const uniq = `${Date.now()}-${i}-${Math.random().toString(36).slice(2,8)}`;
-      const path = `${p?.slug || 'unknown'}/${uniq}.${ext}`;
+  // Build & download a .vcf contact
+  const buildVCard = () => {
+    const fullName = p?.name || p?.slug || 'Trade Contact';
+    const org      = p?.name || '';
+    const title    = [p?.trade, p?.city].filter(Boolean).join(' • ');
+    const tel      = (p?.phone || p?.whatsapp || '').toString().replace(/[^\d+]/g, '');
+    const email    = p?.email || '';
+    const addr     = p?.location || '';
+    const url      = typeof window !== 'undefined' ? window.location.href : '';
 
-      console.log('[UPLOAD] start', {
-        bucket: BUCKET,
-        path,
-        name: file.name,
-        type: file.type,
-        sizeKB: Math.round((file.size || 0) / 1024),
-      });
+    return [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `FN:${fullName}`,
+      `ORG:${org}`,
+      title ? `TITLE:${title}` : null,
+      tel ? `TEL;TYPE=CELL:${tel}` : null,
+      email ? `EMAIL:${email}` : null,
+      addr ? `ADR;TYPE=WORK:;;${addr};;;;;` : null,
+      url ? `URL:${url}` : null,
+      'END:VCARD'
+    ].filter(Boolean).join('\r\n');
+  };
 
-      const { data, error } = await supabase
-        .storage
-        .from(BUCKET)
-        .upload(path, file, {
-          upsert: false,
-          contentType: file.type || 'image/jpeg',
-          cacheControl: '3600',
-        });
+  const saveVCard = () => {
+    const text = buildVCard();
+    const blob = new Blob([text], { type: 'text/vcard;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const base = (p?.name || p?.slug || 'contact').toString().toLowerCase().replace(/\s+/g, '-');
+    a.href = url;
+    a.download = `${base}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    // hook your toast here if desired
+    // showToast('Contact saved');
+  };
 
-      if (error) {
-        console.error('[UPLOAD] failed', { path, error });
-        const hint =
-          error.status === 404 ? 'Bucket name is wrong or missing.'
-        : error.status === 401 || error.status === 403 ? 'Storage policy/RLS is blocking uploads.'
-        : error.status === 409 ? 'Filename already exists; try again.'
-        : error.status === 413 ? 'File too large.'
-        : 'See console for details.';
-        alert(`Photo upload failed (${error.status}). ${hint}`);
-        throw error;
-      }
+  const addToHome = async () => {
+    setChooserOpen(false);
 
-      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      if (pub?.publicUrl) {
-        console.log('[UPLOAD] success', { path, publicUrl: pub.publicUrl });
-        uploadedUrls.push(pub.publicUrl);
-      } else {
-        console.warn('[UPLOAD] no publicUrl (bucket may not be Public)', { path });
-      }
+    if (installPrompt) {
+      try {
+        installPrompt.prompt();
+        await installPrompt.userChoice;
+      } catch {}
+      setInstallPrompt(null);
+      return;
     }
 
-    // Save the request
-    await supabase.from('quotes').insert({
-      profile_slug: p?.slug || null,
-      business_name: p?.name || null,
-      to_email: p?.email || null,
-      customer_name: qForm.name,
-      customer_phone: qForm.phone,
-      customer_email: qForm.email,
-      description: qForm.description,
-      image_urls: uploadedUrls,
-    });
-   // Tell the API to email the business (JSON path your route.js expects)
-try {
-  const res = await fetch('/api/quote', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      to: p?.email || 'YOUR-TEST-EMAIL@example.com', // change to your test inbox if needed
-      businessName: p?.name || null,
-      profileSlug: p?.slug || null,
-      name: qForm.name,
-      phone: qForm.phone,
-      email: qForm.email,
-      description: qForm.description,
-      imageUrls: uploadedUrls, // the URLs you just uploaded to the bucket
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error('Email API error:', err);
-  }
-} catch (e) {
-  console.error('Email send failed:', e);
-}
+    if (isIOS) {
+      setIosTipOpen(true);
+      return;
+    }
 
+    alert('Use your browser menu to “Add to Home Screen”.');
+  };
+  // --------------------------------------------------------------
 
-    alert('Thanks! Your quote request was sent, we will get back to you very soon.');
-    setQuoteOpen(false);
-    setQForm({ name: '', phone: '', email: '', description: '', files: [] });
-  } catch (err) {
-    console.error('Quote submit error:', err);
-    alert('Could not send your request. Please try again.');
-  } finally {
-    setSendingQuote(false);
-  }
-};
+  // Submit handler (quote form)
+  const submitQuote = async (e) => {
+    e.preventDefault();
+    if (!qForm.name.trim() || !qForm.description.trim()) {
+      alert('Please enter your name and job description.');
+      return;
+    }
+
+    setSendingQuote(true);
+    try {
+      // Use the actual bucket name you created in Supabase:
+      const BUCKET = 'quotes'; // <- if your bucket is "quote_uploads", change this
+
+      const uploadedUrls = [];
+      for (const [i, file] of qForm.files.entries()) {
+        const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const uniq = `${Date.now()}-${i}-${Math.random().toString(36).slice(2,8)}`;
+        const path = `${p?.slug || 'unknown'}/${uniq}.${ext}`;
+
+        console.log('[UPLOAD] start', {
+          bucket: BUCKET,
+          path,
+          name: file.name,
+          type: file.type,
+          sizeKB: Math.round((file.size || 0) / 1024),
+        });
+
+        const { data, error } = await supabase
+          .storage
+          .from(BUCKET)
+          .upload(path, file, {
+            upsert: false,
+            contentType: file.type || 'image/jpeg',
+            cacheControl: '3600',
+          });
+
+        if (error) {
+          console.error('[UPLOAD] failed', { path, error });
+          const hint =
+            error.status === 404 ? 'Bucket name is wrong or missing.'
+          : error.status === 401 || error.status === 403 ? 'Storage policy/RLS is blocking uploads.'
+          : error.status === 409 ? 'Filename already exists; try again.'
+          : error.status === 413 ? 'File too large.'
+          : 'See console for details.';
+          alert(`Photo upload failed (${error.status}). ${hint}`);
+          throw error;
+        }
+
+        const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        if (pub?.publicUrl) {
+          console.log('[UPLOAD] success', { path, publicUrl: pub.publicUrl });
+          uploadedUrls.push(pub.publicUrl);
+        } else {
+          console.warn('[UPLOAD] no publicUrl (bucket may not be Public)', { path });
+        }
+      }
+
+      // Save the request
+      await supabase.from('quotes').insert({
+        profile_slug: p?.slug || null,
+        business_name: p?.name || null,
+        to_email: p?.email || null,
+        customer_name: qForm.name,
+        customer_phone: qForm.phone,
+        customer_email: qForm.email,
+        description: qForm.description,
+        image_urls: uploadedUrls,
+      });
+      // Tell the API to email the business (JSON path your route.js expects)
+      try {
+        const res = await fetch('/api/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: p?.email || 'YOUR-TEST-EMAIL@example.com',
+            businessName: p?.name || null,
+            profileSlug: p?.slug || null,
+            name: qForm.name,
+            phone: qForm.phone,
+            email: qForm.email,
+            description: qForm.description,
+            imageUrls: uploadedUrls,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error('Email API error:', err);
+        }
+      } catch (e) {
+        console.error('Email send failed:', e);
+      }
+
+      alert('Thanks! Your quote request was sent, we will get back to you very soon.');
+      setQuoteOpen(false);
+      setQForm({ name: '', phone: '', email: '', description: '', files: [] });
+    } catch (err) {
+      console.error('Quote submit error:', err);
+      alert('Could not send your request. Please try again.');
+    } finally {
+      setSendingQuote(false);
+    }
+  };
 
   return (
     <div style={pageWrapStyle}>
@@ -387,81 +457,93 @@ try {
           </div>
         </div>
 
-       <div className="hdr-cta" style={ctaRowStyle}>
-  {(callHref || waHref || emailHref) && (
-    <button
-      type="button"
-      onClick={() => setContactsOpen(true)}
-      style={{ ...btnBaseStyle, ...btnPrimaryStyle }}
-      title="Contacts"
-    >
-      Contacts
-    </button>
-  )}
+        <div className="hdr-cta" style={ctaRowStyle}>
+          {(callHref || waHref || emailHref) && (
+            <button
+              type="button"
+              onClick={() => setContactsOpen(true)}
+              style={{ ...btnBaseStyle, ...btnPrimaryStyle }}
+              title="Contacts"
+            >
+              Contacts
+            </button>
+          )}
 
-  <button
-    type="button"
-    onClick={() => setQuoteOpen(true)}
-    style={{ ...btnBaseStyle, ...btnNeutralStyle }}
-  >
-    Get a Quote
-  </button>
+          <button
+            type="button"
+            onClick={() => setQuoteOpen(true)}
+            style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+          >
+            Get a Quote
+          </button>
 
-  <button
-    type="button"
-    onClick={handleShare}
-    style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
-  >
-    Share
-  </button>
-</div>
-       {contactsOpen && (
-  <div
-    style={modalOverlayStyle}
-    onClick={() => setContactsOpen(false)}
-    aria-modal="true"
-    role="dialog"
-  >
-    <section
-      style={modalCardStyle}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <button
-        type="button"
-        onClick={() => setContactsOpen(false)}
-        style={modalCloseBtnStyle}
-        aria-label="Close"
-        title="Close"
-      >
-        ×
-      </button>
+          <button
+            type="button"
+            onClick={handleShare}
+            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
+          >
+            Share
+          </button>
+        </div>
 
-      <h2 style={h2Style}>Contacts</h2>
+        {/* Save (bookmark) – small, top-right */}
+        <button
+          type="button"
+          onClick={() => setChooserOpen(true)}
+          aria-label="Save"
+          title="Save"
+          style={saveBtnFabStyle}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#08101e" aria-hidden="true">
+            <path d="M6 3a1 1 0 0 0-1 1v17l7-4 7 4V4a1 1 0 0 0-1-1H6z"/>
+          </svg>
+        </button>
 
-      <div style={modalListStyle}>
-        {callHref && (
-          <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-            Phone {p?.phone ? `— ${p.phone}` : ''}
-          </a>
+        {contactsOpen && (
+          <div
+            style={modalOverlayStyle}
+            onClick={() => setContactsOpen(false)}
+            aria-modal="true"
+            role="dialog"
+          >
+            <section
+              style={modalCardStyle}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setContactsOpen(false)}
+                style={modalCloseBtnStyle}
+                aria-label="Close"
+                title="Close"
+              >
+                ×
+              </button>
+
+              <h2 style={h2Style}>Contacts</h2>
+
+              <div style={modalListStyle}>
+                {callHref && (
+                  <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                    Phone {p?.phone ? `— ${p.phone}` : ''}
+                  </a>
+                )}
+
+                {waHref && (
+                  <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                    WhatsApp {p?.whatsapp ? `— ${p.whatsapp}` : ''}
+                  </a>
+                )}
+
+                {contactEmail && (
+                  <a href={emailHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                    Email {contactEmail}
+                  </a>
+                )}
+              </div>
+            </section>
+          </div>
         )}
-
-        {waHref && (
-          <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-            WhatsApp {p?.whatsapp ? `— ${p.whatsapp}` : ''}
-          </a>
-        )}
-
-        {contactEmail && (
-          <a href={emailHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-            Email {contactEmail}
-          </a>
-        )}
-      </div>
-    </section>
-  </div>
-)}
- 
-
       </div>
 
       {/* QUOTE MODAL */}
@@ -555,231 +637,297 @@ try {
       )}
 
       {/* CONTACTS POPUP */}
-{contactsOpen && (
-  <div style={modalOverlayStyle} onClick={() => setContactsOpen(false)}>
-    <div style={modalCardStyle} onClick={(e) => e.stopPropagation()}>
-      <Card title="Contacts" wide>
-        <div style={{ display:'grid', gap:10 }}>
-          {callHref && (
-            <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-              Phone{p?.phone ? `: ${p.phone}` : ''}
-            </a>
-          )}
-          {waHref && (
-            <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-              WhatsApp{p?.whatsapp ? `: ${p.whatsapp}` : ''}
-            </a>
-          )}
-          {emailHref && (
-            <a href={emailHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
-              Email{contactEmail ? `: ${contactEmail}` : ''}
-            </a>
-          )}
-          {!callHref && !waHref && !emailHref && (
-            <div style={{ opacity:.7 }}>No contact methods provided yet.</div>
-          )}
-        </div>
+      {contactsOpen && (
+        <div style={modalOverlayStyle} onClick={() => setContactsOpen(false)}>
+          <div style={modalCardStyle} onClick={(e) => e.stopPropagation()}>
+            <Card title="Contacts" wide>
+              <div style={{ display:'grid', gap:10 }}>
+                {callHref && (
+                  <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                    Phone{p?.phone ? `: ${p.phone}` : ''}
+                  </a>
+                )}
+                {waHref && (
+                  <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                    WhatsApp{p?.whatsapp ? `: ${p.whatsapp}` : ''}
+                  </a>
+                )}
+                {emailHref && (
+                  <a href={emailHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                    Email{contactEmail ? `: ${contactEmail}` : ''}
+                  </a>
+                )}
+                {!callHref && !waHref && !emailHref && (
+                  <div style={{ opacity:.7 }}>No contact methods provided yet.</div>
+                )}
+              </div>
 
-        <div style={{ display:'flex', justifyContent:'flex-end', marginTop:12 }}>
-          <button
-            type="button"
-            onClick={() => setContactsOpen(false)}
-            style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
-          >
-            Close
-          </button>
+              <div style={{ display:'flex', justifyContent:'flex-end', marginTop:12 }}>
+                <button
+                  type="button"
+                  onClick={() => setContactsOpen(false)}
+                  style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
+                >
+                  Close
+                </button>
+              </div>
+            </Card>
+          </div>
         </div>
-      </Card>
-    </div>
-  </div>
-)}
-
+      )}
 
       {/* SOCIAL */}
-  {(fb || ig || tk || xx || yt) && (
-  <div style={socialBarWrapStyle}>
-    {fb && (
-      <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}>
-        {ICONS.facebook}
-      </a>
-    )}
-    {ig && (
-      <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}>
-        {ICONS.instagram}
-      </a>
-    )}
-    {tk && (
-      <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={socialBtnStyle}>
-        {ICONS.tiktok}
-      </a>
-    )}
-    {xx && (
-      <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}>
-        {ICONS.x}
-      </a>
-    )}
-    {yt && (
-      <a href={yt} target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube" style={socialBtnStyle}>
-        {ICONS.youtube}
-      </a>
-    )}
-  </div>
-)}
+      {(fb || ig || tk || xx || yt) && (
+        <div style={socialBarWrapStyle}>
+          {fb && (
+            <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}>
+              {ICONS.facebook}
+            </a>
+          )}
+          {ig && (
+            <a href={ig} target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style={socialBtnStyle}>
+              {ICONS.instagram}
+            </a>
+          )}
+          {tk && (
+            <a href={tk} target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style={socialBtnStyle}>
+              {ICONS.tiktok}
+            </a>
+          )}
+          {xx && (
+            <a href={xx} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" style={socialBtnStyle}>
+              {ICONS.x}
+            </a>
+          )}
+          {yt && (
+            <a href={yt} target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube" style={socialBtnStyle}>
+              {ICONS.youtube}
+            </a>
+          )}
+        </div>
+      )}
 
       {/* GRID (reordered after social) */}
-<div style={grid2Style}>
-  {/* ABOUT */}
-  <Card title="About Us">
-    <p style={bodyP}>
-      {p.about && p.about.trim().length > 0
-        ? p.about
-        : (services[0]
-            ? `${services[0]}. Reliable, friendly and affordable. Free quotes, no hidden fees.`
-            : 'Reliable, friendly and affordable. Free quotes, no hidden fees.')}
-    </p>
-  </Card>
+      <div style={grid2Style}>
+        {/* ABOUT */}
+        <Card title="About Us">
+          <p style={bodyP}>
+            {p.about && p.about.trim().length > 0
+              ? p.about
+              : (services[0]
+                  ? `${services[0]}. Reliable, friendly and affordable. Free quotes, no hidden fees.`
+                  : 'Reliable, friendly and affordable. Free quotes, no hidden fees.')}
+          </p>
+        </Card>
 
-  {/* OTHER TRADES (optional) */}
-  {toList(p?.other_trades).length > 0 && (
-    <Card title="Our Trades">
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {toList(p.other_trades).map((t, i) => (<span key={i} style={chipStyle}>{t}</span>))}
-      </div>
-    </Card>
-  )}
-
-  {/* SERVICES */}
-  <Card title="Our Services">
-    {services.length > 0 ? (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {services.map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
-      </div>
-    ) : (<div style={{ opacity: 0.7 }}>No services listed yet.</div>)}
-  </Card>
-
-  {/* PRICES */}
-  <Card title="Prices">
-    <ul style={listResetStyle}>
-      {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
-      {priceLines.map((ln, i) => (
-        <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <span>{ln}</span>
-        </li>
-      ))}
-    </ul>
-  </Card>
-
-  {/* LOCATION (optional) */}
-  {(p?.location || p?.location_url) && (
-    <Card title="Location">
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
-        {p?.location ? (
-          <div style={{ opacity: 0.95 }}>{p.location}</div>
-        ) : <div />}
-        {mapsHref && (
-          <a
-            href={mapsHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ ...btnBaseStyle, ...btnNeutralStyle }}
-          >
-            Open in Maps
-          </a>
+        {/* OTHER TRADES (optional) */}
+        {toList(p?.other_trades).length > 0 && (
+          <Card title="Our Trades">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {toList(p.other_trades).map((t, i) => (<span key={i} style={chipStyle}>{t}</span>))}
+            </div>
+          </Card>
         )}
-      </div>
-    </Card>
-  )}
 
-  {/* AREAS */}
-  <Card title="Areas we cover">
-    {areas.length > 0 ? (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {areas.map((a, i) => (<span key={i} style={chipStyle}>{a}</span>))}
-      </div>
-    ) : (<div style={{ opacity: 0.7 }}>No areas listed yet.</div>)}
-  </Card>
+        {/* SERVICES */}
+        <Card title="Our Services">
+          {services.length > 0 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {services.map((s, i) => (<span key={i} style={chipStyle}>{s}</span>))}
+            </div>
+          ) : (<div style={{ opacity: 0.7 }}>No services listed yet.</div>)}
+        </Card>
 
-  {/* HOURS */}
-  <Card title="Hours">
-  <div style={{ opacity: 0.95, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
-    { (p?.hours && p.hours.trim()) || 'Mon–Sat 08:00–18:00' }
-  </div>
-</Card>
+        {/* PRICES */}
+        <Card title="Prices">
+          <ul style={listResetStyle}>
+            {priceLines.length === 0 && <li style={{ opacity: 0.7 }}>Please ask for a quote.</li>}
+            {priceLines.map((ln, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <span>{ln}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
 
-  {/* OTHER INFO (optional, wide) */}
-  {p.other_info && p.other_info.trim().length > 0 && (
-    <Card title="Other useful information" wide>
-      <p style={{ ...bodyP, opacity: 0.95 }}>{p.other_info}</p>
-    </Card>
-  )}
+        {/* LOCATION (optional) */}
+        {(p?.location || p?.location_url) && (
+          <Card title="Location">
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
+              {p?.location ? (
+                <div style={{ opacity: 0.95 }}>{p.location}</div>
+              ) : <div />}
+              {mapsHref && (
+                <a
+                  href={mapsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ ...btnBaseStyle, ...btnNeutralStyle }}
+                >
+                  Open in Maps
+                </a>
+              )}
+            </div>
+          </Card>
+        )}
 
-  {/* GALLERY (unchanged, still wide at the end) */}
-  <Card title="Gallery" wide>
-    {galleryUrls.length ? (
-      <div className="gallery-grid">
-        {galleryUrls.map((src, i) => (
-          <div key={i} className="gallery-item">
-            <img src={src} alt="" />
+        {/* AREAS */}
+        <Card title="Areas we cover">
+          {areas.length > 0 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {areas.map((a, i) => (<span key={i} style={chipStyle}>{a}</span>))}
+            </div>
+          ) : (<div style={{ opacity: 0.7 }}>No areas listed yet.</div>)}
+        </Card>
+
+        {/* HOURS */}
+        <Card title="Hours">
+          <div style={{ opacity: 0.95, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+            { (p?.hours && p.hours.trim()) || 'Mon–Sat 08:00–18:00' }
           </div>
-        ))}
+        </Card>
+
+        {/* OTHER INFO (optional, wide) */}
+        {p.other_info && p.other_info.trim().length > 0 && (
+          <Card title="Other useful information" wide>
+            <p style={{ ...bodyP, opacity: 0.95 }}>{p.other_info}</p>
+          </Card>
+        )}
+
+        {/* GALLERY (unchanged, still wide at the end) */}
+        <Card title="Gallery" wide>
+          {galleryUrls.length ? (
+            <div className="gallery-grid">
+              {galleryUrls.map((src, i) => (
+                <div key={i} className="gallery-item">
+                  <img src={src} alt="" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="gallery-grid">
+              <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
+              <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
+              <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
+            </div>
+          )}
+        </Card>
       </div>
-    ) : (
-      <div className="gallery-grid">
-        <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
-        <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
-        <div className="gallery-item"><div style={imgPlaceholderStyle}>work photo</div></div>
-      </div>
-    )}
-  </Card>
-</div>
+
       {contactsOpen && (
-  <div
-    style={modalOverlayStyle}
-    onClick={() => setContactsOpen(false)}
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="contactsTitle"
-  >
-    <section
-      style={modalCardStyle}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <button
-        type="button"
-        onClick={() => setContactsOpen(false)}
-        style={modalCloseBtnStyle}
-        aria-label="Close"
-        title="Close"
-      >
-        ×
-      </button>
+        <div
+          style={modalOverlayStyle}
+          onClick={() => setContactsOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="contactsTitle"
+        >
+          <section
+            style={modalCardStyle}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setContactsOpen(false)}
+              style={modalCloseBtnStyle}
+              aria-label="Close"
+              title="Close"
+            >
+              ×
+            </button>
 
-      <h2 id="contactsTitle" style={h2Style}>Contacts</h2>
+            <h2 id="contactsTitle" style={h2Style}>Contacts</h2>
 
-      <div style={modalListStyle}>
-        {callHref && (
-          <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
-            Call {p?.phone ? `(${p.phone})` : ''}
-          </a>
-        )}
-        {waHref && (
-          <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
-            WhatsApp {p?.whatsapp ? `(${p.whatsapp})` : ''}
-          </a>
-        )}
-        {emailHref && (
-          <a href={emailHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
-            Email {contactEmail ? `(${contactEmail})` : ''}
-          </a>
-        )}
+            <div style={modalListStyle}>
+              {callHref && (
+                <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
+                  Call {p?.phone ? `(${p.phone})` : ''}
+                </a>
+              )}
+              {waHref && (
+                <a href={waHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
+                  WhatsApp {p?.whatsapp ? `(${p.whatsapp})` : ''}
+                </a>
+              )}
+              {emailHref && (
+                <a href={emailHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
+                  Email {contactEmail ? `(${contactEmail})` : ''}
+                </a>
+              )}
 
-        {!callHref && !waHref && !emailHref && (
-          <div style={{ opacity:.75 }}>No contact methods available yet.</div>
-        )}
-      </div>
-    </section>
-  </div>
-)}
+              {!callHref && !waHref && !emailHref && (
+                <div style={{ opacity:.75 }}>No contact methods available yet.</div>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* SAVE CHOOSER */}
+      {chooserOpen && (
+        <div style={modalOverlayStyle} onClick={() => setChooserOpen(false)} aria-modal="true" role="dialog">
+          <section style={modalCardStyle} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setChooserOpen(false)}
+              style={modalCloseBtnStyle}
+              aria-label="Close"
+              title="Close"
+            >
+              ×
+            </button>
+
+            <h2 style={h2Style}>Save this page</h2>
+            <div style={{ display:'grid', gap:10, marginTop:8 }}>
+              <button type="button" style={{ ...btnBaseStyle, ...btnPrimaryStyle, justifyContent:'center' }} onClick={saveVCard}>
+                Save contact (.vcf)
+              </button>
+
+              <button
+                type="button"
+                onClick={addToHome}
+                style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}
+              >
+                Add to Home Screen
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* iOS Add-to-Home instructions */}
+      {iosTipOpen && (
+        <div style={modalOverlayStyle} onClick={() => setIosTipOpen(false)} aria-modal="true" role="dialog">
+          <section style={modalCardStyle} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setIosTipOpen(false)}
+              style={modalCloseBtnStyle}
+              aria-label="Close"
+              title="Close"
+            >
+              ×
+            </button>
+
+            <h2 style={h2Style}>Add to Home Screen (iPhone/iPad)</h2>
+            <ol style={{ margin:'8px 0 0', padding:'0 0 0 18px', lineHeight:1.6 }}>
+              <li>Tap the <b>Share</b> icon in Safari.</li>
+              <li>Scroll and choose <b>Add to Home Screen</b>.</li>
+              <li>Confirm the name and tap <b>Add</b>.</li>
+            </ol>
+
+            <div style={{ display:'flex', justifyContent:'flex-end', marginTop:12 }}>
+              <button
+                type="button"
+                onClick={() => setIosTipOpen(false)}
+                style={{ ...btnBaseStyle, border:'1px solid var(--social-border)', background:'transparent', color:'var(--text)' }}
+              >
+                Got it
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
     </div>
   );
@@ -802,6 +950,7 @@ const headerCardStyle = {
   border: '1px solid var(--border)',
   background: 'linear-gradient(180deg,var(--card-bg-1),var(--card-bg-2))',
   marginBottom: 12,
+  position: 'relative', // for the floating Save button
 };
 const headerLeftStyle = { gap: 12, minWidth: 0 };
 const logoDotStyle = { width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--btn-primary-1)', color: '#0a0f1c', fontWeight: 800, fontSize: 20 };
@@ -825,7 +974,6 @@ const chipStyle = { padding: '6px 12px', borderRadius: 999, border: '1px solid v
 const listResetStyle = { margin: 0, padding: 0, listStyle: 'none' };
 
 const imgPlaceholderStyle = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.75 };
-
 
 const modalCardStyle = {
   ...cardStyle,
@@ -861,4 +1009,21 @@ const modalOverlayStyle = {
   backdropFilter:'blur(2px)',
   display:'flex', alignItems:'center', justifyContent:'center',
   padding:16, zIndex:50
+};
+
+/* small floating Save button */
+const saveBtnFabStyle = {
+  position: 'absolute',
+  top: 12,
+  right: 12,
+  width: 36,
+  height: 36,
+  borderRadius: 10,
+  border: '1px solid var(--border)',
+  background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
+  color: '#08101e',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer'
 };
