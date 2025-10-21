@@ -1014,8 +1014,8 @@ const modalOverlayStyle = {
 /* small floating Save button */
 const saveBtnFabStyle = {
   position: 'absolute',
-  top: 2,
-  right: 2,
+  top: 0,
+  right: 0,
   width: 36,
   height: 36,
   borderRadius: 14,
