@@ -1018,7 +1018,7 @@ const saveBtnFabStyle = {
   right: 2,
   width: 36,
   height: 36,
-  borderRadius: 16,
+  borderRadius: 14,
   border: '1px solid var(--border)',
   background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
   color: '#08101e',
