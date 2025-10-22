@@ -316,9 +316,8 @@ function ConversionBlocks() {
             <summary>Can I keep my current website?</summary>
             <p>Absolutely. Use TradePage as your high-conversion link in bios, ads and messages.</p>
           </details>
-        </div>
         <div className="conv-cta">
-          <a href="/signin" className="conv-btn alt">Create your TradePage</a>
+           <a href="/signin" className="btn-primary">Create your TradePage</a>
         </div>
       </section>
     </>
