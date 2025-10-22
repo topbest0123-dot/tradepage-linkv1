@@ -32,7 +32,7 @@ export default function SignInPage() {
     <main className="signin">
       <style>{styles}</style>
 
-      {/* Dark header card (matches home hero theme) */}
+      {/* Dark header card */}
       <section className="hero">
         <div className="container">
           <form className="signin-card" onSubmit={sendLink}>
@@ -61,7 +61,7 @@ export default function SignInPage() {
         </div>
       </section>
 
-      {/* Light continuation area (same style language as home) */}
+      {/* Light continuation area */}
       <section className="light-area">
         <div className="container">
           <div className="tiles">
@@ -104,7 +104,11 @@ export default function SignInPage() {
           </div>
 
           <div className="cta">
-            <a href="#email" onClick={(e)=>{e.preventDefault(); document.getElementById('email')?.focus();}} className="btn-wide btn-gradient">
+            <a
+              href="#email"
+              onClick={(e)=>{e.preventDefault(); document.getElementById('email')?.focus();}}
+              className="btn-wide btn-gradient"
+            >
               Start your free trial
             </a>
             <p className="tiny">Takes under 1 minute. No card required.</p>
@@ -115,7 +119,6 @@ export default function SignInPage() {
   );
 }
 
-/* ----- tiny presentational tile ----- */
 function Tile({ title, icon, children }) {
   return (
     <div className="tile">
@@ -128,14 +131,13 @@ function Tile({ title, icon, children }) {
   );
 }
 
-/* ===== styles (kept consistent with home) ===== */
+/* ===== styles ===== */
 const styles = `
 :root{
-  --bg:#0b1017;                 /* dark hero background */
+  --bg:#0b1017;
   --primary-1:#5aa6ff;
   --primary-2:#22a06b;
 
-  /* light area palette */
   --below-bg:#f6f0e7;
   --la-text:#0f1216;
   --la-muted:#3f4852;
@@ -172,10 +174,19 @@ html, body{ background:var(--bg); color:#fff; }
 }
 .field::placeholder{ color:rgba(255,255,255,.55); }
 
+/* BUTTON CENTERING FIX */
 .btn-wide{
-  display:block; width:100%; text-align:center;
-  height:44px; border-radius:12px; margin-top:10px;
-  font-weight:800; color:#08101e; border:1px solid rgba(255,255,255,.1); text-decoration:none;
+  display:flex;               /* ⬅ ensures perfect centering */
+  align-items:center;         /* vertical center */
+  justify-content:center;     /* horizontal center */
+  width:100%;
+  height:44px;
+  border-radius:12px;
+  margin-top:10px;
+  font-weight:800;
+  color:#08101e;
+  border:1px solid rgba(255,255,255,.1);
+  text-decoration:none;
 }
 .btn-gradient{ background:linear-gradient(135deg, var(--primary-1), var(--primary-2)); }
 
@@ -199,6 +210,8 @@ html, body{ background:var(--bg); color:#fff; }
 .how{ margin:14px 0; padding:12px; border:1px dashed var(--la-border); border-radius:14px; background:#fff; }
 .how h3{ margin:0 0 8px; font-size:18px; font-weight:1000; }
 .how ul{ margin:0; padding-left:18px; color:var(--la-muted); }
+/* READABILITY BOOST: more space + taller line-height */
+.how li{ margin:10px 0; line-height:1.7; }
 
 .faq details{ border:1px solid var(--la-border); background:#fff; border-radius:14px; margin:8px 0; padding:12px; }
 .faq summary{ font-weight:900; cursor:pointer; list-style:none; }
@@ -211,7 +224,7 @@ html, body{ background:var(--bg); color:#fff; }
 /* responsive tiles */
 @media (min-width:980px){ .tiles{ grid-template-columns:1fr 1fr; } }
 
-/* --- FIX: keep email input & button perfectly inside the card --- */
+/* keep email input & button inside the card (previous fix) */
 .signin-card .field,
 .signin-card .btn-wide{
   box-sizing: border-box;
