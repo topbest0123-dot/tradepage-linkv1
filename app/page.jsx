@@ -257,10 +257,10 @@ function ConversionBlocks() {
   <h2 className="conv-h2">The reality for trades</h2>
   <div className="solutions-grid">
     {[
-      { i:'📵', t:'Missed calls = missed work', d:'People give up if they can’t reach you fast.' },
-      { i:'🔗', t:'Too many links', d:'Facebook, Insta, WhatsApp, website — customers don’t know where to click.' },
+      { i:'📵', t:'Missed calls = missed work', d:'People give up if they can’t find your contact you fast.' },
+      { i:'🔗', t:'Links all over the place', d:'Facebook, Insta, WhatsApp, website — customers don’t know where find them.' },
       { i:'🧩', t:'Confusing sites', d:'Menus, fluff, and slow load times kill conversions.' },
-      { i:'⏳', t:'Quotes take too long', d:'Back-and-forth messages delay decisions.' },
+      { i:'⏳', t:'Quotes take too long', d:'Back-and-forth messages delay decisions, forms are slow and confusing.' },
       { i:'🖼️', t:'Work not shown', d:'No quick gallery = trust drops.' },
       { i:'📍', t:'Coverage unclear', d:'People don’t know if you serve their area or hours.' },
     ].map((b, i) => (
@@ -279,7 +279,7 @@ function ConversionBlocks() {
         <div className="solutions-grid">
           {[
             { t:'One link, essentials only', d:'Contact, quote, services, prices, gallery & socials — up front.', i:'⚡' },
-            { t:'Fast quote capture', d:'Simple form + photo upload. Quotes land straight in your email.', i:'📩' },
+            { t:'Fast quote capture', d:'Simple form + photo upload. Quotes land straight in your email instantly.', i:'📩' },
             { t:'Proof on the spot', d:'Clean gallery shows real jobs so customers trust you faster.', i:'✅' },
             { t:'Clear coverage & hours', d:'Zones and opening hours remove guesswork and wasted calls.', i:'🗺️' },
             { t:'Mobile-first', d:'Built for phones — where your customers actually are.', i:'📱' },
