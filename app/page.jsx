@@ -205,7 +205,9 @@ export default function HomePage() {
           {/* Final CTA */}
          <div className="la-cta">
             <h3>Be the trade that’s easy to contact.</h3>
-            <a href="/signin" className="btn-primary">Create your page</a>
+            <div className="conv-cta">
+            <a href="/signin" className="conv-btn alt">Create your TradePage</a>
+          </div>
             <p className="tiny">One link. All the essentials. Built for conversions.</p>
           </div>
 
