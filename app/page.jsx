@@ -92,7 +92,7 @@ export default function HomePage() {
 
             {/* NEW feature announcement — small, non-intrusive */}
             <div className="la-new">
-              <span className="pill">NEW</span>
+              <span className="pill">NEW FEATURE</span>
               <b>One-tap to save your info</b> — customers can instantly save your contact in their phone.
             </div>
           </div>
