@@ -89,7 +89,7 @@ export default function SignInPage() {
           <div className="how">
             <h3>How the free trial works</h3>
             <ul>
-              <li><b>Today:</b> Enter your email. We send a secure sign-in link — no password, no card.</li>
+              <li><b>Today:</b> Create your page for free. Customise it in 5 minutes, and you ready to go</li>
               <li><b>Days 1–14:</b> Share your link, collect quotes and calls, and measure the difference.</li>
               <li><b>Day 14:</b> Love it or leave it. Continue on a simple monthly plan, or walk away — no hassle.</li>
             </ul>
