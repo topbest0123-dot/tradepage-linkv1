@@ -4,12 +4,15 @@
 /**
  * HERO (dark) stays exactly as-is.
  * LIGHT AREA (cream) has locked colors for strong contrast.
+ * Extra conversion blocks are appended (same palette), no layout changes.
  */
 
 export default function HomePage() {
   return (
     <main className="tp-home tp-home--light">
       <style>{styles}</style>
+      {/* extra styles for new conversion blocks (append-only) */}
+      <style>{convStyles}</style>
 
       {/* ======= HERO (unchanged) ======= */}
       <section className="hero">
@@ -86,6 +89,12 @@ export default function HomePage() {
             <h2>Built for trades. Built for speed.</h2>
             <p>When everything lives in one clean view, customers stop searching and start contacting. Fewer taps, fewer doubts, more jobs.</p>
             <a href="/signin" className="btn-primary">Create your page</a>
+
+            {/* NEW feature announcement — small, non-intrusive */}
+            <div className="la-new">
+              <span className="pill">NEW</span>
+              <b>One-tap to save your info</b> — customers can instantly save your contact in their phone.
+            </div>
           </div>
 
           {/* Value grid */}
@@ -195,11 +204,13 @@ export default function HomePage() {
 
           {/* Final CTA */}
          <div className="la-cta">
-  <h3>Be the trade that’s easy to contact.</h3>
-  <a href="/signin" className="btn-primary">Create your page</a>
-  <p className="tiny">One link. All the essentials. Built for conversions.</p>
-</div>
+            <h3>Be the trade that’s easy to contact.</h3>
+            <a href="/signin" className="btn-primary">Create your page</a>
+            <p className="tiny">One link. All the essentials. Built for conversions.</p>
+          </div>
 
+          {/* ==== Added conversion sections (append-only) ==== */}
+          <ConversionBlocks />
         </div>
       </section>
     </main>
@@ -234,6 +245,81 @@ function Step({ n, t, d }) {
         <div className="sd">{d}</div>
       </div>
     </div>
+  );
+}
+
+/* ---------- Added conversion sections (append-only) ---------- */
+function ConversionBlocks() {
+  return (
+    <>
+      {/* PAINS */}
+      <section className="conv conv-pains">
+        <h2 className="conv-h2">The reality for trades</h2>
+        <ul className="pains-list">
+          <li><span>🕑</span><b>Missed calls = missed work.</b> People give up if they can’t reach you fast.</li>
+          <li><span>🔗</span><b>Too many links.</b> Facebook, Insta, WhatsApp, website… customers don’t know where to click.</li>
+          <li><span>🧭</span><b>Confusing sites.</b> Menus, fluff, and slow load times kill conversions.</li>
+          <li><span>💬</span><b>Quotes take too long.</b> Back-and-forth messages delay decisions.</li>
+          <li><span>📷</span><b>Work not shown.</b> No quick gallery = trust drops.</li>
+          <li><span>📍</span><b>Coverage unclear.</b> People don’t know if you serve their area or hours.</li>
+        </ul>
+      </section>
+
+      {/* SOLUTIONS */}
+      <section className="conv conv-solutions">
+        <h2 className="conv-h2">How TradePage fixes it</h2>
+        <div className="solutions-grid">
+          {[
+            { t:'One link, essentials only', d:'Contact, quote, services, prices, gallery & socials — up front.', i:'⚡' },
+            { t:'Fast quote capture', d:'Simple form + photo upload. Quotes land straight in your email.', i:'📩' },
+            { t:'Proof on the spot', d:'Clean gallery shows real jobs so customers trust you faster.', i:'✅' },
+            { t:'Clear coverage & hours', d:'Zones and opening hours remove guesswork and wasted calls.', i:'🗺️' },
+            { t:'Mobile-first', d:'Built for phones — where your customers actually are.', i:'📱' },
+            { t:'NEW — One-tap to save your info', d:'Customers can save your details to contacts in a single tap.', i:'⭐' },
+          ].map((b, i) => (
+            <div key={i} className="sol-card">
+              <div className="sol-ic">{b.i}</div>
+              <div className="sol-t">{b.t}</div>
+              <div className="sol-d">{b.d}</div>
+            </div>
+          ))}
+        </div>
+        <div className="conv-cta">
+          <a href="/signin" className="conv-btn">Get started — it’s free</a>
+        </div>
+      </section>
+
+      {/* PROOF / QUOTES */}
+      <section className="conv conv-proof">
+        <div className="quotes">
+          <blockquote>“We trimmed our site to one link and calls doubled.” <span>— Daniel, Handyman</span></blockquote>
+          <blockquote>“People send photos with the quote — we price jobs in minutes.” <span>— Anna, Painter</span></blockquote>
+          <blockquote>“Looks pro on mobile. Customers find everything straight away.” <span>— Chris, Landscaper</span></blockquote>
+        </div>
+      </section>
+
+      {/* Mini-FAQ (complements your main FAQ) */}
+      <section className="conv conv-faq">
+        <h2 className="conv-h2">Good to know</h2>
+        <div className="faq">
+          <details>
+            <summary>Can I edit everything from my phone?</summary>
+            <p>Yes — update services, areas, prices and photos on the go. Changes are live instantly.</p>
+          </details>
+          <details>
+            <summary>Where do quotes go?</summary>
+            <p>Directly to the email you set in your dashboard. You can also be contacted via call or WhatsApp.</p>
+          </details>
+          <details>
+            <summary>Can I keep my current website?</summary>
+            <p>Absolutely. Use TradePage as your high-conversion link in bios, ads and messages.</p>
+          </details>
+        </div>
+        <div className="conv-cta">
+          <a href="/signin" className="conv-btn alt">Create your TradePage</a>
+        </div>
+      </section>
+    </>
   );
 }
 
@@ -357,6 +443,16 @@ html,body{
 }
 .btn-wide{padding:14px 18px; width:100%; text-align:center; border-radius:16px}
 
+/* NEW feature pill */
+.la-new{
+  margin-top:10px; display:flex; gap:8px; align-items:center;
+  font-size:14px; color:var(--la-text);
+}
+.la-new .pill{
+  display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:999px;
+  background:linear-gradient(135deg,var(--primary-1),var(--primary-2)); color:#fff; font-weight:900; font-size:12px;
+}
+
 /* Value grid */
 .la-grid{display:grid;grid-template-columns:1fr;gap:12px;margin:6px 0 18px}
 .feat{display:flex;gap:12px;padding:12px;border:1px solid var(--la-border);border-radius:16px;background:var(--la-card);box-shadow:0 10px 30px rgba(16,22,48,.05)}
@@ -423,4 +519,62 @@ html,body{
 
 /* tiny helpers */
 .hide-d{display:inline}@media(min-width:980px){.hide-d{display:none}}
+`;
+
+/* ===== extra styles for conversion blocks (keeps the same cream palette) ===== */
+const convStyles = `
+.conv{ padding:28px 0 0; }
+.conv-h2{ margin:0 0 12px; font-size:22px; font-weight:1000; color:#0a0d12; }
+
+/* pains */
+.pains-list{ margin:0; padding:0; list-style:none; display:grid; gap:10px; }
+.pains-list li{
+  display:flex; gap:10px; align-items:flex-start;
+  border:1px solid #d9d3c7; background:linear-gradient(180deg,#ffffff,#fbfaf7);
+  padding:12px; border-radius:14px; color:#3f4852;
+}
+.pains-list li span{ font-size:18px; line-height:1; }
+.pains-list li b{ color:#0f1216; margin-right:6px; }
+
+/* solutions */
+.solutions-grid{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:6px; }
+.sol-card{
+  border:1px solid #d9d3c7; background:linear-gradient(180deg,#ffffff,#fbfaf7);
+  border-radius:16px; padding:14px; min-width:0;
+}
+.sol-ic{ font-size:20px; }
+.sol-t{ font-weight:900; margin:4px 0 4px; color:#0f1216 }
+.sol-d{ color:#3f4852 }
+.conv-cta{ margin-top:14px; display:flex; justify-content:center }
+.conv-btn{
+  display:inline-flex; height:40px; align-items:center; padding:0 18px; border-radius:12px;
+  font-weight:800; text-decoration:none; color:#fff;
+  background:linear-gradient(135deg,var(--primary-1),var(--primary-2));
+  border:1px solid #e6e1d7;
+}
+.conv-btn.alt{ background:#0f213a10; color:#0f1216; border:1px solid #d9d3c7 }
+
+/* proof */
+.conv-proof .quotes{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:10px; }
+.conv-proof blockquote{
+  margin:0; padding:14px; border-radius:16px;
+  border:1px solid #d9d3c7; background:linear-gradient(180deg,#ffffff,#fbfaf7);
+  color:#0f1216;
+}
+.conv-proof blockquote span{ display:block; margin-top:6px; color:#3f4852; font-weight:600 }
+
+/* mini-faq */
+.conv-faq .faq{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:6px; }
+.conv-faq details{
+  border:1px solid #d9d3c7; background:#fff; border-radius:14px; padding:12px; color:#0f1216;
+}
+.conv-faq summary{ font-weight:900; cursor:pointer }
+.conv-faq p{ margin:8px 0 0; color:#3f4852 }
+
+/* desktop */
+@media(min-width:980px){
+  .pains-list{ grid-template-columns:1fr 1fr; }
+  .solutions-grid{ grid-template-columns:repeat(3, 1fr); }
+  .conv-proof .quotes{ grid-template-columns:repeat(3,1fr); }
+}
 `;
