@@ -92,7 +92,7 @@ export default function HomePage() {
 
             {/* NEW feature announcement — small, non-intrusive */}
             <div className="la-new">
-              <span className="pill">NEW FEATURE</span>
+              <span className="pill">NEW</span>
               <b>One-tap to save your info</b> — customers can instantly save your contact in their phone.
             </div>
           </div>
@@ -205,9 +205,7 @@ export default function HomePage() {
           {/* Final CTA */}
          <div className="la-cta">
             <h3>Be the trade that’s easy to contact.</h3>
-            <div className="conv-cta">
-            <a href="/signin" className="btn-primary">Create your TradePage</a>
-            </div>
+            <a href="/signin" className="btn-primary">Create your page</a>
             <p className="tiny">One link. All the essentials. Built for conversions.</p>
           </div>
 
@@ -316,8 +314,9 @@ function ConversionBlocks() {
             <summary>Can I keep my current website?</summary>
             <p>Absolutely. Use TradePage as your high-conversion link in bios, ads and messages.</p>
           </details>
+        </div>
         <div className="conv-cta">
-           <a href="/signin" className="btn-primary">Create your TradePage</a>
+          <a href="/signin" className="conv-btn alt">Create your TradePage</a>
         </div>
       </section>
     </>
