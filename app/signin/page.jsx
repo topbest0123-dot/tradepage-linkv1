@@ -36,12 +36,14 @@ export default function SignInPage() {
       <section className="hero">
         <div className="container">
           <form className="signin-card" onSubmit={sendLink}>
-            {/* NEW: trial banner at the very top */}
-            <div className="trial-banner">
-              <b>14-day free trial</b> — no card, no commitment. Love it or leave it.
-            </div>
-
             <h1>Sign in / create account</h1>
+
+            {/* NEW: bold headline-style trial line (replaces banner) */}
+            <p className="trial-head">
+              <b>14-day free trial.</b> No card. No commitment. No questions asked.
+              Try it, get calls & quotes, and on day 14: <b>love it or leave it.</b>
+            </p>
+
             <p className="muted">We’ll email you a secure magic link. No password required.</p>
 
             <label className="lbl" htmlFor="email">Email address</label>
@@ -163,7 +165,17 @@ html, body{ background:var(--bg); color:#fff; }
   padding:18px;
   box-shadow:0 20px 60px rgba(8,12,20,.35);
 }
-.signin-card h1{ margin:0 0 4px; font-size:20px; font-weight:900; color:#fff; }
+.signin-card h1{ margin:0 0 6px; font-size:20px; font-weight:900; color:#fff; }
+
+/* NEW: headline-style trial text matching the heading vibe */
+.trial-head{
+  margin:0 0 12px;
+  color:#ffffff;
+  font-size:16px;
+  font-weight:900;
+  line-height:1.5;
+}
+
 .muted{ color:rgba(255,255,255,.75); margin:0 0 12px; }
 .lbl{ display:block; margin:10px 0 6px; color:#cfe0ff; font-size:13px; }
 
@@ -179,18 +191,7 @@ html, body{ background:var(--bg); color:#fff; }
 }
 .field::placeholder{ color:rgba(255,255,255,.55); }
 
-/* NEW: trial banner (at top of card) */
-.trial-banner{
-  margin: -2px 0 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(90,166,255,.12);
-  border: 1px solid rgba(90,166,255,.35);
-  color: #eaf6ff;
-  font-size: 13px;
-}
-
-/* BUTTON CENTERING FIX */
+/* BUTTON CENTERING */
 .btn-wide{
   display:flex;
   align-items:center;
