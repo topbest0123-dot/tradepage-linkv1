@@ -254,7 +254,7 @@ function ConversionBlocks() {
     <>
       {/* REALITY (same layout as Solutions) */}
 <section className="conv conv-reality">
-  <h2 className="conv-h2">The reality for trades</h2>
+  <h2 className="conv-h2">Without TradePageLink</h2>
   <div className="solutions-grid">
     {[
       { i:'📵', t:'Missed calls = missed work', d:'People give up if they can’t find your contact you fast.' },
@@ -275,7 +275,7 @@ function ConversionBlocks() {
 
       {/* SOLUTIONS */}
       <section className="conv conv-solutions">
-        <h2 className="conv-h2">How TradePage fixes it</h2>
+        <h2 className="conv-h2">How TradePageLink fixes it</h2>
         <div className="solutions-grid">
           {[
             { t:'One link, essentials only', d:'Contact, quote, services, prices, gallery & socials — up front.', i:'⚡' },
