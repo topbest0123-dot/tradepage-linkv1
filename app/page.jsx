@@ -252,18 +252,26 @@ function Step({ n, t, d }) {
 function ConversionBlocks() {
   return (
     <>
-      {/* PAINS */}
-      <section className="conv conv-pains">
-        <h2 className="conv-h2">The reality for trades</h2>
-        <ul className="pains-list">
-          <li><span>🕑</span><b>Missed calls = missed work.</b> People give up if they can’t reach you fast.</li>
-          <li><span>🔗</span><b>Too many links.</b> Facebook, Insta, WhatsApp, website… customers don’t know where to click.</li>
-          <li><span>🧭</span><b>Confusing sites.</b> Menus, fluff, and slow load times kill conversions.</li>
-          <li><span>💬</span><b>Quotes take too long.</b> Back-and-forth messages delay decisions.</li>
-          <li><span>📷</span><b>Work not shown.</b> No quick gallery = trust drops.</li>
-          <li><span>📍</span><b>Coverage unclear.</b> People don’t know if you serve their area or hours.</li>
-        </ul>
-      </section>
+      {/* REALITY (same layout as Solutions) */}
+<section className="conv conv-reality">
+  <h2 className="conv-h2">The reality for trades</h2>
+  <div className="solutions-grid">
+    {[
+      { i:'📵', t:'Missed calls = missed work', d:'People give up if they can’t reach you fast.' },
+      { i:'🔗', t:'Too many links', d:'Facebook, Insta, WhatsApp, website — customers don’t know where to click.' },
+      { i:'🧩', t:'Confusing sites', d:'Menus, fluff, and slow load times kill conversions.' },
+      { i:'⏳', t:'Quotes take too long', d:'Back-and-forth messages delay decisions.' },
+      { i:'🖼️', t:'Work not shown', d:'No quick gallery = trust drops.' },
+      { i:'📍', t:'Coverage unclear', d:'People don’t know if you serve their area or hours.' },
+    ].map((b, i) => (
+      <div key={i} className="sol-card">
+        <div className="sol-ic">{b.i}</div>
+        <div className="sol-t">{b.t}</div>
+        <div className="sol-d">{b.d}</div>
+      </div>
+    ))}
+  </div>
+</section>
 
       {/* SOLUTIONS */}
       <section className="conv conv-solutions">
