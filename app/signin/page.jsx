@@ -36,6 +36,11 @@ export default function SignInPage() {
       <section className="hero">
         <div className="container">
           <form className="signin-card" onSubmit={sendLink}>
+            {/* NEW: trial banner at the very top */}
+            <div className="trial-banner">
+              <b>14-day free trial</b> — no card, no commitment. Love it or leave it.
+            </div>
+
             <h1>Sign in / create account</h1>
             <p className="muted">We’ll email you a secure magic link. No password required.</p>
 
@@ -174,11 +179,22 @@ html, body{ background:var(--bg); color:#fff; }
 }
 .field::placeholder{ color:rgba(255,255,255,.55); }
 
+/* NEW: trial banner (at top of card) */
+.trial-banner{
+  margin: -2px 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(90,166,255,.12);
+  border: 1px solid rgba(90,166,255,.35);
+  color: #eaf6ff;
+  font-size: 13px;
+}
+
 /* BUTTON CENTERING FIX */
 .btn-wide{
-  display:flex;               /* ⬅ ensures perfect centering */
-  align-items:center;         /* vertical center */
-  justify-content:center;     /* horizontal center */
+  display:flex;
+  align-items:center;
+  justify-content:center;
   width:100%;
   height:44px;
   border-radius:12px;
@@ -210,8 +226,7 @@ html, body{ background:var(--bg); color:#fff; }
 .how{ margin:14px 0; padding:12px; border:1px dashed var(--la-border); border-radius:14px; background:#fff; }
 .how h3{ margin:0 0 8px; font-size:18px; font-weight:1000; }
 .how ul{ margin:0; padding-left:18px; color:var(--la-muted); }
-/* READABILITY BOOST: more space + taller line-height */
-.how li{ margin:10px 0; line-height:1.7; }
+.how li{ margin:10px 0; line-height:1.7; } /* readability spacing */
 
 .faq details{ border:1px solid var(--la-border); background:#fff; border-radius:14px; margin:8px 0; padding:12px; }
 .faq summary{ font-weight:900; cursor:pointer; list-style:none; }
@@ -224,7 +239,7 @@ html, body{ background:var(--bg); color:#fff; }
 /* responsive tiles */
 @media (min-width:980px){ .tiles{ grid-template-columns:1fr 1fr; } }
 
-/* keep email input & button inside the card (previous fix) */
+/* keep email input & button inside the card */
 .signin-card .field,
 .signin-card .btn-wide{
   box-sizing: border-box;
