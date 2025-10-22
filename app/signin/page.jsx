@@ -1,130 +1,85 @@
 // app/signin/page.jsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 export default function SignInPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [msg, setMsg] = useState('');
 
-  // If already signed in, bounce to dashboard
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.replace('/dashboard');
-    });
-  }, [router]);
-
   const sendLink = async (e) => {
     e.preventDefault();
-    setMsg('');
-    if (!email.trim()) return setMsg('Please enter your email.');
-    setSending(true);
+    if (!email.trim()) return;
     try {
+      setSending(true);
+      setMsg('');
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        options: {
-          // where the magic link will return after auth succeeds:
-          emailRedirectTo: typeof window !== 'undefined'
-            ? `${window.location.origin}/dashboard`
-            : undefined,
-        },
+        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
       });
       if (error) throw error;
-      setMsg('Done! Check your inbox for a sign-in link.');
+      setMsg('Check your inbox for the sign-in link.');
     } catch (err) {
-      setMsg(err?.message || 'Something went wrong.');
+      setMsg(err.message || 'Something went wrong. Please try again.');
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <main className="tp-home tp-home--light">
+    <main className="signin">
       <style>{styles}</style>
 
-      {/* ===== HERO (same dark theme) ===== */}
+      {/* Dark header card (matches home hero theme) */}
       <section className="hero">
-        <div className="container signin-hero">
-          <div className="hero-copy">
-            <div className="trial-pill">14-day free trial</div>
-            <h1>Start free. No card. No risk.</h1>
-            <p className="lead">
-              Try TradePage<span className="dot">.</span>Link free for 14 days — <b>no credit card</b>, <b>no contracts</b>, no fuss.
-              Set up your page in minutes and see the difference. Love it or leave it after 14 days.
-            </p>
-          </div>
+        <div className="container">
+          <form className="signin-card" onSubmit={sendLink}>
+            <h1>Sign in / create account</h1>
+            <p className="muted">We’ll email you a secure magic link. No password required.</p>
 
-          {/* Sign-in card */}
-          <div className="signin-card">
-            <h3>Sign in / create account</h3>
-            <p className="hint">We’ll email you a secure magic link. No password required.</p>
-            <form onSubmit={sendLink} className="form">
-              <label className="label">
-                <span>Email address</span>
-                <input
-                  type="email"
-                  inputMode="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@business.com"
-                  className="field"
-                />
-              </label>
+            <label className="lbl" htmlFor="email">Email address</label>
+            <input
+              id="email"
+              className="field"
+              type="email"
+              placeholder="you@business.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
 
-              <button
-                type="submit"
-                disabled={sending}
-                className="btn-primary btn-wide"
-                aria-busy={sending ? 'true' : 'false'}
-              >
-                {sending ? 'Sending link…' : 'Send me the sign-in link'}
-              </button>
+            <button className="btn-wide btn-gradient" disabled={sending}>
+              {sending ? 'Sending…' : 'Send me the sign-in link'}
+            </button>
 
-              {msg ? <div className="msg">{msg}</div> : null}
-            </form>
+            <p className="subline">✓ No credit card • No hidden fees • Cancel anytime</p>
 
-            <div className="safe">
-              ✓ No credit card • No hidden fees • Cancel anytime
-            </div>
-          </div>
+            {msg && <div className="note">{msg}</div>}
+          </form>
         </div>
       </section>
 
-      {/* ===== LIGHT AREA (same palette) ===== */}
+      {/* Light continuation area (same style language as home) */}
       <section className="light-area">
         <div className="container">
-
-          {/* Mini value tiles (mirrors homepage style) */}
-          <div className="la-grid">
-            <Tile
-              title="One-tap to save your info"
-              text="New: customers can save your contact details with a single tap, so they call you first next time."
-              icon="star"
-            />
-            <Tile
-              title="Built for trades"
-              text="All essentials on one page: contact, quote form, prices, services, photos and socials."
-              icon="tool"
-            />
-            <Tile
-              title="Mobile-first"
-              text="Looks pro on phones — where customers actually decide and contact."
-              icon="phone"
-            />
-            <Tile
-              title="Edit from your phone"
-              text="Update services, areas and prices in seconds. Changes are live instantly."
-              icon="bolt"
-            />
+          <div className="tiles">
+            <Tile title="One-tap to save your info" icon="⭐">
+              New: customers can save your contact details with a single tap, so they call you first next time.
+            </Tile>
+            <Tile title="Built for trades" icon="🧰">
+              All essentials on one page: contact, quote form, prices, services, photos and socials.
+            </Tile>
+            <Tile title="Mobile-first" icon="📱">
+              Looks pro on phones — where customers actually decide and contact.
+            </Tile>
+            <Tile title="Edit from your phone" icon="⚡">
+              Update services, areas and prices in seconds. Changes are live instantly.
+            </Tile>
           </div>
 
-          {/* Clear trial explainer */}
-          <div className="trial-explainer">
+          <div className="how">
             <h3>How the free trial works</h3>
             <ul>
               <li><b>Day 0:</b> Enter your email. We send a secure sign-in link — no password, no card.</li>
@@ -133,24 +88,25 @@ export default function SignInPage() {
             </ul>
           </div>
 
-          {/* FAQ snap */}
-          <div className="la-faq">
-            <details open>
+          <div className="faq">
+            <details>
               <summary>Do I need to add card details now?</summary>
               <p>No. Get your free 14-day trial first — completely card-free. Decide later.</p>
             </details>
             <details>
               <summary>Can I cancel during the trial?</summary>
-              <p>Any time. Your page will simply stop accepting new quotes after the trial if you don’t continue.</p>
+              <p>Yes — cancel anytime in one click during the trial.</p>
             </details>
             <details>
               <summary>Is there a contract?</summary>
-              <p>No contracts and no long commitments. Month-to-month, simple and fair.</p>
+              <p>No contracts. Keep it month-to-month. Love it or leave it.</p>
             </details>
           </div>
 
-          <div className="la-cta">
-            <a href="/signin" className="btn-primary">Start your free trial</a>
+          <div className="cta">
+            <a href="#email" onClick={(e)=>{e.preventDefault(); document.getElementById('email')?.focus();}} className="btn-wide btn-gradient">
+              Start your free trial
+            </a>
             <p className="tiny">Takes under 1 minute. No card required.</p>
           </div>
         </div>
@@ -159,115 +115,106 @@ export default function SignInPage() {
   );
 }
 
-/* --------- small presentational tile --------- */
-function Tile({ title, text, icon }) {
+/* ----- tiny presentational tile ----- */
+function Tile({ title, icon, children }) {
   return (
-    <div className="feat">
-      <span className="ico" aria-hidden>
-        {icon === 'star'  && <svg viewBox="0 0 24 24"><path d="M12 2l3.2 6.5 7.2 1-5.2 5.1 1.3 7.1L12 18l-6.5 3.7 1.3-7.1L1.6 9.5l7.2-1L12 2z"/></svg>}
-        {icon === 'tool'  && <svg viewBox="0 0 24 24"><path d="M21 7l-4 4-4-4 1.5-1.5a4 4 0 10-5.7 5.7L3 16v5h5l4.8-4.8a4 4 0 005.7-5.7L21 7z"/></svg>}
-        {icon === 'phone' && <svg viewBox="0 0 24 24"><path d="M6 2h5l1 6-3 1a14 14 0 006 6l1-3 6 1v5c0 1-1 2-2 2C10 20 4 14 4 4c0-1 1-2 2-2Z"/></svg>}
-        {icon === 'bolt'  && <svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 11-14h-7l0-6z"/></svg>}
-      </span>
-      <div className="feat-body">
+    <div className="tile">
+      <div className="tile-head">
+        <span className="ico" aria-hidden>{icon}</span>
         <h4>{title}</h4>
-        <p>{text}</p>
       </div>
+      <p>{children}</p>
     </div>
   );
 }
 
-/* =================== STYLES (matches homepage) =================== */
+/* ===== styles (kept consistent with home) ===== */
 const styles = `
 :root{
-  --bg:#0b1017;
-  --text:#101418;
-  --muted:#5a6672;
-  --border:#e6e1d7;
-  --below-bg:#f6f0e7;
-  --card:#ffffff;
+  --bg:#0b1017;                 /* dark hero background */
   --primary-1:#5aa6ff;
   --primary-2:#22a06b;
+
+  /* light area palette */
+  --below-bg:#f6f0e7;
+  --la-text:#0f1216;
+  --la-muted:#3f4852;
+  --la-border:#d9d3c7;
+  --la-card:#ffffff;
 }
 
-html,body{
-  background:
-    radial-gradient(900px 420px at -10% -6%, rgba(255,188,143,.12), transparent 60%),
-    radial-gradient(1000px 500px at 70% -10%, rgba(122,186,255,.14), transparent 60%),
-    linear-gradient(180deg, var(--bg), var(--bg));
-  color:var(--text);
-  overflow-x:hidden;
-}
+html, body{ background:var(--bg); color:#fff; }
 
-.container{max-width:1180px;margin:0 auto;padding:0 16px}
+.container{ max-width:980px; margin:0 auto; padding:0 16px; }
 
-/* HERO */
-.hero{position:relative;padding:54px 0 20px;border-bottom:1px solid rgba(255,255,255,.08)}
-.signin-hero{display:grid;grid-template-columns:1fr;gap:20px;align-items:center}
-.hero h1{margin:8px 0 8px;font-size:42px;line-height:1.07;font-weight:1000;letter-spacing:.2px;color:#fff}
-.lead{font-size:16px;line-height:1.75;max-width:760px;color:rgba(255,255,255,.78)}
-.dot{color:transparent;background:linear-gradient(135deg,var(--primary-1),var(--primary-2));-webkit-background-clip:text;background-clip:text}
-.trial-pill{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:6px 10px;font-weight:800;font-size:12px;margin-bottom:6px}
-
-/* Signin card */
+/* hero */
+.hero{ padding:28px 0 20px; border-bottom:1px solid rgba(255,255,255,.08); }
 .signin-card{
-  background:linear-gradient(180deg,#111924,#0c141e);
+  background:linear-gradient(180deg, rgba(12,16,24,.9), rgba(12,16,24,.8));
   border:1px solid rgba(255,255,255,.12);
-  border-radius:16px;
-  padding:16px;
-  color:#e9f1ff;
-  box-shadow:0 20px 50px rgba(16,22,48,.25);
+  border-radius:20px;
+  padding:18px;
+  box-shadow:0 20px 60px rgba(8,12,20,.35);
 }
-.signin-card h3{margin:0 0 4px;font-size:18px;font-weight:900;color:#fff}
-.hint{margin:0 0 12px;color:rgba(255,255,255,.75);font-size:14px}
-.form{display:grid;gap:10px}
-.label{display:grid;gap:6px;font-size:14px}
+.signin-card h1{ margin:0 0 4px; font-size:20px; font-weight:900; color:#fff; }
+.muted{ color:rgba(255,255,255,.75); margin:0 0 12px; }
+.lbl{ display:block; margin:10px 0 6px; color:#cfe0ff; font-size:13px; }
+
 .field{
-  padding:12px;border-radius:12px;width:100%;
+  width:100%;
+  height:44px;
+  border-radius:12px;
   border:1px solid rgba(255,255,255,.18);
-  background:rgba(0,0,0,.25);color:#fff;
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  padding:0 12px;
+  outline:none;
 }
-.msg{margin-top:8px;font-size:14px;color:#b4ffcf}
-.safe{margin-top:10px;opacity:.85;font-size:12px;color:#cfe2ff}
+.field::placeholder{ color:rgba(255,255,255,.55); }
 
-.btn-primary{
-  display:inline-block;padding:12px 16px;border-radius:14px;font-weight:900;
-  background:linear-gradient(135deg,var(--primary-1),var(--primary-2));color:#08101e;text-decoration:none;
-  border:1px solid rgba(255,255,255,.2);
-  box-shadow:0 10px 24px rgba(16,22,48,.15)
+.btn-wide{
+  display:block; width:100%; text-align:center;
+  height:44px; border-radius:12px; margin-top:10px;
+  font-weight:800; color:#08101e; border:1px solid rgba(255,255,255,.1); text-decoration:none;
 }
-.btn-wide{width:100%;text-align:center}
+.btn-gradient{ background:linear-gradient(135deg, var(--primary-1), var(--primary-2)); }
 
-/* LIGHT AREA */
+.subline{ color:rgba(255,255,255,.8); font-size:12px; margin:10px 0 0; }
+.note{ margin-top:10px; padding:10px; border-radius:10px; background:rgba(46,204,113,.1); color:#b8ffcf; border:1px solid rgba(46,204,113,.35); }
+
+/* light continuation */
 .light-area{
-  position:relative;left:50%;transform:translateX(-50%);width:100vw;
-  background:var(--below-bg);padding:28px 0 56px;
-  --la-text:#0f1216; --la-muted:#3f4852; --la-border:#d9d3c7; --la-card:#fff;
+  background:var(--below-bg);
   color:var(--la-text);
+  padding:18px 0 48px;
 }
-.light-area .tiny,.light-area p,.light-area li{color:var(--la-muted)}
-.la-grid{display:grid;grid-template-columns:1fr;gap:12px;margin:10px 0 20px}
-.feat{display:flex;gap:12px;padding:12px;border:1px solid var(--la-border);border-radius:16px;background:var(--la-card);box-shadow:0 10px 30px rgba(16,22,48,.05)}
-.ico{width:36px;height:36px;min-width:36px;border-radius:10px;display:grid;place-items:center;background:#fff;border:1px solid #eee;color:#0a0d12}
-.ico svg{width:20px;height:20px;fill:currentColor;stroke:currentColor}
-.feat-body h4{margin:0 0 4px;font-size:15px;font-weight:900}
-.feat-body p{margin:0;font-size:14px}
+.tiles{ display:grid; grid-template-columns:1fr; gap:10px; }
+.tile{ background:var(--la-card); border:1px solid var(--la-border); border-radius:16px; padding:12px; }
+.tile-head{ display:flex; align-items:center; gap:10px; }
+.tile h4{ margin:0; font-size:15px; font-weight:900; }
+.tile p{ margin:6px 0 0; color:var(--la-muted); }
 
-.trial-explainer{margin:8px 0 16px;padding:12px;border:1px dashed var(--la-border);border-radius:14px;background:#fff}
-.trial-explainer h3{margin:0 0 6px;font-size:18px;font-weight:1000}
-.trial-explainer ul{margin:0;padding-left:18px}
-.trial-explainer li{margin:8px 0}
+.ico{ width:28px; height:28px; display:grid; place-items:center; border-radius:8px; background:#fff; border:1px solid #eee; }
 
-.la-faq details{border:1px solid var(--la-border);background:#fff;border-radius:14px;margin:8px 0;padding:12px}
-.la-faq summary{font-weight:900;cursor:pointer;list-style:none}
-.la-faq summary::-webkit-details-marker{display:none}
-.la-cta{text-align:center;margin-top:10px}
-.tiny{margin-top:8px;font-size:12px}
+.how{ margin:14px 0; padding:12px; border:1px dashed var(--la-border); border-radius:14px; background:#fff; }
+.how h3{ margin:0 0 8px; font-size:18px; font-weight:1000; }
+.how ul{ margin:0; padding-left:18px; color:var(--la-muted); }
 
-@media (min-width:980px){
-  .signin-hero{grid-template-columns:1.05fr .95fr}
-  .hero h1{font-size:60px}
-  .lead{font-size:18px}
-  .la-grid{grid-template-columns:1fr 1fr;gap:14px}
+.faq details{ border:1px solid var(--la-border); background:#fff; border-radius:14px; margin:8px 0; padding:12px; }
+.faq summary{ font-weight:900; cursor:pointer; list-style:none; }
+.faq summary::-webkit-details-marker{ display:none; }
+.faq p{ color:var(--la-muted); margin:8px 0 0; }
+
+.cta{ text-align:center; margin-top:10px; }
+.tiny{ margin-top:8px; font-size:12px; color:var(--la-muted); }
+
+/* responsive tiles */
+@media (min-width:980px){ .tiles{ grid-template-columns:1fr 1fr; } }
+
+/* --- FIX: keep email input & button perfectly inside the card --- */
+.signin-card .field,
+.signin-card .btn-wide{
+  box-sizing: border-box;
+  max-width: 100%;
 }
 `;
