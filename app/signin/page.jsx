@@ -32,11 +32,16 @@ export default function SignInPage() {
     <main className="signin">
       <style>{styles}</style>
 
+      {/* Dark header card */}
+      <section className="hero">
+        <div className="container">
+          <form className="signin-card" onSubmit={sendLink}>
+            <h1>Sign in / create account</h1>
 
             {/* NEW: bold headline-style trial line (replaces banner) */}
             <p className="trial-head">
               <b>14-day free trial.</b> No card. No commitment. No questions asked.
-              Try it, get calls & quotes, and after 14 days <b>love it or leave it.</b>
+              Try it, get calls & quotes, and on day 14: <b>love it or leave it.</b>
             </p>
 
             <p className="muted">We’ll email you a secure magic link. No password required.</p>
