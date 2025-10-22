@@ -40,8 +40,8 @@ export default function SignInPage() {
 
             {/* NEW: bold headline-style trial line (replaces banner) */}
             <p className="trial-head">
-              <b>14-day free trial.</b> No card. No commitment. No questions asked.
-              Try it, get calls & quotes, and on day 14: <b>love it or leave it.</b>
+              <b>14-day free trial.</b> No card details asked. No commitment.
+              Try it first, and after 14 days <b>love it or leave it.</b> No questions asked. 
             </p>
 
             <p className="muted">We’ll email you a secure magic link. No password required.</p>
