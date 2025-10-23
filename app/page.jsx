@@ -356,9 +356,11 @@ const styles = `
   --statusbar-lr: 30px;
   --statusbar-top: 22px;
 
-  /* NEW: allow nudging the video/screenshot focal point if needed */
+  /* NEW: exact centering with optional nudges */
   --screen-pos-x: 50%;
   --screen-pos-y: 50%;
+  --screen-nudge-x: 0px;
+  --screen-nudge-y: 6px; /* tweak this (e.g. 0px–10px) until it looks visually perfect */
 }
 
 html,body{
@@ -412,7 +414,7 @@ html,body{
 .device-ultra{position:relative;width:var(--phone-w);max-width:100%;aspect-ratio:9/19;border-radius:40px;background:linear-gradient(180deg,#b6bcc6,#8c929c);box-shadow:0 40px 120px rgba(32,39,68,.18);border:1px solid rgba(255,255,255,.45)}
 .frame2{position:absolute;inset:var(--frame-inset);border-radius:32px;background:#0a0d12;box-shadow:0 0 0 12px rgba(0,0,0,.18) inset;overflow:hidden}
 
-/* UPDATED: keep video/screenshot perfectly centered inside the frame */
+/* UPDATED: keep video/screenshot perfectly centered with adjustable visual nudge */
 .screen{
   position:absolute;
   inset:var(--screen-inset);
@@ -421,7 +423,7 @@ html,body{
   border-radius:24px;
   background:#000;
   object-fit:cover;
-  object-position:var(--screen-pos-x) var(--screen-pos-y);
+  object-position: calc(var(--screen-pos-x) + var(--screen-nudge-x)) calc(var(--screen-pos-y) + var(--screen-nudge-y));
   display:block;
 }
 
