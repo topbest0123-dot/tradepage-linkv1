@@ -246,8 +246,6 @@ export default function PublicPage({ profile: p }) {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    // hook your toast here if desired
-    // showToast('Contact saved');
   };
 
   const addToHome = async () => {
@@ -290,14 +288,6 @@ export default function PublicPage({ profile: p }) {
         const uniq = `${Date.now()}-${i}-${Math.random().toString(36).slice(2,8)}`;
         const path = `${p?.slug || 'unknown'}/${uniq}.${ext}`;
 
-        console.log('[UPLOAD] start', {
-          bucket: BUCKET,
-          path,
-          name: file.name,
-          type: file.type,
-          sizeKB: Math.round((file.size || 0) / 1024),
-        });
-
         const { data, error } = await supabase
           .storage
           .from(BUCKET)
@@ -308,7 +298,6 @@ export default function PublicPage({ profile: p }) {
           });
 
         if (error) {
-          console.error('[UPLOAD] failed', { path, error });
           const hint =
             error.status === 404 ? 'Bucket name is wrong or missing.'
           : error.status === 401 || error.status === 403 ? 'Storage policy/RLS is blocking uploads.'
@@ -321,10 +310,7 @@ export default function PublicPage({ profile: p }) {
 
         const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
         if (pub?.publicUrl) {
-          console.log('[UPLOAD] success', { path, publicUrl: pub.publicUrl });
           uploadedUrls.push(pub.publicUrl);
-        } else {
-          console.warn('[UPLOAD] no publicUrl (bucket may not be Public)', { path });
         }
       }
 
@@ -381,12 +367,27 @@ export default function PublicPage({ profile: p }) {
         html,body { background: var(--bg); color: var(--text); }
 
         /* --- Desktop defaults --- */
-        .hdr         { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+-       .hdr         { display:flex; align-items:center; justify-content:space-between; gap:16px; }
++       .hdr         { display:flex; align-items:center; justify-content:space-between; gap:16px; position:relative; }
         .hdr-left    { display:flex; align-items:center; gap:12px; min-width:0; }
         .hdr-text    { display:flex; flex-direction:column; min-width:0; }
         .hdr-name    { font-size:22px; line-height:24px; font-weight:800; }
         .hdr-sub     { font-size:14px; opacity:.75; margin-top:4px; }
         .hdr-cta a, .hdr-cta button { height:36px; padding:0 14px; border-radius:12px; font-weight:700; }
+
++       /* floating Save button just above the header card */
++       .save-fab{
++         position:absolute;
++         top:-12px;
++         right:-12px;
++         width:40px; height:40px;
++         border-radius:14px;
++         border:1px solid var(--border);
++         background:linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2));
++         color:#08101e;
++         display:inline-flex; align-items:center; justify-content:center;
++         box-shadow:0 10px 24px rgba(0,0,0,.25);
++       }
 
         /* --- Gallery responsive --- */
         .gallery-grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; }
@@ -486,12 +487,13 @@ export default function PublicPage({ profile: p }) {
           </button>
         </div>
 
-        {/* Save (bookmark) – small, top-right */}
+        {/* Save (bookmark) – now floating just above the card */}
         <button
           type="button"
           onClick={() => setChooserOpen(true)}
           aria-label="Save"
           title="Save"
+          className="save-fab"
           style={saveBtnFabStyle}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#08101e" aria-hidden="true">
@@ -1014,10 +1016,10 @@ const modalOverlayStyle = {
 /* small floating Save button */
 const saveBtnFabStyle = {
   position: 'absolute',
-  top: 2,
-  right: 2,
-  width: 36,
-  height: 36,
+  top: -12,
+  right: -12,
+  width: 40,
+  height: 40,
   borderRadius: 14,
   border: '1px solid var(--border)',
   background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
@@ -1025,5 +1027,6 @@ const saveBtnFabStyle = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  cursor: 'pointer'
+  cursor: 'pointer',
+  boxShadow: '0 10px 24px rgba(0,0,0,.25)',
 };
