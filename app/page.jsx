@@ -403,7 +403,23 @@ html,body{
 /* Phone mock (unchanged, original sizing preserved) */
 .device-ultra{position:relative;width:var(--phone-w);max-width:100%;aspect-ratio:9/19;border-radius:40px;background:linear-gradient(180deg,#b6bcc6,#8c929c);box-shadow:0 40px 120px rgba(32,39,68,.18);border:1px solid rgba(255,255,255,.45)}
 .frame2{position:absolute;inset:var(--frame-inset);border-radius:32px;background:#0a0d12;box-shadow:0 0 0 12px rgba(0,0,0,.18) inset;overflow:hidden}
-.screen{position:absolute;inset:var(--screen-inset);border-radius:24px;background:#000;object-fit:cover;object-position:center;display:block}
+/* Phone “screen” image/video */
+.screen{
+  position:absolute;
+  left:var(--screen-inset);
+  right:var(--screen-inset);
+  top:var(--screen-inset);
+  bottom:var(--screen-inset);
+  width:100%;
+  height:100%;
+  border-radius:24px;
+  background:#000;
+
+  /* key bits */
+  object-fit:contain;            /* show the whole screenshot, no cropping */
+  object-position:center center; /* keep it perfectly centered */
+  display:block;
+}
 .punch2{position:absolute;top:var(--punch-top);left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#000;opacity:.95;box-shadow:0 0 0 2px rgba(255,255,255,.22) inset,0 0 8px rgba(0,0,0,.5)}
 .statusbar{position:absolute;left:var(--statusbar-lr);right:var(--statusbar-lr);top:var(--statusbar-top);height:18px;display:flex;align-items:center;justify-content:space-between;color:#fff;font-size:12px;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.95}
 .time{font-weight:700}.sicons{display:flex;align-items:center;gap:6px}
