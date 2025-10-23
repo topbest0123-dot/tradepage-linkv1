@@ -1014,10 +1014,10 @@ const modalOverlayStyle = {
 /* small floating Save button */
 const saveBtnFabStyle = {
   position: 'absolute',
-  top: 1,
-  right: 1,
+  top: 2,
+  right: 2,
   width: 26,
-  height: 28,
+  height: 30,
   borderRadius: 10,
   border: '1px solid var(--border)',
   background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
