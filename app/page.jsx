@@ -19,7 +19,7 @@ export default function HomePage() {
         <div className="container">
           <div className="hero-copy">
             <h1>
-              Tradespeople: your smart page built to convert your customers <br className="hide-d" />
+              A smart page made for Tradespeople. Have all your trade info in one link<br className="hide-d" />
              
             </h1>
             <p className="lead">
