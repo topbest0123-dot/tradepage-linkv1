@@ -422,15 +422,18 @@ html,body{
 
 /* UPDATED: keep video/screenshot perfectly centered with adjustable visual nudge */
 .screen{
+
+.screen{
   position:absolute;
   inset:var(--screen-inset);
-  width:100%;
-  height:100%;
   border-radius:24px;
   background:#000;
   object-fit:cover;
-  object-position: calc(var(--screen-pos-x) + var(--screen-nudge-x)) calc(var(--screen-pos-y) + var(--screen-nudge-y));
   display:block;
+
+  /* NEW: precise centering nudges */
+  transform: translate(var(--screen-shift-x), var(--screen-shift-y));
+  will-change: transform;
 }
 
 .punch2{position:absolute;top:var(--punch-top);left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#000;opacity:.95;box-shadow:0 0 0 2px rgba(255,255,255,.22) inset,0 0 8px rgba(0,0,0,.5)}
