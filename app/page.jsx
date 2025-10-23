@@ -28,11 +28,6 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Phone mock (unchanged size + proportions) */}
-          <div className="hero-visual">
-            <div className="device-ultra">
-              <div className="frame2">
-                {/* Phone mock (unchanged size + proportions) */}
 <div className="hero-visual">
   <div className="device-ultra">
     <div className="frame2">
