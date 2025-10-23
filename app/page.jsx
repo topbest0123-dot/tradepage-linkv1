@@ -32,18 +32,19 @@ export default function HomePage() {
           <div className="hero-visual">
             <div className="device-ultra">
               <div className="frame2">
-                <video
-                  className="screen"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  poster="/tradepage-demo.jpg"
-                  preload="metadata"
-                >
-                  <source src="/tradepage-demo.webm" type="video/webm" />
-                  <source src="/tradepage-demo.mp4" type="video/mp4" />
-                </video>
+                {/* Phone mock (unchanged size + proportions) */}
+<div className="hero-visual">
+  <div className="device-ultra">
+    <div className="frame2">
+      {/* ⬇️ replace the entire <video>…</video> with this */}
+      <img
+        className="screen"
+        src="/tradepage-demo.jpg"
+        alt="Preview of a TradePage on mobile"
+        width={720}      // keep a 9:19 ratio, e.g. 720x1520
+        height={1520}
+      />
+      {/* ⬆️ end replacement */}
 
                 {/* status bar */}
                 <div className="statusbar">
