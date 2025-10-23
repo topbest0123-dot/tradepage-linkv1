@@ -359,8 +359,8 @@ const styles = `
   /* NEW: exact centering with optional nudges */
   --screen-pos-x: 50%;
   --screen-pos-y: 50%;
-  --screen-nudge-x: -12px;
-  --screen-nudge-y: 12px; /* tweak this (e.g. 0px–10px) until it looks visually perfect */
+  --screen-nudge-x: 0px;
+  --screen-nudge-y: -12px; /* tweak this (e.g. 0px–10px) until it looks visually perfect */
 }
 
 html,body{
