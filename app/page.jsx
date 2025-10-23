@@ -361,6 +361,12 @@ const styles = `
   --screen-pos-y: 50%;
   --screen-nudge-x: 0px;
   --screen-nudge-y: -12px; /* tweak this (e.g. 0px–10px) until it looks visually perfect */
+
+  :root{
+  /* …existing vars… */
+  --screen-shift-x: -6px; /* negative = left, positive = right */
+  --screen-shift-y: 0px; /* negative = up,   positive = down  */
+
 }
 
 html,body{
