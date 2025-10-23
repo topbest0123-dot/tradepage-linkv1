@@ -474,7 +474,7 @@ export default function PublicPage({ profile: p }) {
             onClick={() => setQuoteOpen(true)}
             style={{ ...btnBaseStyle, ...btnNeutralStyle }}
           >
-            Get a Quote
+            Quote
           </button>
 
           <button
