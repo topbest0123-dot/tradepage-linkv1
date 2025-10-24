@@ -174,27 +174,27 @@ export default function HomePage() {
           {/* FAQ */}
           <div className="la-faq">
             <details>
-              <summary>What is StraightPageLink?</summary>
-              <p>TradetPageLink is a personal, shareable page for tradespeople. It puts everything a customer needs in one place—phone, WhatsApp, quick quote form, services, 
-                prices, photo gallery, reviews/credentials, social links, coverage areas, hours and location—so you can share one link anywhere.</p>
+              <summary>What is TradePage.Link?</summary>
+              <p>TradePage.Link is a personal, shareable page for tradespeople. It puts everything a customer needs in one place: phone, WhatsApp, quick quote form, trades, services, 
+                prices, photo gallery, social links, coverage areas, hours and location (when needed) so you can share one link anywhere.</p>
             </details>
             <details>
               <summary>Is this a full website?</summary>
-              <p>It’s a focused, conversion page for trades. Keep your old site if you want—TradePage.Link is the fast path that actually gets you calls.</p>
+              <p>It’s a focused, conversion page for trades. Keep your old site if you want. TradePage.Link is the fast path that actually gets you calls. You can add your website link to the TradePage.Link if you want</p>
             </details>
             <details>
               <summary>Why should I use TradePageLink?</summary>
-              <p>No. Because it’s the simplest way for customers to contact and trust you fast. One link that looks pro on mobile, works perfectly in WhatsApp/texts and social bios, 
+              <p>Because it’s the simplest and fastest way for customers to contact you, and see all your online presence in one link. One link that looks pro on mobile, works perfectly in WhatsApp,texts, social media comments and social media bios, 
                 and shows your work and details without the hassle of a full website.</p>
             </details>
             <details>
               <summary>What do I get on my page, and can I update it from my phone?</summary>
               <p>You get a clean, branded page with the sections above, your logo/brand colours, and instant edits from your phone. 
-                Add new photos, services, prices or coverage areas anytime—changes go live immediately.</p>
+                Add new photos, services, prices or coverage areas anytime, changes go live immediately.</p>
             </details>
             <details>
               <summary>How long does setup take? What do I need ready?</summary>
-              <p>Usually a few minutes. Have your logo/photo, phone/WhatsApp, service list, prices or “ask for a quote,” 3–6 job photos, and areas you cover, any other usefull information, and you're ready to go.</p>
+              <p>It takes a few minutes. Have your logo/photo, phone/WhatsApp, email, service list, prices or “ask for a quote,” 3–6 job photos, areas you cover, any other usefull information, and you're ready to go.</p>
             </details>
           <details>
               <summary>How do customers reach me?</summary>
@@ -202,15 +202,15 @@ export default function HomePage() {
             </details>
         <details>
               <summary>Where should I share my link to get the most from it?</summary>
-              <p>Put it on your Google Business Profile (Website button), Facebook/Instagram/TikTok bios, WhatsApp replies, email signature, invoices and quotes, business cards, and a QR code on your van.</p>
+              <p>TradePage.Link is the ideal solution for social media link-in-bio. But not only, you can post it on any social media posts, comments, WhatsApp, email signature. Basically, you can share the link everywhere.</p>
             </details>
       <details>
               <summary>Do I still need a full website?</summary>
-              <p>Not to start. Many trades run just fine with one high-converting page. If you already have a site, keep it—use StraightPageLink as the fast, mobile-first link you share everywhere.</p>
+              <p>Not really. Many trades run just fine with one high-converting page. If you already have a site, keep it, use TradePageLink as the fast, mobile-first link you share everywhere.</p>
             </details>
     <details>
               <summary>How is it priced? Can I cancel?</summary>
-              <p>imple, transparent pricing with no per-lead fees. Cancel anytime. Your page content is yours—you can export your info whenever you need.</p>
+              <p>It cost $4.99 per month, or $34.99 per year. No contracts and no obligations. Cancel any time</p>
             </details>
           </div>
 
