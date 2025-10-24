@@ -151,20 +151,6 @@ export default function HomePage() {
           </div>
 
           {/* Comparison */}
-          <div className="la-compare">
-            <div className="card bad">
-              <h4>Typical website</h4>
-              <ul className="bad-list">   {/* “Typical website” */}
-                <li>Endless menus</li>
-                <li>Hidden contact</li>
-                <li>Slow + cluttered</li>
-                <li>Confusing copy</li>
-                <li>Too many steps</li>
-                <li>Bad mobile interface</li>
-                <li>Technical skills required</li>
-                <li>Can't edit/add info from your phone</li>
-              </ul>
-            </div>
 
             <div className="card good">
               <h4>Your TradePage</h4>
