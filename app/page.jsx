@@ -134,6 +134,9 @@ export default function HomePage() {
 
           </div>
 
+            <a href="/signin" className="btn-primary">Create your page</a>
+
+
           {/* How it works */}
           <div className="la-steps">
             <h3>From link to lead in seconds</h3>
