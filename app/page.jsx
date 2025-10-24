@@ -165,7 +165,6 @@ export default function HomePage() {
                <li>Edit your page from your phone in seconds</li>
              </ul>
             </div>
-          </div>
 
 
           {/* FAQ */}
