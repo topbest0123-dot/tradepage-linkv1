@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "https://www.<your-domain>/:path*", "destination": "https://<your-domain>/:path*", "permanent": true },
+    { "source": "https://<your-project>.vercel.app/:path*", "destination": "https://<your-domain>/:path*", "permanent": true }
+  ]
+}
