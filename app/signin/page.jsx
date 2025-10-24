@@ -17,7 +17,7 @@ export default function SignInPage() {
       setMsg('');
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        options: { emailRedirectTo: 'https://tradepage.link/auth/callback' }
+        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
       });
       if (error) throw error;
       setMsg('Check your inbox for the sign-in link.');
