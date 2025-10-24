@@ -221,7 +221,7 @@ function Feature({ title, text, icon }) {
         {icon === 'share' && <svg viewBox="0 0 24 24"><path d="M14 9l-4 2 4 2m6-9a3 3 0 11-6 0 3 3 0 016 0Zm0 14a3 3 0 11-6 0 3 3 0 016 0ZM6 12a3 3 0 110-6 3 3 0 010 6Z"/></svg>}
         {icon === 'bolt' && <svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 11-14h-7l0-6z"/></svg>}
         {icon === 'bookmark' && <svg viewBox="0 0 24 24"><path d="M6 3a2 2 0 0 0-2 2v16l8-4 8 4V5a2 2 0 0 0-2-2H6z"/></svg>}
-        })
+        )}
         
       </span>
       <div className="feat-body">
