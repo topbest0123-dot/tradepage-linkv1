@@ -206,7 +206,7 @@ export default function HomePage() {
               <p>Put it on your Google Business Profile (Website button), Facebook/Instagram/TikTok bios, WhatsApp replies, email signature, invoices and quotes, business cards, and a QR code on your van./p>
             </details>
       <details>
-              </summary>Do I still need a full website?</summary>
+              <summary>Do I still need a full website?</summary>
               <pNot to start. Many trades run just fine with one high-converting page. If you already have a site, keep it—use StraightPageLink as the fast, mobile-first link you share everywhere.</p>
             </details>
     <details>
