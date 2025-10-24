@@ -90,13 +90,6 @@ export default function HomePage() {
             <p>When everything lives in one clean view, customers stop searching and start contacting. Fewer taps, fewer doubts, more jobs.</p>
             <a href="/signin" className="btn-primary">Create your page</a>
 
-            {/* NEW feature announcement — small, non-intrusive */}
-            <div className="la-new">
-              <span className="pill">NEW</span>
-              <b>One-tap to save your info</b> — customers can instantly save your contact in their phone.
-            </div>
-          </div>
-
           {/* Value grid */}
           <div className="la-grid">
             
