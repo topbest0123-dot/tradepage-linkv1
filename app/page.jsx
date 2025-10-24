@@ -130,6 +130,8 @@ export default function HomePage() {
               text="Opens in any browser. Customers don’t need to install or create accounts."
               icon="bolt"
             />
+            <a href="/signin" className="btn-primary">Create your page</a>
+
           </div>
 
           {/* How it works */}
