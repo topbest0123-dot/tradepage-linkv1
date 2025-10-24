@@ -193,7 +193,7 @@ export default function HomePage() {
                 Add new photos, services, prices or coverage areas anytime—changes go live immediately.</p>
             </details>
             <details>
-              <summar>How long does setup take? What do I need ready?</summary>
+              <summary>How long does setup take? What do I need ready?</summary>
               <p>Usually a few minutes. Have your logo/photo, phone/WhatsApp, service list, prices or “ask for a quote,” 3–6 job photos, and areas you cover, any other usefull information, and you're ready to go.</p>
             </details>
           <details>
@@ -201,7 +201,7 @@ export default function HomePage() {
               <p>They tap Call, WhatsApp, or Quote. Quote requests arrive at your email, your phone & WhatsApp are one push away.</p>
             </details>
         <details>
-              <summar>Where should I share my link to get the most from it?</summary>
+              <summary>Where should I share my link to get the most from it?</summary>
               <p>Put it on your Google Business Profile (Website button), Facebook/Instagram/TikTok bios, WhatsApp replies, email signature, invoices and quotes, business cards, and a QR code on your van./p>
             </details>
       <details>
