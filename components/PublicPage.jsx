@@ -431,6 +431,11 @@ export default function PublicPage({ profile: p }) {
   .gallery-item { height:auto; }
   .gallery-item img { height:auto; display:block; }
 }
+/* Hide Save FAB on desktop/laptop; keep it on mobile */
+@media (min-width: 900px){
+  .save-fab { display: none !important; }
+}
+
 
       `}</style>
 
@@ -492,11 +497,14 @@ export default function PublicPage({ profile: p }) {
           onClick={() => setChooserOpen(true)}
           aria-label="Save"
           title="Save"
+          className="save-fab"  //added to show it on mobile only
           style={saveBtnFabStyle}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#08101e" aria-hidden="true">
             <path d="M6 3a1 1 0 0 0-1 1v17l7-4 7 4V4a1 1 0 0 0-1-1H6z"/>
           </svg>
+          
+          
         </button>
 
         {contactsOpen && (
