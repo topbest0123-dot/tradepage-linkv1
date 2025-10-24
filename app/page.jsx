@@ -19,12 +19,12 @@ export default function HomePage() {
         <div className="container">
           <div className="hero-copy">
             <h1>
-              A smart page tailored for tradespeople - all your info in one link<br className="hide-d" />
+              A smart page made for tradespeople. All your info in one link<br className="hide-d" />
              
             </h1>
             <p className="lead">
-              TradePage<span className="dot">.</span>Link shows your customers only what trully matters:
-               <b>contact details</b>, <b>quote form</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas.</b> in a easy reachable way — no wandering menus, no confusion — more conversions!
+              TradePage<span className="dot">.</span>Link shows your customers only what matters:
+               <b>contact details</b>, <b>quote form</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas. </b> in the most convenient way: no wandering menus, no confusion = more conversions!
             </p>
           </div>
 
