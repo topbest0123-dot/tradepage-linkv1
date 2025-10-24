@@ -150,14 +150,18 @@ export default function Dashboard() {
     // ask server for a one-time signed upload URL
 const init = await fetch('/api/storage/signed-upload', {
   method: 'POST',
+  credentials: 'include', // <-- IMPORTANT for mobile
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ bucket: 'avatars', path: filePath })
 });
-const initJson = await init.json();
+let initJson = {};
+try { initJson = await init.json(); } catch (_) {}
 if (!init.ok) {
   setUploading(false);
-  return setMsg('Upload init failed: ' + (initJson?.error || ''));
+  alert('Upload init failed: ' + (initJson.error || init.status)); // visible on phone
+  return;
 }
+
 
 // upload directly to Storage (mobile-safe)
 await fetch(initJson.signedUrl, {
@@ -197,12 +201,17 @@ setMsg('Logo uploaded – Click Save to keep it.');
 
   // 1) get signed upload URL from server
   const init = await fetch('/api/storage/signed-upload', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ bucket: 'gallery', path: filePath })
-  });
-  const initJson = await init.json();
-  if (!init.ok) { setMsg('Upload init failed: ' + (initJson?.error || '')); continue; }
+  method: 'POST',
+  credentials: 'include', // <-- IMPORTANT for mobile
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ bucket: 'gallery', path: filePath })
+});
+let initJson = {};
+try { initJson = await init.json(); } catch (_) {}
+if (!init.ok) {
+  alert('Gallery init failed: ' + (initJson.error || init.status));
+  continue;
+}
 
   // 2) PUT the file to Storage
   await fetch(initJson.signedUrl, {
@@ -277,17 +286,30 @@ setMsg('Logo uploaded – Click Save to keep it.');
       updated_at: new Date().toISOString(),
     };
 
-    const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' });
-    if (error) {
-      // 23505 = unique violation
-      if (error.code === '23505') {
-        setMsg('This link is taken. Please try another.');
-      } else {
-        setMsg(error.message);
-      }
-      return;
-    }
-    setMsg('Saved!');
+    // Ensure the row belongs to the signed-in user (mobile can miss this)
+const { data: { user }, error: authErr } = await supabase.auth.getUser();
+if (authErr || !user) { alert('Not signed in. Open the magic link again.'); return; }
+row.id = row.id || user.id; // critical for RLS
+
+// Upsert + return the row so we can catch RLS/validation errors immediately
+const { data, error } = await supabase
+  .from('profiles')
+  .upsert(row, { onConflict: 'id' })
+  .select()
+  .single();
+
+if (error) {
+  if (error.code === '23505') {
+    setMsg('This link is taken. Please try another.');
+  } else {
+    alert('Save failed: ' + error.message); // shows real cause on mobile
+    setMsg(error.message || 'Save failed.');
+  }
+  return;
+}
+
+setMsg('Saved!');
+
   };
 
   if (loading) return <p>Loading…</p>;
