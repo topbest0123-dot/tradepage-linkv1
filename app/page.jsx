@@ -171,7 +171,6 @@ export default function HomePage() {
              </ul>
             </div>
 
-
           {/* FAQ */}
           <div className="la-faq">
             <details>
@@ -210,7 +209,7 @@ export default function HomePage() {
               <pNot to start. Many trades run just fine with one high-converting page. If you already have a site, keep it—use StraightPageLink as the fast, mobile-first link you share everywhere.</p>
             </details>
     <details>
-              <summar>How is it priced? Can I cancel?</summary>
+              <summary>How is it priced? Can I cancel?</summary>
               <p>imple, transparent pricing with no per-lead fees. Cancel anytime. Your page content is yours—you can export your info whenever you need.</p>
             </details>
           </div>
