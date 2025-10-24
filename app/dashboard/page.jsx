@@ -147,12 +147,37 @@ export default function Dashboard() {
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const fileName = `${Date.now()}.${ext}`;
     const filePath = `${user.id}/${fileName}`;
-    const { error } = await supabase.storage.from('avatars').upload(filePath, file, { cacheControl: '3600', upsert: true });
-    setUploading(false);
-    if (error) return setMsg(error.message);
-    setForm(prev => ({ ...prev, avatar_path: filePath }));
-    setAvatarUrl(publicUrlFor(filePath));
-    setMsg('Logo uploaded — click Save to keep it.');
+    // ask server for a one-time signed upload URL
+const init = await fetch('/api/storage/signed-upload', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ bucket: 'avatars', path: filePath })
+});
+const initJson = await init.json();
+if (!init.ok) {
+  setUploading(false);
+  return setMsg('Upload init failed: ' + (initJson?.error || ''));
+}
+
+// upload directly to Storage (mobile-safe)
+await fetch(initJson.signedUrl, {
+  method: 'PUT',
+  headers: {
+    'x-upsert': 'true',
+    'authorization': `Bearer ${initJson.token}`,
+    'content-type': file.type || 'application/octet-stream'
+  },
+  body: file
+});
+
+setUploading(false);
+
+// get a public URL and update your form/state (keep your own setters)
+const pub = supabase.storage.from('avatars').getPublicUrl(filePath).data.publicUrl;
+setForm(prev => ({ ...prev, avatar_path: filePath }));
+setAvatarUrl(pub);
+setMsg('Logo uploaded – Click Save to keep it.');
+
   };
 
   // gallery helpers
@@ -166,17 +191,33 @@ export default function Dashboard() {
 
     const newPaths = [];
     for (const [i, file] of files.entries()) {
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${Date.now()}-${i}.${ext}`;
-      const filePath = `${user.id}/${fileName}`;
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const fileName = `${Date.now()}-${i}.${ext}`;
+  const filePath = `${user.id}/${fileName}`;
 
-      const { error } = await supabase.storage
-        .from('gallery')
-        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+  // 1) get signed upload URL from server
+  const init = await fetch('/api/storage/signed-upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bucket: 'gallery', path: filePath })
+  });
+  const initJson = await init.json();
+  if (!init.ok) { setMsg('Upload init failed: ' + (initJson?.error || '')); continue; }
 
-      if (error) { setMsg(error.message); continue; }
-      newPaths.push(filePath);
-    }
+  // 2) PUT the file to Storage
+  await fetch(initJson.signedUrl, {
+    method: 'PUT',
+    headers: {
+      'x-upsert': 'true',
+      'authorization': `Bearer ${initJson.token}`,
+      'content-type': file.type || 'application/octet-stream'
+    },
+    body: file
+  });
+
+  newPaths.push(filePath); // keep your existing state logic below
+}
+
 
     setUploading(false);
     if (newPaths.length) {
