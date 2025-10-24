@@ -88,7 +88,6 @@ export default function HomePage() {
           <div className="la-head">
             <h2>Built for trades. Built for speed.</h2>
             <p>When everything lives in one clean view, customers stop searching and start contacting. Fewer taps, fewer doubts, more jobs.</p>
-            <a href="/signin" className="btn-primary">Create your page</a>
 
             </div>
 
