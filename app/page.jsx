@@ -99,6 +99,13 @@ export default function HomePage() {
 
           {/* Value grid */}
           <div className="la-grid">
+            
+            <Feature
+              title="One Tap to save your contact."
+              text="Customers can save your contacts with a single tap. So next time they don't look around again."
+              icon="bookmark"
+
+            />
             <Feature
               title="No menus. No maze."
               text="One screen shows the lot—contact, prices, services, photos, socials. Zero hunting."
