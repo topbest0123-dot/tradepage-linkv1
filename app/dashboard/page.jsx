@@ -171,6 +171,13 @@ export default function Dashboard() {
   const publicGalleryUrlFor = (path) =>
     path ? supabase.storage.from('gallery').getPublicUrl(path).data.publicUrl : null;
 
+  // make sure we have a fresh session (helps on mobile)
+const { data: s } = await supabase.auth.getSession();
+if (!s?.session) {
+  await supabase.auth.refreshSession().catch(() => {});
+}
+
+
   const onGalleryFiles = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length || !user) return;
