@@ -202,11 +202,11 @@ export default function HomePage() {
             </details>
         <details>
               <summary>Where should I share my link to get the most from it?</summary>
-              <p>Put it on your Google Business Profile (Website button), Facebook/Instagram/TikTok bios, WhatsApp replies, email signature, invoices and quotes, business cards, and a QR code on your van./p>
+              <p>Put it on your Google Business Profile (Website button), Facebook/Instagram/TikTok bios, WhatsApp replies, email signature, invoices and quotes, business cards, and a QR code on your van.</p>
             </details>
       <details>
               <summary>Do I still need a full website?</summary>
-              <pNot to start. Many trades run just fine with one high-converting page. If you already have a site, keep it—use StraightPageLink as the fast, mobile-first link you share everywhere.</p>
+              <p>Not to start. Many trades run just fine with one high-converting page. If you already have a site, keep it—use StraightPageLink as the fast, mobile-first link you share everywhere.</p>
             </details>
     <details>
               <summary>How is it priced? Can I cancel?</summary>
