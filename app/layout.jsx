@@ -1,6 +1,7 @@
 // app/layout.jsx
 import './globals.css';
 import AuthLinks from '@/components/AuthLinks';
+import AuthHandler from './AuthHandler'; // ⬅️ added
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.tradepage.link'),
@@ -50,6 +51,8 @@ export default function RootLayout({ children }) {
           color: 'var(--text)',        // follow theme text
         }}
       >
+        {/* ⬇️ Mounts the mobile-friendly auth token handler globally */}
+        <AuthHandler />
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
           <header
