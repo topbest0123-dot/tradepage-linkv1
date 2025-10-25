@@ -17,9 +17,8 @@ export default function SignInPage() {
       setMsg('');
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-      // safest: hardcode apex so www/apex don’t mismatch
+        // IMPORTANT: redirect to the callback page so the app can read tokens and create the session
         options: { emailRedirectTo: 'https://tradepage.link/auth/callback' },
-
       });
       if (error) throw error;
       setMsg('Check your inbox for the sign-in link.');
