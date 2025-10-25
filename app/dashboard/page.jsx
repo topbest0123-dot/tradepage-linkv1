@@ -247,7 +247,7 @@ export default function Dashboard() {
       updated_at: new Date().toISOString(),
     };
 
-    const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' });
+    const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' }).select().single();
     if (error) {
       // 23505 = unique violation
       if (error.code === '23505') {
