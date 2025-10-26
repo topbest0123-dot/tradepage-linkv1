@@ -1,39 +1,39 @@
-// ➜ add these at the very top of app/[slug]/page.jsx
+// app/[slug]/page.jsx  (SERVER COMPONENT)
+import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
+import PublicPage from '@/components/PublicPage'; // client component below
 
-const supa = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+export const dynamic = 'force-dynamic';  // always fetch fresh
+export const revalidate = 0;
 
-const avatarPublicUrl = (p) =>
-  p
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${p}`
-    : '/og-default.png';
-
+/* ▼ Added: OG/Twitter metadata so description shows "Trade • City" */
 export async function generateMetadata({ params }) {
-  const { slug } = params || {};
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false } }
+  );
 
-  // read only public fields; no auth needed
-  const { data } = await supa
+  const { data: p } = await sb
     .from('profiles')
-    .select('name, trade, city, avatar_path')
-    .eq('slug', slug)
+    .select('slug,name,trade,city,avatar_path')
+    .ilike('slug', params.slug)
     .maybeSingle();
 
-  const title = data?.name || 'TradePage';
+  const title = p?.name || 'TradePage';
   const description =
-    [data?.trade, data?.city].filter(Boolean).join(' • ') ||
-    'Your business in a link';
+    [p?.trade, p?.city].filter(Boolean).join(' • ') || 'Your business in a link';
 
-  const image = avatarPublicUrl(data?.avatar_path);
+  const image = p?.avatar_path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${p.avatar_path}`
+    : '/og-default.png';
 
   return {
     title,
     description,
     openGraph: {
       type: 'website',
-      url: `/${slug}`,
+      url: `/${params.slug}`,
       siteName: 'TradePage',
       title,
       description,
@@ -47,15 +47,7 @@ export async function generateMetadata({ params }) {
     },
   };
 }
-
-
-// app/[slug]/page.jsx  (SERVER COMPONENT)
-import { notFound } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
-import PublicPage from '@/components/PublicPage'; // client component below
-
-export const dynamic = 'force-dynamic';  // always fetch fresh
-export const revalidate = 0;
+/* ▲ End of addition */
 
 export default async function Page({ params }) {
   const sb = createClient(
@@ -78,9 +70,8 @@ export default async function Page({ params }) {
     .ilike('slug', params.slug)
     .maybeSingle();
 
- if (error) return notFound();
- if (!p)   return notFound();
-
+  if (error) return notFound();
+  if (!p)   return notFound();
 
   return <PublicPage profile={p} />;
 }
