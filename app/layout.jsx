@@ -66,30 +66,12 @@ export default function RootLayout({ children }) {
               gap: 12,
             }}
           >
-            <a
-  href="/"
-  style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    textDecoration: 'none',
-    color: 'inherit',
-  }}
->
-  <img
-    src="/logo.png"          // or /logo.svg
-    alt="TradePage logo"
-    width={28}
-    height={28}
-    style={{ width: 28, height: 28, display: 'block', objectFit: 'contain' }}
-  />
-  <div>
-    <b>TradePageLink</b>
-    <div style={{ opacity: 0.7, fontSize: 16, lineHeight: '18px' }}>
-      Your business in a link
-    </div>
+            <div>
+  <b>TradePageLink</b>
+  <div style={{ opacity: 0.7, fontSize: 16, lineHeight: '18px' }}>
+    Your business in a link
   </div>
-</a>
+</div>
 
             <AuthLinks />
           </header>
