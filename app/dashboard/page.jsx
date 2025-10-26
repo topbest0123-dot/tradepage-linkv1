@@ -13,6 +13,7 @@ const THEMES = {
   'graphite-ember': { name:'Graphite Ember', vars:{'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'}},
   'sapphire-ice':   { name:'Sapphire Ice', vars:{'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#0b2235','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'}},
   'forest-emerald': { name:'Forest Emerald', vars:{'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'}},
+
   // LIGHT
   'porcelain-mint': { name:'Porcelain Mint', vars:{'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'}},
   'paper-snow':     { name:'Paper Snow', vars:{'--bg':'#ffffff','--text':'#121417','--muted':'#5b6777','--border':'#e5e7ea','--card-bg-1':'#ffffff','--card-bg-2':'#f7f9fb','--chip-bg':'#f3f5f7','--chip-border':'#e5e7ea','--btn-primary-1':'#3b82f6','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#eef2f6','--social-border':'#dfe3e8'}},
@@ -37,7 +38,7 @@ const THEMES = {
   'skyline-graphite': { name:'Skyline Graphite', vars:{'--bg':'#f6f8fb','--text':'#0f1318','--muted':'#4d5a6b','--border':'#ccd7e5','--card-bg-1':'#e3e8f0','--card-bg-2':'#dce3ec','--chip-bg':'#e9eff6','--chip-border':'#cfd9e6','--btn-primary-1':'#0ea5e9','--btn-primary-2':'#10b981','--btn-neutral-bg':'#e7eef5','--social-border':'#c8d4e2'}},
   'midnight-lime':  { name:'Midnight Lime', vars:{'--bg':'#0a1210','--text':'#ecfff6','--muted':'#b5e1cf','--border':'#234137','--card-bg-1':'#121c19','--card-bg-2':'#0f1714','--chip-bg':'#111b17','--chip-border':'#2a4b3f','--btn-primary-1':'#34d399','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#131c19','--social-border':'#2a4b3f'}},
   'ink-rose':       { name:'Ink Rose', vars:{'--bg':'#0f0a0b','--text':'#ffeef2','--muted':'#f1c3cf','--border':'#4a2832','--card-bg-1':'#1a1215','--card-bg-2':'#140e11','--chip-bg':'#171015','--chip-border':'#56303c','--btn-primary-1':'#ff6aa3','--btn-primary-2':'#a78bfa','--btn-neutral-bg':'#1b1417','--social-border':'#53303b'}},
-  'charcoal-ice':   { name:'Charcoal Ice', vars:{'--bg':'#0b0f14','--text':'#eef6ff','--muted':'#cbdaf0','--border':'#243446','--card-bg-1':'#141a22','--card-bg-2':'#10161d','--chip-bg':'#121820','--chip-border':'#2a3a4d','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#151b22','--social-border':'#2a3a4d'}},
+  'charcoal-ice':   { name:'Charcoal Ice', vars:{'--bg':'#0b0f14','--text':'#eef6ff','--muted':'#cbdaf0','--border':'#243446','--card-bg-1':'#141a22','--card-bg-2':'#10161d','--chip-bg':'#121820','--chip-border':'#2a3b4f','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#151b22','--social-border':'#2a3a4d'}},
   'ember-ash':      { name:'Ember Ash', vars:{'--bg':'#0f0e0c','--text':'#fff7e8','--muted':'#f3d9a8','--border':'#4a4023','--card-bg-1':'#18150f','--card-bg-2':'#13100c','--chip-bg':'#15120d','--chip-border':'#5a4d26','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#18150f','--social-border':'#5a4d26'}}
 };
 
@@ -77,7 +78,7 @@ export default function Dashboard() {
     theme: 'deep-navy',
     other_info: '',
     gallery: [],
-    other_trades: '',
+    other_trades: '',            // ← added
   });
 
   /* load profile */
@@ -103,7 +104,7 @@ export default function Dashboard() {
           location: data.location ?? '', location_url: data.location_url ?? '',
           avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '',
           gallery: Array.isArray(data.gallery) ? data.gallery : [],
-          other_trades: data.other_trades ?? '',
+          other_trades: data.other_trades ?? '',   // ← added
         }));
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
         applyTheme(data.theme ?? 'deep-navy');
@@ -149,7 +150,7 @@ export default function Dashboard() {
 
   const onChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-  /* avatar upload via signed URL + bearer */
+  /* ─── CHANGE #1: avatar upload via signed URL + bearer ─── */
   const onAvatarFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -162,6 +163,7 @@ export default function Dashboard() {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
+    // ask our API for a signed upload URL
     const initRes = await fetch('/api/storage/signed-upload', {
       method: 'POST',
       headers: {
@@ -173,6 +175,7 @@ export default function Dashboard() {
     const initJson = await initRes.json();
     if (!initRes.ok) { setUploading(false); setMsg(initJson.error || 'Upload init failed'); return; }
 
+    // PUT the file to Supabase Storage
     await fetch(initJson.signedUrl, {
       method: 'PUT',
       headers: {
@@ -193,7 +196,7 @@ export default function Dashboard() {
   const publicGalleryUrlFor = (path) =>
     path ? supabase.storage.from('gallery').getPublicUrl(path).data.publicUrl : null;
 
-  /* gallery uploads via signed URL + bearer */
+  /* ─── CHANGE #2: gallery uploads via signed URL + bearer ─── */
   const onGalleryFiles = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length || !user) return;
@@ -255,6 +258,7 @@ export default function Dashboard() {
 
     if (!slug) return setMsg('Please choose a slug.');
 
+    // prevent saving if taken (double-check server-side)
     const { data: existing } = await supabase
       .from('profiles')
       .select('id')
@@ -285,10 +289,11 @@ export default function Dashboard() {
       avatar_path: form.avatar_path,
       theme: form.theme, other_info: form.other_info,
       gallery: Array.isArray(form.gallery) ? form.gallery : [],
-      other_trades: form.other_trades,
+      other_trades: form.other_trades,   // ← added
       updated_at: new Date().toISOString(),
     };
 
+    /* ─── CHANGE #3: save via API with bearer token ─── */
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -317,14 +322,8 @@ export default function Dashboard() {
 
   /* UI helpers */
   const fieldBase = {
-    padding: 12,
-    width: '100%',
-    maxWidth: 520,
-    borderRadius: 12,
-    border: '1px solid var(--chip-border)',
-    background: 'var(--chip-bg)',
-    color: 'var(--text)',
-    boxSizing: 'border-box',
+    padding: 12, width: '100%', maxWidth: 520, borderRadius: 12,
+    border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)'
   };
   const input = (label, name, placeholder = '') => (
     <label style={{ display: 'block', marginBottom: 12 }}>
@@ -339,38 +338,14 @@ export default function Dashboard() {
     </label>
   );
 
-  /* ⬇️ CHANGE 1: grid with auto width select + two equal buttons */
-  const actionsRow = {
-    display: 'grid',
-    gridTemplateColumns: 'auto 1fr 1fr',
-    gap: 12,
-    alignItems: 'center',
-    marginTop: 8,
-    width: '100%',
-    maxWidth: 520,
-    marginInline: 'auto',
-  };
-
-  /* ⬇️ Buttons fill their cell; select uses auto width */
+  const actionsRow = { display: 'flex', gap: 12, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' };
   const btn = (style) => ({
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 40,
-    padding: '0 18px',
-    borderRadius: 12,
-    fontWeight: 700,
-    fontSize: 14,
-    textDecoration: 'none',
-    cursor: 'pointer',
-    width: '100%',
-    minWidth: 0,
-    boxSizing: 'border-box',
-    ...style
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    height: 40, padding: '0 18px', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', cursor: 'pointer', ...style
   });
 
   return (
-    <section style={{ overflowX: 'clip' }}>
+    <section>
       <h2>Dashboard</h2>
       <p style={{ opacity: 0.8, marginBottom: 16 }}>
         Signed in as <b>{user.email}</b>
@@ -378,6 +353,7 @@ export default function Dashboard() {
 
       {input('Public link (slug)', 'slug', 'e.g. best handyman')}
 
+      {/* availability hint */}
       {form.slug ? (
         <div style={{ marginTop: -6, marginBottom: 10, fontSize: 12 }}>
           {checkingSlug
@@ -477,6 +453,7 @@ export default function Dashboard() {
       {input('WhatsApp number', 'whatsapp', 'e.g. +44 7700 900123')}
       {input('Contact email (to receive quote requests)', 'email', 'e.g. hello@yourbusiness.com')}
 
+
       <div style={{ marginTop: 4, marginBottom: 8, opacity: 0.8 }}>Social Media </div>
       {input('Facebook (URL or @)', 'facebook', 'https://facebook.com/yourpage or @yourpage')}
       {input('Instagram (URL or @)', 'instagram', 'https://instagram.com/yourname or @yourname')}
@@ -484,27 +461,57 @@ export default function Dashboard() {
       {input('X / Twitter (URL or @)', 'x', 'https://x.com/yourname or @yourname')}
       {input('YouTube (URL or @handle)', 'youtube', 'https://youtube.com/@yourchannel or @yourhandle')}
 
+      
       {input('Location (address or place name) (optional)', 'location', 'e.g. 221B Baker St, London')}
       {input('Location link (Google/Apple Maps URL) (optional)', 'location_url', 'https://maps.google.com/?q=...')}
 
-      {textarea('About (short description)','about',`Tell customers who you are and what you do.
-Example: Friendly local handyman with 10+ years’ experience. Reliable, insured, free quotes.`)}
+      {textarea(
+  'About (short description)',
+  'about',
+  `Tell customers who you are and what you do.
+Example: Friendly local handyman with 10+ years’ experience. Reliable, insured, free quotes.`
+)}
 
-      {textarea('Zones / Areas (comma separated)','areas','e.g. Birmingham City Centre, Digbeth, Edgbaston')}
+{textarea(
+  'Zones / Areas (comma separated)',
+  'areas',
+  'e.g. Birmingham City Centre, Digbeth, Edgbaston'
+)}
 
-      {textarea('Services (comma separated)','services','e.g. Flat-pack assembly, TV mounting, Painting, Minor plumbing')}
+{textarea(
+  'Services (comma separated)',
+  'services',
+  'e.g. Flat-pack assembly, TV mounting, Painting, Minor plumbing'
+)}
 
-      {textarea('Other trades (comma separated) [optional]','other_trades','e.g. Electrician, Tiler, Plasterer, Painter')}
+{textarea(
+  'Other trades (comma separated) [optional]',
+  'other_trades',
+  'e.g. Electrician, Tiler, Plasterer, Painter'
+)}
 
-      {textarea('Prices (one per line optional)','prices',`Call-out — from £25
+{textarea(
+  'Prices (one per line optional)',
+  'prices',
+  `Call-out — from £25
 Hourly rate — from £35
-Boiler service — £80`)}
+Boiler service — £80`
+)}
 
-      {textarea('Opening hours','hours',`Mon–Fri 08:00–18:00
+{textarea(
+  'Opening hours',
+  'hours',
+  `Mon–Fri 08:00–18:00
 Sat 09:00–13:00
-Sun Closed`)}
+Sun Closed`
+)}
 
-      {textarea('Other useful information (optional)','other_info','e.g. Fully insured • DBS checked • Same-day service • Card payments accepted')}
+{textarea(
+  'Other useful information (optional)',
+  'other_info',
+  'e.g. Fully insured • DBS checked • Same-day service • Card payments accepted'
+)}
+
 
       {/* Actions row: THEME PICKER + SAVE + PREVIEW */}
       <div style={actionsRow}>
@@ -514,25 +521,8 @@ Sun Closed`)}
           onChange={onChange}
           aria-label="Theme"
           style={{
-            // looks like a button but sizes to its content
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: 40,
-            padding: '0 18px',
-            borderRadius: 12,
-            fontWeight: 700,
-            fontSize: 14,
-            background: 'transparent',
-            color: 'var(--text)',
-            border: '1px solid var(--social-border)',
-            appearance: 'none',
-            paddingRight: 26,
-            width: 'auto',
-            minWidth: 180,           // ← wide enough for longest theme name
-            whiteSpace: 'nowrap',
-            boxSizing: 'border-box',
-            justifySelf: 'start'
+            ...btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)' }),
+            height: 40, paddingRight: 26, appearance: 'none'
           }}
         >
           {Object.entries(THEMES).map(([key, t]) => (
