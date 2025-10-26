@@ -20,7 +20,7 @@ const THEMES = {
   'linen-rose':     { name:'Linen Rose', vars:{'--bg':'#fbf7f5','--text':'#221a16','--muted':'#6d5c54','--border':'#eaded7','--card-bg-1':'#ffffff','--card-bg-2':'#f6efeb','--chip-bg':'#f2eae6','--chip-border':'#eaded7','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#efe7e3','--social-border':'#e6d9d1'}},
   'sandstone':      { name:'Sandstone', vars:{'--bg':'#faf7f1','--text':'#191714','--muted':'#6f675f','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6f1e7','--chip-bg':'#f2ece1','--chip-border':'#eadfcd','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#efe9df','--social-border':'#e6dac7'}},
   'cloud-blue':     { name:'Cloud Blue', vars:{'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'}},
-  'ivory-ink':      { name:'Ivory Ink', vars:{'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'}},
+  'ivory-ink':      { name:'Ivory Ink', vars:{'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#f5f1ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'}},
   'amber-carbon':   { name:'Amber Carbon', vars:{'--bg':'#0d0b07','--text':'#fff7e6','--muted':'#f3d5a6','--border':'#4a3b17','--card-bg-1':'#1a150d','--card-bg-2':'#120f0a','--chip-bg':'#17120c','--chip-border':'#5c4a1a','--btn-primary-1':'#f5b04c','--btn-primary-2':'#38e1b9','--btn-neutral-bg':'#1b1712','--social-border':'#5a481b'}},
   'crimson-violet': { name:'Crimson Violet', vars:{'--bg':'#0d0610','--text':'#ffeef7','--muted':'#f5c1da','--border':'#452342','--card-bg-1':'#1a0d22','--card-bg-2':'#130919','--chip-bg':'#150b1d','--chip-border':'#5a2c58','--btn-primary-1':'#ff6aa3','--btn-primary-2':'#b07bff','--btn-neutral-bg':'#1e1524','--social-border':'#553060'}},
   'pine-copper':    { name:'Pine Copper', vars:{'--bg':'#070d0a','--text':'#e9fff6','--muted':'#c2ecd9','--border':'#1d3f33','--card-bg-1':'#0d221b','--card-bg-2':'#091712','--chip-bg':'#0b1d17','--chip-border':'#2a5b49','--btn-primary-1':'#2fe39a','--btn-primary-2':'#ffb072','--btn-neutral-bg':'#0f1a15','--social-border':'#255646'}},
@@ -150,7 +150,7 @@ export default function Dashboard() {
 
   const onChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-  /* ─── CHANGE #1: avatar upload via signed URL + bearer ─── */
+  /* ─── CHANGE #1: avatar upload via signed URL + bearer (use upload token) ─── */
   const onAvatarFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -175,12 +175,14 @@ export default function Dashboard() {
     const initJson = await initRes.json();
     if (!initRes.ok) { setUploading(false); setMsg(initJson.error || 'Upload init failed'); return; }
 
-    // PUT the file to Supabase Storage
+    const uploadToken = initJson.token; // <-- use the upload token returned by API
+
+    // PUT the file to Supabase Storage using the upload token
     await fetch(initJson.signedUrl, {
       method: 'PUT',
       headers: {
         'x-upsert': 'true',
-        'authorization': `Bearer ${token}`,
+        'authorization': `Bearer ${uploadToken}`, // <-- changed
         'content-type': file.type || 'application/octet-stream'
       },
       body: file
@@ -196,7 +198,7 @@ export default function Dashboard() {
   const publicGalleryUrlFor = (path) =>
     path ? supabase.storage.from('gallery').getPublicUrl(path).data.publicUrl : null;
 
-  /* ─── CHANGE #2: gallery uploads via signed URL + bearer ─── */
+  /* ─── CHANGE #2: gallery uploads via signed URL + bearer (use upload token) ─── */
   const onGalleryFiles = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length || !user) return;
@@ -222,11 +224,13 @@ export default function Dashboard() {
       const initJson = await initRes.json();
       if (!initRes.ok) { setMsg(initJson.error || 'Upload init failed'); continue; }
 
+      const uploadToken = initJson.token; // <-- use the upload token for each file
+
       await fetch(initJson.signedUrl, {
         method: 'PUT',
         headers: {
           'x-upsert': 'true',
-          'authorization': `Bearer ${token}`,
+          'authorization': `Bearer ${uploadToken}`, // <-- changed
           'content-type': file.type || 'application/octet-stream'
         },
         body: file
