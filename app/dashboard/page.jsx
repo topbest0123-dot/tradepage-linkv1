@@ -344,7 +344,14 @@ export default function Dashboard() {
     </label>
   );
 
-  const actionsRow = { display: 'flex', gap: 12, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' };
+  // ⬇️ Only change here: grid for 3 equal columns (no wrap)
+  const actionsRow = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  };
   const btn = (style) => ({
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     height: 40, padding: '0 18px', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', cursor: 'pointer', ...style
@@ -528,7 +535,8 @@ Sun Closed`
           aria-label="Theme"
           style={{
             ...btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)' }),
-            height: 40, paddingRight: 26, appearance: 'none'
+            height: 40, paddingRight: 26, appearance: 'none',
+            width: '100%',               // ← make equal width
           }}
         >
           {Object.entries(THEMES).map(([key, t]) => (
@@ -546,7 +554,8 @@ Sun Closed`
             color: '#08101e',
             border: '1px solid var(--border)',
             opacity: slugTaken || checkingSlug || !(form.slug || '').trim() ? 0.6 : 1,
-            cursor: slugTaken || checkingSlug || !(form.slug || '').trim() ? 'not-allowed' : 'pointer'
+            cursor: slugTaken || checkingSlug || !(form.slug || '').trim() ? 'not-allowed' : 'pointer',
+            width: '100%',               // ← make equal width
           })}
         >
           Save
@@ -557,7 +566,7 @@ Sun Closed`
             href={previewHref}
             target="_blank"
             rel="noopener noreferrer"
-            style={btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)' })}
+            style={btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)', width: '100%' })}  // ← equal width
           >
             Preview
           </a>
@@ -566,7 +575,7 @@ Sun Closed`
             type="button"
             disabled
             title={slugTaken ? 'This link is taken' : 'Enter a slug to preview'}
-            style={btn({ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--social-border)', opacity: 0.6, cursor: 'not-allowed' })}
+            style={btn({ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--social-border)', opacity: 0.6, cursor: 'not-allowed', width: '100%' })} // ← equal width
           >
             Preview
           </button>
