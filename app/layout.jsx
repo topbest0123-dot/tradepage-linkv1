@@ -44,6 +44,18 @@ export default function RootLayout({ children }) {
         body{ overflow-x:hidden; }
         img,video{ max-width:100%; height:auto; display:block; }
         input[type="file"]{ max-width:100%; }
+
+        /* ⬇️ ONLY affects /dashboard */
+        body.route-dashboard main{ overflow-x:hidden; }
+        body.route-dashboard main > *{
+          max-width:600px;
+          width:100%;
+          margin-left:auto;
+          margin-right:auto;
+          padding-left:12px;
+          padding-right:12px;
+          box-sizing:border-box;
+        }
       `}</style>
 
       <body
@@ -56,6 +68,25 @@ export default function RootLayout({ children }) {
           overflowX: 'hidden',         // ← prevent horizontal scroll
         }}
       >
+        {/* Marks body when we are on /dashboard so the CSS above only applies there */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                try{
+                  var set = function(){
+                    var b=document.body; if(!b) return;
+                    var on = (location.pathname||'').startsWith('/dashboard');
+                    b.classList.toggle('route-dashboard', on);
+                  };
+                  set();
+                  addEventListener('popstate', set);
+                }catch(e){}
+              })();
+            `,
+          }}
+        />
+
         {/* ⬇️ Mounts the mobile-friendly auth token handler globally */}
         <AuthHandler />
 
