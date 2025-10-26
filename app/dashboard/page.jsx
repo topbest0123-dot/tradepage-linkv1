@@ -207,7 +207,7 @@ export default function Dashboard() {
 
     const newPaths = [];
     for (const [i, file] of files.entries()) {
-      const ext = file.name split('.').pop()?.toLowerCase() || 'jpg';
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'; // ← fixed
       const fileName = `${Date.now()}-${i}.${ext}`;
       const filePath = `${user.id}/${fileName}`;
 
@@ -329,7 +329,7 @@ export default function Dashboard() {
     border: '1px solid var(--chip-border)',
     background: 'var(--chip-bg)',
     color: 'var(--text)',
-    boxSizing: 'border-box',   // ✅ prevents right-edge trim
+    boxSizing: 'border-box',   // prevents right-edge trim
   };
   const input = (label, name, placeholder = '') => (
     <label style={{ display: 'block', marginBottom: 12 }}>
@@ -344,7 +344,7 @@ export default function Dashboard() {
     </label>
   );
 
-  // ⬇️ UPDATED: same width as inputs (520), centered; responsive: stack on narrow screens to avoid text clipping
+  // ⬇ only layout tweak for the bottom row
   const actionsRow = {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
@@ -352,24 +352,24 @@ export default function Dashboard() {
     alignItems: 'center',
     marginTop: 8,
     width: '100%',
-    maxWidth: 520,
-    marginLeft: 'auto',
-    marginRight: 'auto',
+    maxWidth: 520,            // match the inputs’ width
   };
   const btn = (style) => ({
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    height: 40, padding: '0 18px', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', cursor: 'pointer', ...style
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+    padding: '0 18px',
+    borderRadius: 12,
+    fontWeight: 700,
+    fontSize: 14,
+    textDecoration: 'none',
+    cursor: 'pointer',
+    ...style
   });
 
   return (
     <section style={{ overflowX: 'clip' }}>
-      {/* Local, component-scoped responsiveness so mobile doesn't trim text */}
-      <style>{`
-        @media (max-width: 560px){
-          .dash-actions{ grid-template-columns: 1fr; }
-        }
-      `}</style>
-
       <h2>Dashboard</h2>
       <p style={{ opacity: 0.8, marginBottom: 16 }}>
         Signed in as <b>{user.email}</b>
@@ -487,27 +487,55 @@ export default function Dashboard() {
       {input('Location (address or place name) (optional)', 'location', 'e.g. 221B Baker St, London')}
       {input('Location link (Google/Apple Maps URL) (optional)', 'location_url', 'https://maps.google.com/?q=...')}
 
-      {textarea('About (short description)', 'about', `Tell customers who you are and what you do.
-Example: Friendly local handyman with 10+ years’ experience. Reliable, insured, free quotes.`)}
+      {textarea(
+        'About (short description)',
+        'about',
+        `Tell customers who you are and what you do.
+Example: Friendly local handyman with 10+ years’ experience. Reliable, insured, free quotes.`
+      )}
 
-      {textarea('Zones / Areas (comma separated)', 'areas', 'e.g. Birmingham City Centre, Digbeth, Edgbaston')}
+      {textarea(
+        'Zones / Areas (comma separated)',
+        'areas',
+        'e.g. Birmingham City Centre, Digbeth, Edgbaston'
+      )}
 
-      {textarea('Services (comma separated)', 'services', 'e.g. Flat-pack assembly, TV mounting, Painting, Minor plumbing')}
+      {textarea(
+        'Services (comma separated)',
+        'services',
+        'e.g. Flat-pack assembly, TV mounting, Painting, Minor plumbing'
+      )}
 
-      {textarea('Other trades (comma separated) [optional]', 'other_trades', 'e.g. Electrician, Tiler, Plasterer, Painter')}
+      {textarea(
+        'Other trades (comma separated) [optional]',
+        'other_trades',
+        'e.g. Electrician, Tiler, Plasterer, Painter'
+      )}
 
-      {textarea('Prices (one per line optional)', 'prices', `Call-out — from £25
+      {textarea(
+        'Prices (one per line optional)',
+        'prices',
+        `Call-out — from £25
 Hourly rate — from £35
-Boiler service — £80`)}
+Boiler service — £80`
+      )}
 
-      {textarea('Opening hours', 'hours', `Mon–Fri 08:00–18:00
+      {textarea(
+        'Opening hours',
+        'hours',
+        `Mon–Fri 08:00–18:00
 Sat 09:00–13:00
-Sun Closed`)}
+Sun Closed`
+      )}
 
-      {textarea('Other useful information (optional)', 'other_info', 'e.g. Fully insured • DBS checked • Same-day service • Card payments accepted')}
+      {textarea(
+        'Other useful information (optional)',
+        'other_info',
+        'e.g. Fully insured • DBS checked • Same-day service • Card payments accepted'
+      )}
 
       {/* Actions row: THEME PICKER + SAVE + PREVIEW */}
-      <div className="dash-actions" style={actionsRow}>
+      <div style={actionsRow}>
         <select
           name="theme"
           value={form.theme}
@@ -515,8 +543,11 @@ Sun Closed`)}
           aria-label="Theme"
           style={{
             ...btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)' }),
-            height: 40, paddingRight: 26, appearance: 'none',
+            height: 40,
+            paddingRight: 26,
+            appearance: 'none',
             width: '100%',
+            minWidth: 0
           }}
         >
           {Object.entries(THEMES).map(([key, t]) => (
@@ -536,6 +567,7 @@ Sun Closed`)}
             opacity: slugTaken || checkingSlug || !(form.slug || '').trim() ? 0.6 : 1,
             cursor: slugTaken || checkingSlug || !(form.slug || '').trim() ? 'not-allowed' : 'pointer',
             width: '100%',
+            minWidth: 0
           })}
         >
           Save
@@ -546,7 +578,13 @@ Sun Closed`)}
             href={previewHref}
             target="_blank"
             rel="noopener noreferrer"
-            style={btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)', width: '100%' })}
+            style={btn({
+              background: 'transparent',
+              color: 'var(--text)',
+              border: '1px solid var(--social-border)',
+              width: '100%',
+              minWidth: 0
+            })}
           >
             Preview
           </a>
@@ -555,7 +593,15 @@ Sun Closed`)}
             type="button"
             disabled
             title={slugTaken ? 'This link is taken' : 'Enter a slug to preview'}
-            style={btn({ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--social-border)', opacity: 0.6, cursor: 'not-allowed', width: '100%' })}
+            style={btn({
+              background: 'transparent',
+              color: 'var(--muted)',
+              border: '1px solid var(--social-border)',
+              opacity: 0.6,
+              cursor: 'not-allowed',
+              width: '100%',
+              minWidth: 0
+            })}
           >
             Preview
           </button>
