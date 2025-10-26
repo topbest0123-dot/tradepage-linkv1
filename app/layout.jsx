@@ -40,6 +40,10 @@ export default function RootLayout({ children }) {
           --btn-primary-1:#66e0b9; --btn-primary-2:#8ab4ff;
           --btn-neutral-bg:#1f2937; --social-border:#213a6b;
         }
+        /* one-place mobile overflow guard */
+        body{ overflow-x:hidden; }
+        img,video{ max-width:100%; height:auto; display:block; }
+        input[type="file"]{ max-width:100%; }
       `}</style>
 
       <body
@@ -49,6 +53,7 @@ export default function RootLayout({ children }) {
           padding: 0,
           background: 'var(--bg)',     // was hard-coded #0a0f14
           color: 'var(--text)',        // follow theme text
+          overflowX: 'hidden',         // ← prevent horizontal scroll
         }}
       >
         {/* ⬇️ Mounts the mobile-friendly auth token handler globally */}
