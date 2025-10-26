@@ -345,7 +345,16 @@ export default function Dashboard() {
   });
 
   return (
-    <section>
+  <section
+    style={{
+      maxWidth: 600,
+      width: '100%',
+      margin: '0 auto',
+      padding: '0 12px',
+      boxSizing: 'border-box', // counts padding in the width
+      overflowX: 'clip',       // kills tiny horizontal scroll
+    }}
+  >
       <h2>Dashboard</h2>
       <p style={{ opacity: 0.8, marginBottom: 16 }}>
         Signed in as <b>{user.email}</b>
