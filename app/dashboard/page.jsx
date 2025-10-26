@@ -38,7 +38,7 @@ const THEMES = {
   'skyline-graphite': { name:'Skyline Graphite', vars:{'--bg':'#f6f8fb','--text':'#0f1318','--muted':'#4d5a6b','--border':'#ccd7e5','--card-bg-1':'#e3e8f0','--card-bg-2':'#dce3ec','--chip-bg':'#e9eff6','--chip-border':'#cfd9e6','--btn-primary-1':'#0ea5e9','--btn-primary-2':'#10b981','--btn-neutral-bg':'#e7eef5','--social-border':'#c8d4e2'}},
   'midnight-lime':  { name:'Midnight Lime', vars:{'--bg':'#0a1210','--text':'#ecfff6','--muted':'#b5e1cf','--border':'#234137','--card-bg-1':'#121c19','--card-bg-2':'#0f1714','--chip-bg':'#111b17','--chip-border':'#2a4b3f','--btn-primary-1':'#34d399','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#131c19','--social-border':'#2a4b3f'}},
   'ink-rose':       { name:'Ink Rose', vars:{'--bg':'#0f0a0b','--text':'#ffeef2','--muted':'#f1c3cf','--border':'#4a2832','--card-bg-1':'#1a1215','--card-bg-2':'#140e11','--chip-bg':'#171015','--chip-border':'#56303c','--btn-primary-1':'#ff6aa3','--btn-primary-2':'#a78bfa','--btn-neutral-bg':'#1b1417','--social-border':'#53303b'}},
-  'charcoal-ice':   { name:'Charcoal Ice', vars:{'--bg':'#0b0f14','--text':'#eef6ff','--muted':'#cbdaf0','--border':'#243446','--card-bg-1':'#141a22','--card-bg-2':'#10161d','--chip-bg':'#121820','--chip-border':'#2a3b4f','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#151b22','--social-border':'#2a3a4d'}},
+  'charcoal-ice':   { name:'Charcoal Ice', vars:{'--bg':'#0b0f14','--text':'#eef6ff','--muted':'#cbdaf0','--border':'#243446','--card-bg-1':'#141a22','--card-bg-2':'#10161d','--chip-bg':'#121820','--chip-border':'#2a3a4d','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#151b22','--social-border':'#2a3a4d'}},
   'ember-ash':      { name:'Ember Ash', vars:{'--bg':'#0f0e0c','--text':'#fff7e8','--muted':'#f3d9a8','--border':'#4a4023','--card-bg-1':'#18150f','--card-bg-2':'#13100c','--chip-bg':'#15120d','--chip-border':'#5a4d26','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#18150f','--social-border':'#5a4d26'}}
 };
 
@@ -344,13 +344,18 @@ export default function Dashboard() {
     </label>
   );
 
-  // ⬇️ Only change here: grid for 3 equal columns (no wrap)
+  // ⬇️ UPDATED: center the 3 equal buttons and give side padding so they don't touch/clip the edges
   const actionsRow = {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
     gap: 12,
     alignItems: 'center',
     marginTop: 8,
+    width: '100%',
+    maxWidth: 600,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    padding: '0 12px',
   };
   const btn = (style) => ({
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -536,7 +541,7 @@ Sun Closed`
           style={{
             ...btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)' }),
             height: 40, paddingRight: 26, appearance: 'none',
-            width: '100%',               // ← make equal width
+            width: '100%',
           }}
         >
           {Object.entries(THEMES).map(([key, t]) => (
@@ -555,7 +560,7 @@ Sun Closed`
             border: '1px solid var(--border)',
             opacity: slugTaken || checkingSlug || !(form.slug || '').trim() ? 0.6 : 1,
             cursor: slugTaken || checkingSlug || !(form.slug || '').trim() ? 'not-allowed' : 'pointer',
-            width: '100%',               // ← make equal width
+            width: '100%',
           })}
         >
           Save
@@ -566,7 +571,7 @@ Sun Closed`
             href={previewHref}
             target="_blank"
             rel="noopener noreferrer"
-            style={btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)', width: '100%' })}  // ← equal width
+            style={btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)', width: '100%' })}
           >
             Preview
           </a>
@@ -575,7 +580,7 @@ Sun Closed`
             type="button"
             disabled
             title={slugTaken ? 'This link is taken' : 'Enter a slug to preview'}
-            style={btn({ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--social-border)', opacity: 0.6, cursor: 'not-allowed', width: '100%' })} // ← equal width
+            style={btn({ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--social-border)', opacity: 0.6, cursor: 'not-allowed', width: '100%' })}
           >
             Preview
           </button>
@@ -585,4 +590,4 @@ Sun Closed`
       {msg ? <p style={{ marginTop: 10 }}>{msg}</p> : null}
     </section>
   );
-}
+    }
