@@ -13,6 +13,7 @@ const THEMES = {
   'graphite-ember': { name:'Graphite Ember', vars:{'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'}},
   'sapphire-ice':   { name:'Sapphire Ice', vars:{'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#0b2235','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'}},
   'forest-emerald': { name:'Forest Emerald', vars:{'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'}},
+
   // LIGHT
   'porcelain-mint': { name:'Porcelain Mint', vars:{'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'}},
   'paper-snow':     { name:'Paper Snow', vars:{'--bg':'#ffffff','--text':'#121417','--muted':'#5b6777','--border':'#e5e7ea','--card-bg-1':'#ffffff','--card-bg-2':'#f7f9fb','--chip-bg':'#f3f5f7','--chip-border':'#e5e7ea','--btn-primary-1':'#3b82f6','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#eef2f6','--social-border':'#dfe3e8'}},
@@ -27,9 +28,18 @@ const THEMES = {
   'pearl-latte':    { name:'Pearl Latte', vars:{'--bg':'#fffaf3','--text':'#191512','--muted':'#6e655e','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6efe3','--chip-bg':'#f4ede2','--chip-border':'#eadfcd','--btn-primary-1':'#c18f5a','--btn-primary-2':'#59c9a9','--btn-neutral-bg':'#efe6da','--social-border':'#e1d6c4'}},
   'icy-lilac':      { name:'Icy Lilac', vars:{'--bg':'#fbf7ff','--text':'#121018','--muted':'#6c6880','--border':'#e2d9fa','--card-bg-1':'#ffffff','--card-bg-2':'#f5f1ff','--chip-bg':'#f3efff','--chip-border':'#e2d9fa','--btn-primary-1':'#9f87ff','--btn-primary-2':'#7adfff','--btn-neutral-bg':'#efeafc','--social-border':'#ddd3fa'}},
   'citrus-cream':   { name:'Citrus Cream', vars:{'--bg':'#fffef6','--text':'#0f1208','--muted':'#6a6f57','--border':'#ece7c9','--card-bg-1':'#ffffff','--card-bg-2':'#faf7e3','--chip-bg':'#f6f3de','--chip-border':'#ece7c9','--btn-primary-1':'#ffb84d','--btn-primary-2':'#79e66f','--btn-neutral-bg':'#f0eddc','--social-border':'#e6e0c6'}},
-  'sunset-apricot':  { name:'Sunset Apricot', vars:{'--bg':'#0f0b09','--text':'#fff4ec','--muted':'#ffd9c2','--border':'#3a2a22','--card-bg-1':'#2a1b16','--card-bg-2':'#1a120e','--chip-bg':'#231611','--chip-border':'#4a3329','--btn-primary-1':'#ffb86b','--btn-primary-2':'#ff6aa2','--btn-neutral-bg':'#2b1f1a','--social-border':'#4d3a30'}},
-  'minted-ivory':    { name:'Minted Ivory',   vars:{'--bg':'#fbfffd','--text':'#132018','--muted':'#4d6d5e','--border':'#d7eee4','--card-bg-1':'#ffffff','--card-bg-2':'#f3fbf7','--chip-bg':'#eff9f4','--chip-border':'#d7eee4','--btn-primary-1':'#10b981','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#e7f3ed','--social-border':'#cfe7dc'}},
-  'citrus-cream':    { name:'Citrus Cream',   vars:{'--bg':'#fffef7','--text':'#17160f','--muted':'#6b6a55','--border':'#efe9c9','--card-bg-1':'#ffffff','--card-bg-2':'#faf6e4','--chip-bg':'#f7f3df','--chip-border':'#efe9c9','--btn-primary-1':'#f59e0b','--btn-primary-2':'#34d399','--btn-neutral-bg':'#efe9da','--social-border':'#e7dfc3'}},
+  'sunset-apricot': { name:'Sunset Apricot', vars:{'--bg':'#0f0b09','--text':'#fff4ec','--muted':'#ffd9c2','--border':'#3a2a22','--card-bg-1':'#2a1b16','--card-bg-2':'#1a120e','--chip-bg':'#231611','--chip-border':'#4a3329','--btn-primary-1':'#ffb86b','--btn-primary-2':'#ff6aa2','--btn-neutral-bg':'#2b1f1a','--social-border':'#4d3a30'}},
+  'minted-ivory':   { name:'Minted Ivory', vars:{'--bg':'#fbfffd','--text':'#132018','--muted':'#4d6d5e','--border':'#d7eee4','--card-bg-1':'#ffffff','--card-bg-2':'#f3fbf7','--chip-bg':'#eff9f4','--chip-border':'#d7eee4','--btn-primary-1':'#10b981','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#e7f3ed','--social-border':'#cfe7dc'}},
+  'latte-ink':      { name:'Latte Ink', vars:{'--bg':'#f6efe3','--text':'#171311','--muted':'#6b5e50','--border':'#dccdb5','--card-bg-1':'#ebe1cf','--card-bg-2':'#e6d8c4','--chip-bg':'#ede3d3','--chip-border':'#d9c9b0','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#efe6d6','--social-border':'#d6c6ae'}},
+  'ocean-fog':      { name:'Ocean Fog', vars:{'--bg':'#f2f6fa','--text':'#10151a','--muted':'#4d6275','--border':'#cbd8e6','--card-bg-1':'#e1e9f1','--card-bg-2':'#d9e3ee','--chip-bg':'#e7eff6','--chip-border':'#cbd8e6','--btn-primary-1':'#3b82f6','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#eaf2f8','--social-border':'#c6d6e6'}},
+  'sage-stone':     { name:'Sage Stone', vars:{'--bg':'#f3f7f2','--text':'#101412','--muted':'#4d6457','--border':'#c7d7c9','--card-bg-1':'#e3eadf','--card-bg-2':'#dae4d6','--chip-bg':'#e8efe7','--chip-border':'#c7d7c9','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fa8ff','--btn-neutral-bg':'#e7efe9','--social-border':'#c3d4c6'}},
+  'peach-slate':    { name:'Peach Slate', vars:{'--bg':'#fff6f0','--text':'#221814','--muted':'#6f5a50','--border':'#ead3c4','--card-bg-1':'#f3e1d6','--card-bg-2':'#edd6c9','--chip-bg':'#f7e6db','--chip-border':'#ead3c4','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#f3e8df','--social-border':'#e5cfc0'}},
+  'cobalt-cream':   { name:'Cobalt Cream', vars:{'--bg':'#fffdf8','--text':'#111214','--muted':'#5a5e66','--border':'#e3dccf','--card-bg-1':'#eee9df','--card-bg-2':'#e7e0d6','--chip-bg':'#f1ebe2','--chip-border':'#e3dccf','--btn-primary-1':'#2563eb','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#f2ece3','--social-border':'#ddd4c7'}},
+  'skyline-graphite': { name:'Skyline Graphite', vars:{'--bg':'#f6f8fb','--text':'#0f1318','--muted':'#4d5a6b','--border':'#ccd7e5','--card-bg-1':'#e3e8f0','--card-bg-2':'#dce3ec','--chip-bg':'#e9eff6','--chip-border':'#cfd9e6','--btn-primary-1':'#0ea5e9','--btn-primary-2':'#10b981','--btn-neutral-bg':'#e7eef5','--social-border':'#c8d4e2'}},
+  'midnight-lime':  { name:'Midnight Lime', vars:{'--bg':'#0a1210','--text':'#ecfff6','--muted':'#b5e1cf','--border':'#234137','--card-bg-1':'#121c19','--card-bg-2':'#0f1714','--chip-bg':'#111b17','--chip-border':'#2a4b3f','--btn-primary-1':'#34d399','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#131c19','--social-border':'#2a4b3f'}},
+  'ink-rose':       { name:'Ink Rose', vars:{'--bg':'#0f0a0b','--text':'#ffeef2','--muted':'#f1c3cf','--border':'#4a2832','--card-bg-1':'#1a1215','--card-bg-2':'#140e11','--chip-bg':'#171015','--chip-border':'#56303c','--btn-primary-1':'#ff6aa3','--btn-primary-2':'#a78bfa','--btn-neutral-bg':'#1b1417','--social-border':'#53303b'}},
+  'charcoal-ice':   { name:'Charcoal Ice', vars:{'--bg':'#0b0f14','--text':'#eef6ff','--muted':'#cbdaf0','--border':'#243446','--card-bg-1':'#141a22','--card-bg-2':'#10161d','--chip-bg':'#121820','--chip-border':'#2a3b4f','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#151b22','--social-border':'#2a3a4d'}},
+  'ember-ash':      { name:'Ember Ash', vars:{'--bg':'#0f0e0c','--text':'#fff7e8','--muted':'#f3d9a8','--border':'#4a4023','--card-bg-1':'#18150f','--card-bg-2':'#13100c','--chip-bg':'#15120d','--chip-border':'#5a4d26','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#18150f','--social-border':'#5a4d26'}}
 };
 
 /* apply theme to <html> (whole app) */
@@ -140,16 +150,43 @@ export default function Dashboard() {
 
   const onChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
+  /* ─── CHANGE #1: avatar upload via signed URL + bearer ─── */
   const onAvatarFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     setUploading(true); setMsg('');
+
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const fileName = `${Date.now()}.${ext}`;
     const filePath = `${user.id}/${fileName}`;
-    const { error } = await supabase.storage.from('avatars').upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    // ask our API for a signed upload URL
+    const initRes = await fetch('/api/storage/signed-upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ bucket: 'avatars', path: filePath, contentType: file.type })
+    });
+    const initJson = await initRes.json();
+    if (!initRes.ok) { setUploading(false); setMsg(initJson.error || 'Upload init failed'); return; }
+
+    // PUT the file to Supabase Storage
+    await fetch(initJson.signedUrl, {
+      method: 'PUT',
+      headers: {
+        'x-upsert': 'true',
+        'authorization': `Bearer ${token}`,
+        'content-type': file.type || 'application/octet-stream'
+      },
+      body: file
+    });
+
     setUploading(false);
-    if (error) return setMsg(error.message);
     setForm(prev => ({ ...prev, avatar_path: filePath }));
     setAvatarUrl(publicUrlFor(filePath));
     setMsg('Logo uploaded — click Save to keep it.');
@@ -159,10 +196,14 @@ export default function Dashboard() {
   const publicGalleryUrlFor = (path) =>
     path ? supabase.storage.from('gallery').getPublicUrl(path).data.publicUrl : null;
 
+  /* ─── CHANGE #2: gallery uploads via signed URL + bearer ─── */
   const onGalleryFiles = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length || !user) return;
     setUploading(true); setMsg('');
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
 
     const newPaths = [];
     for (const [i, file] of files.entries()) {
@@ -170,11 +211,27 @@ export default function Dashboard() {
       const fileName = `${Date.now()}-${i}.${ext}`;
       const filePath = `${user.id}/${fileName}`;
 
-      const { error } = await supabase.storage
-        .from('gallery')
-        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+      const initRes = await fetch('/api/storage/signed-upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ bucket: 'gallery', path: filePath, contentType: file.type })
+      });
+      const initJson = await initRes.json();
+      if (!initRes.ok) { setMsg(initJson.error || 'Upload init failed'); continue; }
 
-      if (error) { setMsg(error.message); continue; }
+      await fetch(initJson.signedUrl, {
+        method: 'PUT',
+        headers: {
+          'x-upsert': 'true',
+          'authorization': `Bearer ${token}`,
+          'content-type': file.type || 'application/octet-stream'
+        },
+        body: file
+      });
+
       newPaths.push(filePath);
     }
 
@@ -236,14 +293,21 @@ export default function Dashboard() {
       updated_at: new Date().toISOString(),
     };
 
-    const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' });
-    if (error) {
-      // 23505 = unique violation
-      if (error.code === '23505') {
-        setMsg('This link is taken. Please try another.');
-      } else {
-        setMsg(error.message);
-      }
+    /* ─── CHANGE #3: save via API with bearer token ─── */
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    const resp = await fetch('/api/profile/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(row)
+    });
+    const out = await resp.json();
+    if (!resp.ok) {
+      setMsg(out.error || 'Save failed');
       return;
     }
     setMsg('Saved!');
@@ -506,4 +570,4 @@ Sun Closed`
       {msg ? <p style={{ marginTop: 10 }}>{msg}</p> : null}
     </section>
   );
-  }
+}
