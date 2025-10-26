@@ -568,6 +568,6 @@ Sun Closed`
       </div>
 
       {msg ? <p style={{ marginTop: 10 }}>{msg}</p> : null}
-    <section style={{ maxWidth: 600, width: '100%', margin: '0 auto', padding: '0 12px' }}>
+    <section/>
   );
 }
