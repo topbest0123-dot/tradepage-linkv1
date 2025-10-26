@@ -322,8 +322,14 @@ export default function Dashboard() {
 
   /* UI helpers */
   const fieldBase = {
-    padding: 12, width: '100%', maxWidth: 520, borderRadius: 12,
-    border: '1px solid var(--chip-border)', background: 'var(--chip-bg)', color: 'var(--text)'
+    padding: 12,
+    width: '100%',
+    maxWidth: 520,
+    borderRadius: 12,
+    border: '1px solid var(--chip-border)',
+    background: 'var(--chip-bg)',
+    color: 'var(--text)',
+    boxSizing: 'border-box',   // ✅ prevents right-edge trim
   };
   const input = (label, name, placeholder = '') => (
     <label style={{ display: 'block', marginBottom: 12 }}>
