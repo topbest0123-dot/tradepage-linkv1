@@ -77,7 +77,7 @@ export default function RootLayout({ children }) {
   }}
 >
   <img
-    src="/logo.svg"          // or /logo.png
+    src="/logo.png"          // or /logo.svg
     alt="TradePage logo"
     width={28}
     height={28}
