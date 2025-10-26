@@ -207,7 +207,7 @@ export default function Dashboard() {
 
     const newPaths = [];
     for (const [i, file] of files.entries()) {
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'; // ← fixed
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `${Date.now()}-${i}.${ext}`;
       const filePath = `${user.id}/${fileName}`;
 
@@ -344,7 +344,7 @@ export default function Dashboard() {
     </label>
   );
 
-  // ⬇ only layout tweak for the bottom row
+  // ⬇ CHANGE A: centered 3-column grid row, same width as fields
   const actionsRow = {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
@@ -352,8 +352,11 @@ export default function Dashboard() {
     alignItems: 'center',
     marginTop: 8,
     width: '100%',
-    maxWidth: 520,            // match the inputs’ width
+    maxWidth: 520,
+    marginInline: 'auto',
   };
+
+  // ⬇ CHANGE B: buttons/selects fill their grid cell and never overflow
   const btn = (style) => ({
     display: 'inline-flex',
     alignItems: 'center',
@@ -365,6 +368,9 @@ export default function Dashboard() {
     fontSize: 14,
     textDecoration: 'none',
     cursor: 'pointer',
+    width: '100%',
+    minWidth: 0,
+    boxSizing: 'border-box',
     ...style
   });
 
@@ -546,8 +552,7 @@ Sun Closed`
             height: 40,
             paddingRight: 26,
             appearance: 'none',
-            width: '100%',
-            minWidth: 0
+            boxSizing: 'border-box' // ensure no overflow
           }}
         >
           {Object.entries(THEMES).map(([key, t]) => (
@@ -565,9 +570,7 @@ Sun Closed`
             color: '#08101e',
             border: '1px solid var(--border)',
             opacity: slugTaken || checkingSlug || !(form.slug || '').trim() ? 0.6 : 1,
-            cursor: slugTaken || checkingSlug || !(form.slug || '').trim() ? 'not-allowed' : 'pointer',
-            width: '100%',
-            minWidth: 0
+            cursor: slugTaken || checkingSlug || !(form.slug || '').trim() ? 'not-allowed' : 'pointer'
           })}
         >
           Save
@@ -578,13 +581,7 @@ Sun Closed`
             href={previewHref}
             target="_blank"
             rel="noopener noreferrer"
-            style={btn({
-              background: 'transparent',
-              color: 'var(--text)',
-              border: '1px solid var(--social-border)',
-              width: '100%',
-              minWidth: 0
-            })}
+            style={btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)' })}
           >
             Preview
           </a>
@@ -593,15 +590,7 @@ Sun Closed`
             type="button"
             disabled
             title={slugTaken ? 'This link is taken' : 'Enter a slug to preview'}
-            style={btn({
-              background: 'transparent',
-              color: 'var(--muted)',
-              border: '1px solid var(--social-border)',
-              opacity: 0.6,
-              cursor: 'not-allowed',
-              width: '100%',
-              minWidth: 0
-            })}
+            style={btn({ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--social-border)', opacity: 0.6, cursor: 'not-allowed' })}
           >
             Preview
           </button>
