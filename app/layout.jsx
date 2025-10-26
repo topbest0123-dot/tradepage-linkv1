@@ -51,8 +51,9 @@ export default function RootLayout({ children }) {
           color: 'var(--text)',        // follow theme text
         }}
       >
-        {/* ⬇️ Mounts the mobile-friendly auth token handler globally */}
-        <AuthHandler />
+        {/* TEMP: disable AuthHandler to stop redirect loop */}
+        {/* <AuthHandler /> */}
+
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
           <header
