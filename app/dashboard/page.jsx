@@ -568,6 +568,6 @@ Sun Closed`
       </div>
 
       {msg ? <p style={{ marginTop: 10 }}>{msg}</p> : null}
-    <section/>
+    </section>
   );
 }
