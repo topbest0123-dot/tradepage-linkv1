@@ -20,7 +20,7 @@ const THEMES = {
   'linen-rose':     { name:'Linen Rose', vars:{'--bg':'#fbf7f5','--text':'#221a16','--muted':'#6d5c54','--border':'#eaded7','--card-bg-1':'#ffffff','--card-bg-2':'#f6efeb','--chip-bg':'#f2eae6','--chip-border':'#eaded7','--btn-primary-1':'#f472b6','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#efe7e3','--social-border':'#e6d9d1'}},
   'sandstone':      { name:'Sandstone', vars:{'--bg':'#faf7f1','--text':'#191714','--muted':'#6f675f','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6f1e7','--chip-bg':'#f2ece1','--chip-border':'#eadfcd','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#efe9df','--social-border':'#e6dac7'}},
   'cloud-blue':     { name:'Cloud Blue', vars:{'--bg':'#f6fbff','--text':'#0e141a','--muted':'#526576','--border':'#d8e6f1','--card-bg-1':'#ffffff','--card-bg-2':'#eff6fb','--chip-bg':'#edf4fa','--chip-border':'#d8e6f1','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#eaf2f8','--social-border':'#d3e2ee'}},
-  'ivory-ink':      { name:'Ivory Ink', vars:{'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#f5f1ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'}},
+  'ivory-ink':      { name:'Ivory Ink', vars:{'--bg':'#fffdf7','--text':'#101112','--muted':'#5a5e66','--border':'#ebe7db','--card-bg-1':'#ffffff','--card-bg-2':'#faf7ef','--chip-bg':'#f7f4ed','--chip-border':'#ebe7db','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#f1ede4','--social-border':'#e7e2d6'}},
   'amber-carbon':   { name:'Amber Carbon', vars:{'--bg':'#0d0b07','--text':'#fff7e6','--muted':'#f3d5a6','--border':'#4a3b17','--card-bg-1':'#1a150d','--card-bg-2':'#120f0a','--chip-bg':'#17120c','--chip-border':'#5c4a1a','--btn-primary-1':'#f5b04c','--btn-primary-2':'#38e1b9','--btn-neutral-bg':'#1b1712','--social-border':'#5a481b'}},
   'crimson-violet': { name:'Crimson Violet', vars:{'--bg':'#0d0610','--text':'#ffeef7','--muted':'#f5c1da','--border':'#452342','--card-bg-1':'#1a0d22','--card-bg-2':'#130919','--chip-bg':'#150b1d','--chip-border':'#5a2c58','--btn-primary-1':'#ff6aa3','--btn-primary-2':'#b07bff','--btn-neutral-bg':'#1e1524','--social-border':'#553060'}},
   'pine-copper':    { name:'Pine Copper', vars:{'--bg':'#070d0a','--text':'#e9fff6','--muted':'#c2ecd9','--border':'#1d3f33','--card-bg-1':'#0d221b','--card-bg-2':'#091712','--chip-bg':'#0b1d17','--chip-border':'#2a5b49','--btn-primary-1':'#2fe39a','--btn-primary-2':'#ffb072','--btn-neutral-bg':'#0f1a15','--social-border':'#255646'}},
@@ -37,20 +37,11 @@ const THEMES = {
   'cobalt-cream':   { name:'Cobalt Cream', vars:{'--bg':'#fffdf8','--text':'#111214','--muted':'#5a5e66','--border':'#e3dccf','--card-bg-1':'#eee9df','--card-bg-2':'#e7e0d6','--chip-bg':'#f1ebe2','--chip-border':'#e3dccf','--btn-primary-1':'#2563eb','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#f2ece3','--social-border':'#ddd4c7'}},
   'skyline-graphite': { name:'Skyline Graphite', vars:{'--bg':'#f6f8fb','--text':'#0f1318','--muted':'#4d5a6b','--border':'#ccd7e5','--card-bg-1':'#e3e8f0','--card-bg-2':'#dce3ec','--chip-bg':'#e9eff6','--chip-border':'#cfd9e6','--btn-primary-1':'#0ea5e9','--btn-primary-2':'#10b981','--btn-neutral-bg':'#e7eef5','--social-border':'#c8d4e2'}},
   'midnight-lime':  { name:'Midnight Lime', vars:{'--bg':'#0a1210','--text':'#ecfff6','--muted':'#b5e1cf','--border':'#234137','--card-bg-1':'#121c19','--card-bg-2':'#0f1714','--chip-bg':'#111b17','--chip-border':'#2a4b3f','--btn-primary-1':'#34d399','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#131c19','--social-border':'#2a4b3f'}},
-  'ink-rose':{name:'Ink Rose',vars:{'--bg':'#0f0a0b','--text':'#ffeef2','--muted':'#f1c3cf','--border':'#4a2832','--card-bg-1':'#1a1215','--card-bg-2':'#140e11','--chip-bg':'#171015','--chip-border':'#56303c','--btn-primary-1':'#ff6aa3','--btn-primary-2':'#a78bfa','--btn-neutral-bg':'#1b1417','--social-border':'#53303b'}},
-'charcoal-ice':{name:'Charcoal Ice',vars:{'--bg':'#0b0f14','--text':'#eef6ff','--muted':'#cbdaf0','--border':'#243446','--card-bg-1':'#141a22','--card-bg-2':'#10161d','--chip-bg':'#121820','--chip-border':'#2a3b4f','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#151b22','--social-border':'#2a3a4d'}},
-'ember-ash':{name:'Ember Ash',vars:{'--bg':'#0f0e0c','--text':'#fff7e8','--muted':'#f3d9a8','--border':'#4a4023','--card-bg-1':'#18150f','--card-bg-2':'#13100c','--chip-bg':'#15120d','--chip-border':'#5a4d26','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#18150f','--social-border':'#5a4d26'}},
-'aurora-mist':{name:'Aurora Mist',vars:{'--bg':'#f4fbff','--text':'#0e1418','--muted':'#4c6272','--border':'#cfe0ea','--card-bg-1':'#e2edf5','--card-bg-2':'#dbe7f1','--chip-bg':'#eaf2f8','--chip-border':'#cfe0ea','--btn-primary-1':'#22c55e','--btn-primary-2':'#3b82f6','--btn-neutral-bg':'#e8f1f6','--social-border':'#c9dae5'}},
-'honey-slate':{name:'Honey Slate',vars:{'--bg':'#fff7e8','--text':'#1a1410','--muted':'#6b5a46','--border':'#e8d6b8','--card-bg-1':'#f0e4cf','--card-bg-2':'#ead9c3','--chip-bg':'#f4e9d6','--chip-border':'#e6d2b3','--btn-primary-1':'#f59e0b','--btn-primary-2':'#10b981','--btn-neutral-bg':'#efe3cf','--social-border':'#e1ceb0'}},
-'neon-noir':{name:'Neon Noir',vars:{'--bg':'#0b0b12','--text':'#eaffff','--muted':'#a8dbd6','--border':'#233347','--card-bg-1':'#141a26','--card-bg-2':'#101520','--chip-bg':'#121826','--chip-border':'#2a3d55','--btn-primary-1':'#22d3ee','--btn-primary-2':'#a78bfa','--btn-neutral-bg':'#131924','--social-border':'#2b3f57'}},
-'forest-bronze':{name:'Forest Bronze',vars:{'--bg':'#0c1210','--text':'#fef7ec','--muted':'#e5d4b4','--border':'#3b3a24','--card-bg-1':'#171c18','--card-bg-2':'#121814','--chip-bg':'#141914','--chip-border':'#4a472e','--btn-primary-1':'#84cc16','--btn-primary-2':'#f59e0b','--btn-neutral-bg':'#141a15','--social-border':'#4a452c'}},
-'glacier-sunrise':{name:'Glacier Sunrise',vars:{'--bg':'#f8fbff','--text':'#0f141a','--muted':'#506175','--border':'#d6e3f0','--card-bg-1':'#e6eef7','--card-bg-2':'#dee8f3','--chip-bg':'#ebf2f9','--chip-border':'#d3e1ee','--btn-primary-1':'#60a5fa','--btn-primary-2':'#f59e0b','--btn-neutral-bg':'#e9f0f7','--social-border':'#cfe0ee'}},
-'coral-ink':{name:'Coral Ink',vars:{'--bg':'#fff5f6','--text':'#1d1012','--muted':'#6e4d53','--border':'#efccd2','--card-bg-1':'#f1dbe0','--card-bg-2':'#ebced5','--chip-bg':'#f6e4e8','--chip-border':'#efccd2','--btn-primary-1':'#fb7185','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#f3e1e6','--social-border':'#e9c3cb'}},
-'jade-charcoal':{name:'Jade Charcoal',vars:{'--bg':'#071312','--text':'#e8fff8','--muted':'#b7e3d5','--border':'#1d3b36','--card-bg-1':'#0f1d1b','--card-bg-2':'#0b1715','--chip-bg':'#0e1a18','--chip-border':'#25463f','--btn-primary-1':'#10b981','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#101d1a','--social-border':'#274840'}},
-'royal-snow':{name:'Royal Snow',vars:{'--bg':'#f6f8ff','--text':'#0f1220','--muted':'#4a557a','--border':'#d1d7ee','--card-bg-1':'#e4e8f6','--card-bg-2':'#dde2f4','--chip-bg':'#eaedf9','--chip-border':'#cdd5ec','--btn-primary-1':'#6366f1','--btn-primary-2':'#06b6d4','--btn-neutral-bg':'#e9ecf7','--social-border':'#c7cfee'}},
-'cocoa-mint':{name:'Cocoa Mint',vars:{'--bg':'#0f0a07','--text':'#f6fff9','--muted':'#cceadd','--border':'#3c3123','--card-bg-1':'#19130e','--card-bg-2':'#140f0b','--chip-bg':'#16110c','--chip-border':'#4a3b2c','--btn-primary-1':'#10b981','--btn-primary-2':'#f59e0b','--btn-neutral-bg':'#19130e','--social-border':'#4a3b2c'}},
-'plum-amber':{name:'Plum Amber',vars:{'--bg':'#0a0812','--text':'#fff7ea','--muted':'#f3d7a9','--border':'#3f2f3a','--card-bg-1':'#151124','--card-bg-2':'#110e1b','--chip-bg':'#120f1d','--chip-border':'#4a3946','--btn-primary-1':'#fbbf24','--btn-primary-2':'#8b5cf6','--btn-neutral-bg':'#151225','--social-border':'#4a3a47'}},
-}; // ← keep this exactly once, after the last line
+  'ink-rose':       { name:'Ink Rose', vars:{'--bg':'#0f0a0b','--text':'#ffeef2','--muted':'#f1c3cf','--border':'#4a2832','--card-bg-1':'#1a1215','--card-bg-2':'#140e11','--chip-bg':'#171015','--chip-border':'#56303c','--btn-primary-1':'#ff6aa3','--btn-primary-2':'#a78bfa','--btn-neutral-bg':'#1b1417','--social-border':'#53303b'}},
+  'charcoal-ice':   { name:'Charcoal Ice', vars:{'--bg':'#0b0f14','--text':'#eef6ff','--muted':'#cbdaf0','--border':'#243446','--card-bg-1':'#141a22','--card-bg-2':'#10161d','--chip-bg':'#121820','--chip-border':'#2a3b4f','--btn-primary-1':'#60a5fa','--btn-primary-2':'#34d399','--btn-neutral-bg':'#151b22','--social-border':'#2a3a4d'}},
+  'ember-ash':      { name:'Ember Ash', vars:{'--bg':'#0f0e0c','--text':'#fff7e8','--muted':'#f3d9a8','--border':'#4a4023','--card-bg-1':'#18150f','--card-bg-2':'#13100c','--chip-bg':'#15120d','--chip-border':'#5a4d26','--btn-primary-1':'#f59e0b','--btn-primary-2':'#84cc16','--btn-neutral-bg':'#18150f','--social-border':'#5a4d26'}}
+};
+
 /* apply theme to <html> (whole app) */
 const applyTheme = (key) => {
   const t = THEMES[key] || THEMES['deep-navy'];
@@ -87,7 +78,7 @@ export default function Dashboard() {
     theme: 'deep-navy',
     other_info: '',
     gallery: [],
-    other_trades: '',            // ← added
+    other_trades: '',
   });
 
   /* load profile */
@@ -113,7 +104,7 @@ export default function Dashboard() {
           location: data.location ?? '', location_url: data.location_url ?? '',
           avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '',
           gallery: Array.isArray(data.gallery) ? data.gallery : [],
-          other_trades: data.other_trades ?? '',   // ← added
+          other_trades: data.other_trades ?? '',
         }));
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
         applyTheme(data.theme ?? 'deep-navy');
@@ -126,16 +117,20 @@ export default function Dashboard() {
     load();
   }, [router]);
 
+  /* keep session fresh when tab regains focus (prevents stale token) */
+  useEffect(() => {
+    const onFocus = () => { supabase.auth.getSession(); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
+
   /* live theme preview */
   useEffect(() => { applyTheme(form.theme); }, [form.theme]);
 
   /* live slug availability check */
   useEffect(() => {
     const s = (form.slug || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, '-')
-      .replace(/-+/g, '-');
+      .trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
 
     if (!s || !user) { setSlugTaken(false); return; }
 
@@ -159,101 +154,116 @@ export default function Dashboard() {
 
   const onChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-  /* ─── CHANGE #1: avatar upload via signed URL + bearer (use upload token) ─── */
+  // helper to ensure we have a fresh access token for calling our API
+  const getBearer = async () => {
+    let { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      await supabase.auth.refreshSession();
+      ({ data: { session } } = await supabase.auth.getSession());
+    }
+    return session?.access_token || null;
+  };
+
+  /* ─── avatar upload via signed URL token ─── */
   const onAvatarFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     setUploading(true); setMsg('');
 
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const fileName = `${Date.now()}.${ext}`;
-    const filePath = `${user.id}/${fileName}`;
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${Date.now()}.${ext}`;
+      const filePath = `${user.id}/${fileName}`;
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
+      const bearer = await getBearer();
+      if (!bearer) throw new Error('Not signed in');
 
-    // ask our API for a signed upload URL
-    const initRes = await fetch('/api/storage/signed-upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ bucket: 'avatars', path: filePath, contentType: file.type })
-    });
-    const initJson = await initRes.json();
-    if (!initRes.ok) { setUploading(false); setMsg(initJson.error || 'Upload init failed'); return; }
+      // ask our API for a signed upload token
+      const initRes = await fetch('/api/storage/signed-upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: `Bearer ${bearer}`,
+        },
+        body: JSON.stringify({ bucket: 'avatars', path: filePath })
+      });
+      const initJson = await initRes.json();
+      if (!initRes.ok) throw new Error(initJson.error || 'Upload init failed');
 
-    const uploadToken = initJson.token; // <-- use the upload token returned by API
+      // Use Supabase helper to upload with the signed token (no custom headers)
+      const { error: upErr } = await supabase
+        .storage
+        .from('avatars')
+        .uploadToSignedUrl(initJson.path, initJson.token, file, {
+          contentType: file.type || 'application/octet-stream',
+          upsert: true,
+        });
 
-    // PUT the file to Supabase Storage using the upload token
-    await fetch(initJson.signedUrl, {
-      method: 'PUT',
-      headers: {
-        'x-upsert': 'true',
-        'authorization': `Bearer ${uploadToken}`, // <-- changed
-        'content-type': file.type || 'application/octet-stream'
-      },
-      body: file
-    });
+      if (upErr) throw upErr;
 
-    setUploading(false);
-    setForm(prev => ({ ...prev, avatar_path: filePath }));
-    setAvatarUrl(publicUrlFor(filePath));
-    setMsg('Logo uploaded — click Save to keep it.');
+      setForm(prev => ({ ...prev, avatar_path: filePath }));
+      setAvatarUrl(publicUrlFor(filePath));
+      setMsg('Logo uploaded — click Save to keep it.');
+    } catch (err) {
+      setMsg(err.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
   };
 
-  // gallery helpers
+  // public URL helper for gallery
   const publicGalleryUrlFor = (path) =>
     path ? supabase.storage.from('gallery').getPublicUrl(path).data.publicUrl : null;
 
-  /* ─── CHANGE #2: gallery uploads via signed URL + bearer (use upload token) ─── */
+  /* ─── gallery uploads via signed URL token ─── */
   const onGalleryFiles = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length || !user) return;
     setUploading(true); setMsg('');
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
+    try {
+      const bearer = await getBearer();
+      if (!bearer) throw new Error('Not signed in');
 
-    const newPaths = [];
-    for (const [i, file] of files.entries()) {
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${Date.now()}-${i}.${ext}`;
-      const filePath = `${user.id}/${fileName}`;
+      const newPaths = [];
+      for (const [i, file] of files.entries()) {
+        const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const fileName = `${Date.now()}-${i}.${ext}`;
+        const filePath = `${user.id}/${fileName}`;
 
-      const initRes = await fetch('/api/storage/signed-upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ bucket: 'gallery', path: filePath, contentType: file.type })
-      });
-      const initJson = await initRes.json();
-      if (!initRes.ok) { setMsg(initJson.error || 'Upload init failed'); continue; }
+        const initRes = await fetch('/api/storage/signed-upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: `Bearer ${bearer}`,
+          },
+          body: JSON.stringify({ bucket: 'gallery', path: filePath })
+        });
+        const initJson = await initRes.json();
+        if (!initRes.ok) { setMsg(initJson.error || 'Upload init failed'); continue; }
 
-      const uploadToken = initJson.token; // <-- use the upload token for each file
+        const { error: upErr } = await supabase
+          .storage
+          .from('gallery')
+          .uploadToSignedUrl(initJson.path, initJson.token, file, {
+            contentType: file.type || 'application/octet-stream',
+            upsert: true,
+          });
 
-      await fetch(initJson.signedUrl, {
-        method: 'PUT',
-        headers: {
-          'x-upsert': 'true',
-          'authorization': `Bearer ${uploadToken}`, // <-- changed
-          'content-type': file.type || 'application/octet-stream'
-        },
-        body: file
-      });
+        if (upErr) { setMsg(upErr.message); continue; }
+        newPaths.push(filePath);
+      }
 
-      newPaths.push(filePath);
+      if (newPaths.length) {
+        setForm(prev => ({ ...prev, gallery: [...(prev.gallery || []), ...newPaths] }));
+        setMsg(`Added ${newPaths.length} photo${newPaths.length > 1 ? 's' : ''}. Click Save to keep them.`);
+      }
+      e.target.value = '';
+    } catch (err) {
+      setMsg(err.message || 'Upload failed');
+    } finally {
+      setUploading(false);
     }
-
-    setUploading(false);
-    if (newPaths.length) {
-      setForm(prev => ({ ...prev, gallery: [...(prev.gallery || []), ...newPaths] }));
-      setMsg(`Added ${newPaths.length} photo${newPaths.length > 1 ? 's' : ''}. Click Save to keep them.`);
-    }
-    e.target.value = '';
   };
 
   const removeGalleryItem = async (path) => {
@@ -302,11 +312,10 @@ export default function Dashboard() {
       avatar_path: form.avatar_path,
       theme: form.theme, other_info: form.other_info,
       gallery: Array.isArray(form.gallery) ? form.gallery : [],
-      other_trades: form.other_trades,   // ← added
+      other_trades: form.other_trades,
       updated_at: new Date().toISOString(),
     };
 
-    /* ─── CHANGE #3: save via API with bearer token ─── */
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -314,7 +323,7 @@ export default function Dashboard() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'authorization': `Bearer ${token}`
+        authorization: `Bearer ${token}`
       },
       body: JSON.stringify(row)
     });
@@ -466,7 +475,6 @@ export default function Dashboard() {
       {input('WhatsApp number', 'whatsapp', 'e.g. +44 7700 900123')}
       {input('Contact email (to receive quote requests)', 'email', 'e.g. hello@yourbusiness.com')}
 
-
       <div style={{ marginTop: 4, marginBottom: 8, opacity: 0.8 }}>Social Media </div>
       {input('Facebook (URL or @)', 'facebook', 'https://facebook.com/yourpage or @yourpage')}
       {input('Instagram (URL or @)', 'instagram', 'https://instagram.com/yourname or @yourname')}
@@ -474,57 +482,22 @@ export default function Dashboard() {
       {input('X / Twitter (URL or @)', 'x', 'https://x.com/yourname or @yourname')}
       {input('YouTube (URL or @handle)', 'youtube', 'https://youtube.com/@yourchannel or @yourhandle')}
 
-      
       {input('Location (address or place name) (optional)', 'location', 'e.g. 221B Baker St, London')}
       {input('Location link (Google/Apple Maps URL) (optional)', 'location_url', 'https://maps.google.com/?q=...')}
 
-      {textarea(
-  'About (short description)',
-  'about',
-  `Tell customers who you are and what you do.
-Example: Friendly local handyman with 10+ years’ experience. Reliable, insured, free quotes.`
-)}
+      {textarea('About (short description)','about',`Tell customers who you are and what you do.
+Example: Friendly local handyman with 10+ years’ experience. Reliable, insured, free quotes.`)}
 
-{textarea(
-  'Zones / Areas (comma separated)',
-  'areas',
-  'e.g. Birmingham City Centre, Digbeth, Edgbaston'
-)}
-
-{textarea(
-  'Services (comma separated)',
-  'services',
-  'e.g. Flat-pack assembly, TV mounting, Painting, Minor plumbing'
-)}
-
-{textarea(
-  'Other trades (comma separated) [optional]',
-  'other_trades',
-  'e.g. Electrician, Tiler, Plasterer, Painter'
-)}
-
-{textarea(
-  'Prices (one per line optional)',
-  'prices',
-  `Call-out — from £25
+      {textarea('Zones / Areas (comma separated)','areas','e.g. Birmingham City Centre, Digbeth, Edgbaston')}
+      {textarea('Services (comma separated)','services','e.g. Flat-pack assembly, TV mounting, Painting, Minor plumbing')}
+      {textarea('Other trades (comma separated) [optional]','other_trades','e.g. Electrician, Tiler, Plasterer, Painter')}
+      {textarea('Prices (one per line optional)','prices',`Call-out — from £25
 Hourly rate — from £35
-Boiler service — £80`
-)}
-
-{textarea(
-  'Opening hours',
-  'hours',
-  `Mon–Fri 08:00–18:00
+Boiler service — £80`)}
+      {textarea('Opening hours','hours',`Mon–Fri 08:00–18:00
 Sat 09:00–13:00
-Sun Closed`
-)}
-
-{textarea(
-  'Other useful information (optional)',
-  'other_info',
-  'e.g. Fully insured • DBS checked • Same-day service • Card payments accepted'
-)}
-
+Sun Closed`)}
+      {textarea('Other useful information (optional)','other_info','e.g. Fully insured • DBS checked • Same-day service • Card payments accepted')}
 
       {/* Actions row: THEME PICKER + SAVE + PREVIEW */}
       <div style={actionsRow}>
