@@ -49,7 +49,7 @@ const THEMES = {
   'royal-snow':     {name:'Royal Snow',vars:{'--bg':'#f6f8ff','--text':'#0f1220','--muted':'#4a557a','--border':'#d1d7ee','--card-bg-1':'#e4e8f6','--card-bg-2':'#dde2f4','--chip-bg':'#eaedf9','--chip-border':'#cdd5ec','--btn-primary-1':'#6366f1','--btn-primary-2':'#06b6d4','--btn-neutral-bg':'#e9ecf7','--social-border':'#c7cfee'}},
   'cocoa-mint':     {name:'Cocoa Mint',vars:{'--bg':'#0f0a07','--text':'#f6fff9','--muted':'#cceadd','--border':'#3c3123','--card-bg-1':'#19130e','--card-bg-2':'#140f0b','--chip-bg':'#16110c','--chip-border':'#4a3b2c','--btn-primary-1':'#10b981','--btn-primary-2':'#f59e0b','--btn-neutral-bg':'#19130e','--social-border':'#4a3b2c'}},
   'plum-amber':     {name:'Plum Amber',vars:{'--bg':'#0a0812','--text':'#fff7ea','--muted':'#f3d7a9','--border':'#3f2f3a','--card-bg-1':'#151124','--card-bg-2':'#110e1b','--chip-bg':'#120f1d','--chip-border':'#4a3946','--btn-primary-1':'#fbbf24','--btn-primary-2':'#8b5cf6','--btn-neutral-bg':'#151225','--social-border':'#4a3a47'}},
-
+    };
 /* apply theme to <html> (whole app) */
 const applyTheme = (key) => {
   const t = THEMES[key] || THEMES['deep-navy'];
