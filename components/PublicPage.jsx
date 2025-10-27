@@ -1044,7 +1044,7 @@ const saveBtnFabStyle = {
   position: 'absolute',
   top: 2,
   right: 2,
-  width: 26,
+  width: 30,
   height: 30,
   borderRadius: 12,
   border: '1px solid var(--border)',
