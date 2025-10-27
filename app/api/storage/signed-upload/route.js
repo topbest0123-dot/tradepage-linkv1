@@ -1,56 +1,49 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+// app/api/storage/signed-upload/route.js
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-// Make sure this route runs on the Node runtime (so server env vars are available)
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function POST(req) {
   try {
-    const { bucket, path /* contentType not strictly needed here */ } = await req.json() || {}
+    const { bucket, path } = await req.json();
     if (!bucket || !path) {
-      return NextResponse.json({ error: 'Missing bucket or path' }, { status: 400 })
+      return NextResponse.json({ error: 'Missing bucket or path' }, { status: 400 });
     }
 
-    // 1) Verify the caller is a real logged-in user (using their access token sent from the client)
-    const authHeader = req.headers.get('authorization') || ''
-    const accessToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
+    // Validate caller: must include Authorization: Bearer <access_token>
+    const auth = req.headers.get('authorization') || '';
+    const accessToken = auth.startsWith('Bearer ') ? auth.slice(7) : null;
     if (!accessToken) {
-      return NextResponse.json({ error: 'Missing Authorization header' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabaseUser = createClient(
+    // Verify the token is a real logged-in user
+    const userScoped = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       { global: { headers: { Authorization: `Bearer ${accessToken}` } } }
-    )
-    const { data: { user }, error: userErr } = await supabaseUser.auth.getUser()
-    if (userErr || !user) {
-      return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
+    );
+    const { data: userData, error: userErr } = await userScoped.auth.getUser();
+    if (userErr || !userData?.user) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
     }
 
-    // 2) Use the SERVICE ROLE to create a signed upload URL
+    // Use the service role to issue the signed upload token
     const admin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY // ONLY on server
-    )
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
 
-    const { data, error } = await admin
-      .storage
-      .from(bucket)
-      .createSignedUploadUrl(path)
-
+    const { data, error } = await admin.storage.from(bucket).createSignedUploadUrl(path);
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // Return both pieces the client needs
-    // - signedUrl: PUT destination
-    // - token: goes in Authorization header for the PUT
-    return NextResponse.json({
-      signedUrl: data.signedUrl,
-      token: data.token
-    })
-  } catch (err) {
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 })
+    // data = { token, path }
+    return NextResponse.json({ token: data.token, path });
+  } catch (e) {
+    return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
   }
 }
