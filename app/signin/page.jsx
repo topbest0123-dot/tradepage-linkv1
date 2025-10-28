@@ -15,17 +15,15 @@ export default function SignInPage() {
     try {
       setSending(true);
       setMsg('');
-      const base = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-
-      const { error: signErr } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        options: { emailRedirectTo: `${base}/api/auth/callback` },
+        // IMPORTANT: redirect to the callback page so the app can read tokens and create the session
+        options: { emailRedirectTo: 'https://tradepage.link/auth/callback' },
       });
-
-      if (signErr) throw signErr;
+      if (error) throw error;
       setMsg('Check your inbox for the sign-in link.');
     } catch (err) {
-      setMsg(err?.message || 'Something went wrong. Please try again.');
+      setMsg(err.message || 'Something went wrong. Please try again.');
     } finally {
       setSending(false);
     }
