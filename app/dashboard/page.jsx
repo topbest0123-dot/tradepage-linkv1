@@ -72,7 +72,7 @@ export default function Dashboard() {
     slug: '', name: '', trade: '', city: '',
     phone: '', whatsapp: '', email:'', about: '',
     areas: '', services: '', prices: '', hours: '',
-    facebook: '', instagram: '', tiktok: '', x: '', youtube: '',
+    facebook: '', instagram: '', tiktok: '', x: '', youtube: '', website: '',
     location: '', location_url: '',
     avatar_path: '',
     theme: 'deep-navy',
@@ -90,7 +90,7 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,email,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,avatar_path,theme,other_info,gallery,location,location_url,other_trades')
+        .select('slug,name,trade,city,phone,whatsapp,email,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,website,avatar_path,theme,other_info,gallery,location,location_url,other_trades')
         .eq('id', me.id).maybeSingle();
 
       if (data) {
@@ -100,7 +100,7 @@ export default function Dashboard() {
           phone: data.phone ?? '', whatsapp: data.whatsapp ?? '',
           email: data.email ?? '', about: data.about ?? '',
           areas: data.areas ?? '', services: data.services ?? '', prices: data.prices ?? '', hours: data.hours ?? '',
-          facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '', youtube: data.youtube ?? '',
+          facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '', youtube: data.youtube ?? '', website: data.website ?? '',
           location: data.location ?? '', location_url: data.location_url ?? '',
           avatar_path: data.avatar_path ?? '', theme: data.theme ?? 'deep-navy', other_info: data.other_info ?? '',
           gallery: Array.isArray(data.gallery) ? data.gallery : [],
@@ -481,6 +481,7 @@ export default function Dashboard() {
       {input('TikTok (URL or @)', 'tiktok', 'https://tiktok.com/@yourname or @yourname')}
       {input('X / Twitter (URL or @)', 'x', 'https://x.com/yourname or @yourname')}
       {input('YouTube (URL or @handle)', 'youtube', 'https://youtube.com/@yourchannel or @yourhandle')}
+      {input('Website (URL)', 'website', 'https://yourbusiness.com')}
 
       {input('Location (address or place name) (optional)', 'location', 'e.g. 221B Baker St, London')}
       {input('Location link (Google/Apple Maps URL) (optional)', 'location_url', 'https://maps.google.com/?q=...')}
