@@ -303,7 +303,7 @@ export default function Dashboard() {
     const row = {
       id: user.id, slug,
       name: form.name, trade: form.trade, city: form.city,
-      phone: form.phone, whatsapp: form.whatsapp,
+      phone: form.phone, phone2:  form.phone2?, whatsapp: form.whatsapp,
       email: form.email,
       about: form.about, areas: form.areas, services: normalizedServices,
       prices: form.prices, hours: form.hours,
