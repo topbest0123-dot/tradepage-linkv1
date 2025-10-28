@@ -24,6 +24,13 @@ const normalizeYouTube = (raw) => {
   return `https://www.youtube.com/@${h}`;
 };
 
+const normalizeWebsite = (raw) => {
+  const v = String(raw || '').trim();
+  if (!v) return null;
+  return /^https?:\/\//i.test(v) ? v : `https://${v}`;
+};
+
+
 /* --- Social SVG icons (inherit currentColor) --- */
 const ICONS = {
   facebook: (
@@ -51,6 +58,14 @@ const ICONS = {
       <path d="M23 12s0-3.4-.4-5a3 3 0 0 0-2.1-2.1C18.9 4.4 12 4.4 12 4.4s-6.9 0-8.5.5A3 3 0 0 0 1.4 7C1 8.6 1 12 1 12s0 3.4.4 5a3 3 0 0 0 2.1 2.1c1.6.5 8.5.5 8.5.5s6.9 0 8.5-.5A3 3 0 0 0 22.6 17c.4-1.6.4-5 .4-5zM10 15.5v-7l6 3.5-6 3.5z"/>
     </svg>
   ),
+
+  website: (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <circle cx="12" cy="12" r="9"/>
+    <path d="M3 12h18M12 3c3.5 3.5 3.5 14 0 18M12 3c-3.5 3.5-3.5 14 0 18"/>
+  </svg>
+),
+
 };
 
 
@@ -203,6 +218,7 @@ export default function PublicPage({ profile: p }) {
   const tk = normalizeSocial('tiktok',    p?.tiktok);
   const xx = normalizeSocial('x',         p?.x);
   const yt = normalizeYouTube(p?.youtube);
+  const wb = normalizeWebsite(p?.website);
 
   const handleShare = () => {
     const url = window.location.href;
@@ -705,7 +721,7 @@ export default function PublicPage({ profile: p }) {
       )}
 
       {/* SOCIAL */}
-      {(fb || ig || tk || xx || yt) && (
+      {(fb || ig || tk || xx || yt || wb) && (
         <div style={socialBarWrapStyle}>
           {fb && (
             <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style={socialBtnStyle}>
@@ -732,6 +748,12 @@ export default function PublicPage({ profile: p }) {
               {ICONS.youtube}
             </a>
           )}
+          {wb && (
+          <a href={wb} target="_blank" rel="noopener noreferrer" aria-label="Website" title="Website" style={socialBtnStyle}>
+            {ICONS.website}
+           </a>
+          )}
+
         </div>
       )}
 
