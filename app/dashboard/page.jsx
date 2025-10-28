@@ -307,7 +307,7 @@ export default function Dashboard() {
       email: form.email,
       about: form.about, areas: form.areas, services: normalizedServices,
       prices: form.prices, hours: form.hours,
-      facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x, youtube: form.youtube,
+      facebook: form.facebook, instagram: form.instagram, tiktok: form.tiktok, x: form.x, youtube: form.youtube, website: form.website,
       location: form.location, location_url: form.location_url,
       avatar_path: form.avatar_path,
       theme: form.theme, other_info: form.other_info,
