@@ -481,7 +481,7 @@ export default function Dashboard() {
       {input('TikTok (URL or @)', 'tiktok', 'https://tiktok.com/@yourname or @yourname')}
       {input('X / Twitter (URL or @)', 'x', 'https://x.com/yourname or @yourname')}
       {input('YouTube (URL or @handle)', 'youtube', 'https://youtube.com/@yourchannel or @yourhandle')}
-      {input('Website (URL)', 'website', 'https://yourbusiness.com')}
+      {input('Website (URL)', 'website', 'www.yourbusiness.com')}
 
       {input('Location (address or place name) (optional)', 'location', 'e.g. 221B Baker St, London')}
       {input('Location link (Google/Apple Maps URL) (optional)', 'location_url', 'https://maps.google.com/?q=...')}
