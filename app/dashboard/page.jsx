@@ -70,7 +70,7 @@ export default function Dashboard() {
   // form state
   const [form, setForm] = useState({
     slug: '', name: '', trade: '', city: '',
-    phone: '', whatsapp: '', email:'', about: '',
+    phone: '', phone2: '', whatsapp: '', email:'', about: '',
     areas: '', services: '', prices: '', hours: '',
     facebook: '', instagram: '', tiktok: '', x: '', youtube: '', website: '',
     location: '', location_url: '',
@@ -90,14 +90,14 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,whatsapp,email,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,website,avatar_path,theme,other_info,gallery,location,location_url,other_trades')
+        .select('slug,name,trade,city,phone,phone2,whatsapp,email,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,website,avatar_path,theme,other_info,gallery,location,location_url,other_trades')
         .eq('id', me.id).maybeSingle();
 
       if (data) {
         setForm(prev => ({
           ...prev,
           slug: data.slug ?? '', name: data.name ?? '', trade: data.trade ?? '', city: data.city ?? '',
-          phone: data.phone ?? '', whatsapp: data.whatsapp ?? '',
+          phone: data.phone ?? '', phone2: data.phone2 ?? '', whatsapp: data.whatsapp ?? '',
           email: data.email ?? '', about: data.about ?? '',
           areas: data.areas ?? '', services: data.services ?? '', prices: data.prices ?? '', hours: data.hours ?? '',
           facebook: data.facebook ?? '', instagram: data.instagram ?? '', tiktok: data.tiktok ?? '', x: data.x ?? '', youtube: data.youtube ?? '', website: data.website ?? '',
@@ -472,6 +472,7 @@ export default function Dashboard() {
       {input('Your main trade', 'trade', 'e.g. Handyman')}
       {input('City', 'city', 'e.g. London')}
       {input('Phone', 'phone', 'e.g. +44 7700 900123')}
+      {input('Second phone (optional)', 'phone2', 'e.g. +44 7700 900456')}
       {input('WhatsApp number', 'whatsapp', 'e.g. +44 7700 900123')}
       {input('Contact email (to receive quote requests)', 'email', 'e.g. hello@yourbusiness.com')}
 
