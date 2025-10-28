@@ -92,7 +92,7 @@ const THEMES = {
   'pearl-latte':    {'--bg':'#fffaf3','--text':'#191512','--muted':'#6e655e','--border':'#eadfcd','--card-bg-1':'#ffffff','--card-bg-2':'#f6efe3','--chip-bg':'#f4ede2','--chip-border':'#eadfcd','--btn-primary-1':'#c18f5a','--btn-primary-2':'#59c9a9','--btn-neutral-bg':'#efe6da','--social-border':'#e1d6c4'},
   'icy-lilac':      {'--bg':'#fbf7ff','--text':'#121018','--muted':'#6c6880','--border':'#e2d9fa','--card-bg-1':'#ffffff','--card-bg-2':'#f5f1ff','--chip-bg':'#f3efff','--chip-border':'#e2d9fa','--btn-primary-1':'#9f87ff','--btn-primary-2':'#7adfff','--btn-neutral-bg':'#efeafc','--social-border':'#ddd3fa'},
   'citrus-cream':   {'--bg':'#fffef6','--text':'#0f1208','--muted':'#6a6f57','--border':'#ece7c9','--card-bg-1':'#ffffff','--card-bg-2':'#faf7e3','--chip-bg':'#f6f3de','--chip-border':'#ece7c9','--btn-primary-1':'#ffb84d','--btn-primary-2':'#79e66f','--btn-neutral-bg':'#f0eddc','--social-border':'#e6e0c6'},
-  'sunset-apricot':  {'--bg':'#0f0b09','--text':'#fff4ec','--muted':'#ffd9c2','--border':'#3a2a22','--card-bg-1':'#2a1b16','--card-bg-2':'#1a120e','--chip-bg':'#231611','--chip-border':'#4a3329','--btn-primary-1':'#ffb86b','--btn-primary-2':'#ff6aa2','--btn-neutral-bg':'#2b1f1a','--social-border':'#4d3a30'},
+  'sunset-apricot':  {'--bg':'#0f0b09','--text':'#fff4ec','--muted':'#ffd9c2','--border':'#3a2a22','--card-bg-1':'#2a1b16','--card-bg-2':'#1a120e','--chip-bg':'#231611','--chip-border':'#4a3329','--btn-primary-1':'#ffb86b','--btn-primary-2':'#ff6aa2','--btn-neutral-bg':'#2b1f1a'},
   'minted-ivory':    {'--bg':'#fbfffd','--text':'#132018','--muted':'#4d6d5e','--border':'#d7eee4','--card-bg-1':'#ffffff','--card-bg-2':'#f3fbf7','--chip-bg':'#eff9f4','--chip-border':'#d7eee4','--btn-primary-1':'#10b981','--btn-primary-2':'#60a5fa','--btn-neutral-bg':'#e7f3ed','--social-border':'#cfe7dc'},
   'citrus-cream':    {'--bg':'#fffef7','--text':'#17160f','--muted':'#6b6a55','--border':'#efe9c9','--card-bg-1':'#ffffff','--card-bg-2':'#faf6e4','--chip-bg':'#f7f3df','--chip-border':'#efe9c9','--btn-primary-1':'#f59e0b','--btn-primary-2':'#34d399','--btn-neutral-bg':'#efe9da','--social-border':'#e7dfc3'},
   'latte-ink':        {'--bg':'#f6efe3','--text':'#171311','--muted':'#6b5e50','--border':'#dccdb5','--card-bg-1':'#ebe1cf','--card-bg-2':'#e6d8c4','--chip-bg':'#ede3d3','--chip-border':'#d9c9b0','--btn-primary-1':'#111827','--btn-primary-2':'#64748b','--btn-neutral-bg':'#efe6d6','--social-border':'#d6c6ae'},
@@ -138,6 +138,12 @@ const getDialHref = (p) => {
   return digits.length >= 6 ? `tel:${cleaned}` : null;
 };
 
+/* NEW: tel: link from a specific raw phone string */
+const dialHref = (raw) => {
+  const cleaned = String(raw || '').replace(/[^\d+]/g, '');
+  return cleaned.replace(/\D/g, '').length >= 6 ? `tel:${cleaned}` : null;
+};
+
 export default function PublicPage({ profile: p }) {
   // theme
   useEffect(() => { if (p?.theme !== undefined) applyTheme(normalizeThemeKey(p.theme)); }, [p?.theme]);
@@ -153,6 +159,11 @@ export default function PublicPage({ profile: p }) {
 
   const callHref = getDialHref(p);
   const waHref   = p?.whatsapp ? `https://wa.me/${String(p.whatsapp).replace(/\D/g, '')}` : null;
+
+  // NEW: compute per-number tel: links
+  const callHref1 = dialHref(p?.phone);
+  const callHref2 = dialHref(p?.phone2);
+  const hasAnyContact = !!(callHref1 || callHref2 || waHref || (p?.email || p?.contact_email));
 
   // --- Contacts modal state ---
   const [contactsOpen, setContactsOpen] = useState(false);
@@ -188,7 +199,8 @@ export default function PublicPage({ profile: p }) {
   const requestHref =
     waHref
       || (emailHref ? `${emailHref}?subject=${encodeURIComponent('Request')}` : null)
-      || callHref
+      || callHref1
+      || callHref2
       || '#';
 
   // public avatar URL from storage
@@ -252,6 +264,7 @@ export default function PublicPage({ profile: p }) {
     const org      = p?.name || '';
     const title    = [p?.trade, p?.city].filter(Boolean).join(' • ');
     const tel      = (p?.phone || p?.whatsapp || '').toString().replace(/[^\d+]/g, '');
+    const tel2     = (p?.phone2 || '').toString().replace(/[^\d+]/g, ''); // NEW
     const email    = p?.email || '';
     const addr     = p?.location || '';
     const url      = typeof window !== 'undefined' ? window.location.href : '';
@@ -263,6 +276,7 @@ export default function PublicPage({ profile: p }) {
       `ORG:${org}`,
       title ? `TITLE:${title}` : null,
       tel ? `TEL;TYPE=CELL:${tel}` : null,
+      tel2 ? `TEL;TYPE=CELL:${tel2}` : null, // NEW
       email ? `EMAIL:${email}` : null,
       addr ? `ADR;TYPE=WORK:;;${addr};;;;;` : null,
       url ? `URL:${url}` : null,
@@ -499,7 +513,7 @@ export default function PublicPage({ profile: p }) {
         </div>
 
         <div className="hdr-cta" style={ctaRowStyle}>
-          {(callHref || waHref || emailHref) && (
+          {(hasAnyContact) && (
             <button
               type="button"
               onClick={() => setContactsOpen(true)}
@@ -567,9 +581,14 @@ export default function PublicPage({ profile: p }) {
               <h2 style={h2Style}>Contacts</h2>
 
               <div style={modalListStyle}>
-                {callHref && (
-                  <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                {callHref1 && (
+                  <a href={callHref1} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
                     Phone {p?.phone ? `— ${p.phone}` : ''}
+                  </a>
+                )}
+                {callHref2 && (
+                  <a href={callHref2} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                    Phone 2 {p?.phone2 ? `— ${p.phone2}` : ''}
                   </a>
                 )}
 
@@ -686,9 +705,14 @@ export default function PublicPage({ profile: p }) {
           <div style={modalCardStyle} onClick={(e) => e.stopPropagation()}>
             <Card title="Contacts" wide>
               <div style={{ display:'grid', gap:10 }}>
-                {callHref && (
-                  <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                {callHref1 && (
+                  <a href={callHref1} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
                     Phone{p?.phone ? `: ${p.phone}` : ''}
+                  </a>
+                )}
+                {callHref2 && (
+                  <a href={callHref2} style={{ ...btnBaseStyle, ...btnNeutralStyle }}>
+                    Phone 2{p?.phone2 ? `: ${p.phone2}` : ''}
                   </a>
                 )}
                 {waHref && (
@@ -701,7 +725,7 @@ export default function PublicPage({ profile: p }) {
                     Email{contactEmail ? `: ${contactEmail}` : ''}
                   </a>
                 )}
-                {!callHref && !waHref && !emailHref && (
+                {!callHref1 && !callHref2 && !waHref && !emailHref && (
                   <div style={{ opacity:.7 }}>No contact methods provided yet.</div>
                 )}
               </div>
@@ -889,9 +913,14 @@ export default function PublicPage({ profile: p }) {
             <h2 id="contactsTitle" style={h2Style}>Contacts</h2>
 
             <div style={modalListStyle}>
-              {callHref && (
-                <a href={callHref} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
+              {callHref1 && (
+                <a href={callHref1} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
                   Call {p?.phone ? `(${p.phone})` : ''}
+                </a>
+              )}
+              {callHref2 && (
+                <a href={callHref2} style={{ ...btnBaseStyle, ...btnNeutralStyle, justifyContent:'center' }}>
+                  Call 2 {p?.phone2 ? `(${p.phone2})` : ''}
                 </a>
               )}
               {waHref && (
@@ -905,7 +934,7 @@ export default function PublicPage({ profile: p }) {
                 </a>
               )}
 
-              {!callHref && !waHref && !emailHref && (
+              {!callHref1 && !callHref2 && !waHref && !emailHref && (
                 <div style={{ opacity:.75 }}>No contact methods available yet.</div>
               )}
             </div>
