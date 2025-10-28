@@ -17,15 +17,15 @@ export default function SignInPage() {
       setMsg('');
       const base = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
 
-await supabase.auth.signInWithOtp({
-  email: email.trim(),
-  options: { emailRedirectTo: `${base}/api/auth/callback` },
-});
+      const { error: signErr } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { emailRedirectTo: `${base}/api/auth/callback` },
+      });
 
-      if (error) throw error;
+      if (signErr) throw signErr;
       setMsg('Check your inbox for the sign-in link.');
     } catch (err) {
-      setMsg(err.message || 'Something went wrong. Please try again.');
+      setMsg(err?.message || 'Something went wrong. Please try again.');
     } finally {
       setSending(false);
     }
