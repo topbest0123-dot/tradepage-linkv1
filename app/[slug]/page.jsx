@@ -62,7 +62,7 @@ export default async function Page({ params }) {
       slug,name,trade,city,
       phone,whatsapp,email,
       about,areas,services,prices,hours,
-      facebook,instagram,tiktok,x,youtube,
+      facebook,instagram,tiktok,x,youtube,website,
       location, location_url,
       avatar_path,other_info,theme,other_trades,
       gallery
