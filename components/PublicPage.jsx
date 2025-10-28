@@ -175,6 +175,7 @@ export default function PublicPage({ profile: p }) {
     name: '',
     phone: '',
     email: '',
+    area: '',
     description: '',
     files: [],        // File[]
   });
@@ -386,6 +387,7 @@ export default function PublicPage({ profile: p }) {
         customer_name: qForm.name,
         customer_phone: qForm.phone,
         customer_email: qForm.email,
+        customer_area: qForm.area,  
         description: qForm.description,
         image_urls: uploadedUrls,
       });
@@ -401,6 +403,7 @@ export default function PublicPage({ profile: p }) {
             name: qForm.name,
             phone: qForm.phone,
             email: qForm.email,
+            area: qForm.area,  
             description: qForm.description,
             imageUrls: uploadedUrls,
           }),
@@ -660,6 +663,19 @@ export default function PublicPage({ profile: p }) {
                   placeholder="you@example.com"
                 />
               </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+  <span style={{ opacity: .85 }}>Your City/Area</span>
+  <textarea
+    name="area"
+    value={qForm.area}
+    onChange={onQChange}
+    rows={2}
+    style={{ ...btnBaseStyle, height: 'auto' }}
+    placeholder="e.g. Leeds city centre, Headingley, Roundhay"
+  />
+</label>
+
 
               <label style={{ display: 'grid', gap: 6 }}>
                 <span style={{ opacity: .85 }}>Job description</span>
