@@ -126,15 +126,13 @@ export default function SubscribePage() {
 
       {/* PayPal JS SDK – vault + subscriptions. Hide card flows for now. */}
       {!missingClient && (
-        <Script
-          src={`https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription&disable-funding=card,credit,venmo`}
-          strategy="afterInteractive"
-          onLoad={() => setSdkReady(true)}
-          onError={(e) => {
-            console.error('PayPal SDK failed to load', e);
-            alert('PayPal SDK failed to load. Check NEXT_PUBLIC_PAYPAL_CLIENT_ID or ad-blockers.');
-          }}
-        />
+<Script
+  src={`https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription&enable-funding=card`}
+  strategy="afterInteractive"
+  onLoad={() => setSdkReady(true)}
+  onError={(e) => { console.error('PayPal SDK failed to load', e); alert('PayPal SDK failed to load. Check NEXT_PUBLIC_PAYPAL_CLIENT_ID or ad-blockers.'); }}
+/>
+
       )}
 
       <div ref={btnRef} style={{ marginTop: 24 }} />
