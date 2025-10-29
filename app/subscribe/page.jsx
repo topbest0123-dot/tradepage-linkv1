@@ -23,8 +23,23 @@ export default function SubscribePage() {
 
   // Get the logged-in user (needed to pass as custom_id)
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data?.user?.id || null));
-  }, []);
+  let mounted = true;
+
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (mounted) setUserId(session?.user?.id ?? null);
+  })();
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (mounted) setUserId(session?.user?.id ?? null);
+  });
+
+  return () => {
+    mounted = false;
+    subscription.unsubscribe();
+  };
+}, []);
+
 
   // Render the PayPal Subscriptions button once all preconditions are met
   useEffect(() => {
