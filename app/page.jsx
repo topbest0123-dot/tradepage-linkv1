@@ -15,30 +15,33 @@ export default function HomePage() {
       <style>{convStyles}</style>
 
       {/* ======= HERO (unchanged except visual) ======= */}
-      <section className="hero">
-        <div className="container">
-          <div className="hero-copy">
-            <h1>
-              A smart page made for tradespeople. All your info in one link<br className="hide-d" />
-            </h1>
-            <p className="lead">
-              TradePage<span className="dot">.</span>Link shows your customers only what matters:
-              <b> contact details</b>, <b>quote form</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas</b> in the most convenient way. No wandering menus, no confusion = more conversions!
-            </p>
-          </div>
+    {/* ======= HERO (unchanged except visual) ======= */}
+<section className="hero">
+  <div className="container">
+    <div className="hero-copy">
+      <h1>
+        A smart page made for tradespeople. All your info in one link
+        <br className="hide-d" />
+      </h1>
+      <p className="lead">
+        TradePage<span className="dot">.</span>Link shows your customers only what matters:
+        <b> contact details</b>, <b>quote form</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas</b> in the most convenient way. No wandering menus, no confusion = more conversions!
+      </p>
+    </div>
 
-          {/* Hero image (replaces the entire phone mock) */}
-          <div className="hero-visual">
-  <div className="img-wrap">
-    <img className="hero-img" src="/mockups/phone.jpg" alt="TradePage demo" />
-  </div>
-</div>
+    {/* Image replacing the phone mock */}
+    <div className="hero-visual">
+      <div className="img-wrap">
+        <img className="hero-img" src="/mockups/phone.jpg" alt="TradePage demo" />
+      </div>
+    </div>
+  </div> {/* <-- close .container */}
 
+  {/* ambient glows */}
+  <div className="glow g1" />
+  <div className="glow g2" />
+</section>
 
-        {/* ambient glows */}
-        <div className="glow g1" />
-        <div className="glow g2" />
-      </section>
 
       {/* ======= LIGHT AREA (only) ======= */}
       <section className="light-area" aria-label="Why TradePage.Link">
@@ -371,16 +374,25 @@ html,body{
 }
 
 /* === NEW: image replacing phone mock === */
-.hero-img{
+.img-wrap{
   width: var(--phone-w);
   max-width: 100%;
   aspect-ratio: 9 / 19;      /* same proportions as old mock */
-  border-radius: 0;
-  object-fit: cover;
-  display: block;
-  box-shadow: none;
-  border: 0;
+  border-radius: 24px;
+  overflow: hidden;          /* clips any halos/edges */
+  background: #000;          /* prevents light seams at edges */
+  box-shadow: 0 40px 120px rgba(32,39,68,.18);
 }
+
+.hero-img{
+  width: 100%;
+  height: 100%;
+  display: block;            /* removes inline-img gap */
+  object-fit: cover;
+  border: 0;
+  box-shadow: none;
+}
+
 
 /* (Old phone mock styles left intact; harmless if unused) */
 .device-ultra{position:relative;width:var(--phone-w);max-width:100%;aspect-ratio:9/19;border-radius:40px;background:linear-gradient(180deg,#b6bcc6,#8c929c);box-shadow:0 40px 120px rgba(32,39,68,.18);border:1px solid rgba(255,255,255,.45)}
