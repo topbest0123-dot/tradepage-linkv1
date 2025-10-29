@@ -29,13 +29,11 @@ export default function HomePage() {
 
           {/* Hero image (replaces the entire phone mock) */}
           <div className="hero-visual">
-            <img
-              className="hero-img"
-              src="/mockups/phone.jpg"
-              alt="TradePage demo"
-            />
-          </div>
-        </div>
+  <div className="img-wrap">
+    <img className="hero-img" src="/mockups/phone.jpg" alt="TradePage demo" />
+  </div>
+</div>
+
 
         {/* ambient glows */}
         <div className="glow g1" />
@@ -377,11 +375,11 @@ html,body{
   width: var(--phone-w);
   max-width: 100%;
   aspect-ratio: 9 / 19;      /* same proportions as old mock */
-  border-radius: 24px;
+  border-radius: 0;
   object-fit: cover;
   display: block;
-  box-shadow: 0 40px 120px rgba(32,39,68,.18);
-  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: none;
+  border: 0;
 }
 
 /* (Old phone mock styles left intact; harmless if unused) */
