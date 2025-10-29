@@ -14,57 +14,26 @@ export default function HomePage() {
       {/* extra styles for new conversion blocks (append-only) */}
       <style>{convStyles}</style>
 
-      {/* ======= HERO (unchanged) ======= */}
+      {/* ======= HERO (unchanged except visual) ======= */}
       <section className="hero">
         <div className="container">
           <div className="hero-copy">
             <h1>
               A smart page made for tradespeople. All your info in one link<br className="hide-d" />
-             
             </h1>
             <p className="lead">
               TradePage<span className="dot">.</span>Link shows your customers only what matters:
-               <b> contact details</b>, <b>quote form</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas</b> in the most convenient way. No wandering menus, no confusion = more conversions!
+              <b> contact details</b>, <b>quote form</b>, <b>prices</b>, <b>services</b>, <b>gallery</b>, <b>social media</b>, <b>covering areas</b> in the most convenient way. No wandering menus, no confusion = more conversions!
             </p>
           </div>
 
-          {/* Phone mock (unchanged size + proportions) */}
+          {/* Hero image (replaces the entire phone mock) */}
           <div className="hero-visual">
-            <div className="device-ultra">
-              <div className="frame2">
-               <img
-                 className="screen"
-                 src="/mockups/phone.jpg"   // put your file in /public/mockups/phone.jpg
-                 alt="TradePage demo"
-               />
-
-                {/* status bar */}
-                <div className="statusbar">
-                  <span className="time">12:08 PM</span>
-                  <div className="sicons" aria-hidden>
-                    <span className="sig">
-                      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-                        <rect x="0"  y="9" width="2" height="3" fill="white" />
-                        <rect x="4"  y="7" width="2" height="5" fill="white" />
-                        <rect x="8"  y="5" width="2" height="7" fill="white" />
-                        <rect x="12" y="3" width="2" height="9" fill="white" />
-                      </svg>
-                    </span>
-                    <span className="wifi">
-                      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-                        <path d="M2 5.5a9 9 0 0112 0" stroke="white" strokeOpacity=".9" strokeWidth="1.2" strokeLinecap="round"/>
-                        <path d="M4.5 7.5a6 6 0 017 0" stroke="white" strokeOpacity=".85" strokeWidth="1.2" strokeLinecap="round"/>
-                        <circle cx="8" cy="10.5" r="1.4" fill="white"/>
-                      </svg>
-                    </span>
-                    <span className="bat"><i className="lvl" /></span>
-                  </div>
-                </div>
-
-                {/* punch-hole camera */}
-                <div className="punch2" />
-              </div>
-            </div>
+            <img
+              className="hero-img"
+              src="/mockups/phone.jpg"
+              alt="TradePage demo"
+            />
           </div>
         </div>
 
@@ -81,17 +50,14 @@ export default function HomePage() {
           <div className="la-head">
             <h2>Built for trades. Built for speed.</h2>
             <p>When everything lives in one clean view, customers stop searching and start contacting. Fewer taps, fewer doubts, more jobs.</p>
-
-            </div>
+          </div>
 
           {/* Value grid */}
           <div className="la-grid">
-            
             <Feature
               title="One Tap to save your contact."
               text="Customers can save your contacts with a single tap. So next time they don't look around again."
               icon="bookmark"
-
             />
             <Feature
               title="No menus. No maze."
@@ -123,11 +89,9 @@ export default function HomePage() {
               text="Opens in any browser. Customers don’t need to install or create accounts."
               icon="bolt"
             />
-
           </div>
 
-            <a href="/signin" className="btn-primary">Create your page</a>
-
+          <a href="/signin" className="btn-primary">Create your page</a>
 
           {/* How it works */}
           <div className="la-steps">
@@ -149,20 +113,19 @@ export default function HomePage() {
           </div>
 
           {/* Comparison */}
-
-            <div className="card good">
-              <h4>Your TradePage</h4>
-              <ul className="good-list">  {/* “Your TradePage” */}
-               <li>One tap to contact you everywhere</li>
-               <li>Prices, services, trades clearly stated</li>
-               <li>Photos & social media in one place</li>
-               <li>Easy quote form access</li>
-               <li>One tap to share your link everywhere</li>
-               <li>Perfectly optimised for mobile</li>
-               <li>Super easy to edit and manage</li>
-               <li>Edit your page from your phone in seconds</li>
-             </ul>
-            </div>
+          <div className="card good">
+            <h4>Your TradePage</h4>
+            <ul className="good-list">
+              <li>One tap to contact you everywhere</li>
+              <li>Prices, services, trades clearly stated</li>
+              <li>Photos & social media in one place</li>
+              <li>Easy quote form access</li>
+              <li>One tap to share your link everywhere</li>
+              <li>Perfectly optimised for mobile</li>
+              <li>Super easy to edit and manage</li>
+              <li>Edit your page from your phone in seconds</li>
+            </ul>
+          </div>
 
           {/* FAQ */}
           <div className="la-faq">
@@ -189,26 +152,26 @@ export default function HomePage() {
               <summary>How long does setup take? What do I need ready?</summary>
               <p>It takes a few minutes. Have your logo/photo, phone/WhatsApp, email, service list, prices or “ask for a quote,” 3–6 job photos, areas you cover, any other usefull information, and you're ready to go.</p>
             </details>
-          <details>
+            <details>
               <summary>How do customers reach me?</summary>
               <p>They tap Call, WhatsApp, or Quote. Quote requests arrive at your email, your phone & WhatsApp are one push away.</p>
             </details>
-        <details>
+            <details>
               <summary>Where should I share my link to get the most from it?</summary>
               <p>TradePage.Link is the ideal solution for social media link-in-bio. But not only, you can post it on any social media posts, comments, WhatsApp, email signature. Basically, you can share the link everywhere.</p>
             </details>
-      <details>
+            <details>
               <summary>Do I still need a full website?</summary>
               <p>Not really. Many trades run just fine with one high-converting page. If you already have a site, keep it, use TradePageLink as the fast, mobile-first link you share everywhere.</p>
             </details>
-    <details>
+            <details>
               <summary>How is it priced? Can I cancel?</summary>
               <p>It cost $4.99 per month, or $34.99 per year. No contracts and no obligations. Cancel any time</p>
             </details>
           </div>
 
           {/* Final CTA */}
-         <div className="la-cta">
+          <div className="la-cta">
             <h3>Be the trade that’s easy to contact.</h3>
             <a href="/signin" className="btn-primary">Create your page</a>
             <p className="tiny">One link. All the essentials. Built for conversions.</p>
@@ -234,7 +197,6 @@ function Feature({ title, text, icon }) {
         {icon === 'share' && <svg viewBox="0 0 24 24"><path d="M14 9l-4 2 4 2m6-9a3 3 0 11-6 0 3 3 0 016 0Zm0 14a3 3 0 11-6 0 3 3 0 016 0ZM6 12a3 3 0 110-6 3 3 0 010 6Z"/></svg>}
         {icon === 'bolt' && <svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 11-14h-7l0-6z"/></svg>}
         {icon === 'bookmark' && <svg viewBox="0 0 24 24"><path d="M6 3a2 2 0 0 0-2 2v16l8-4 8 4V5a2 2 0 0 0-2-2H6z"/></svg>}
-        
       </span>
       <div className="feat-body">
         <h4>{title}</h4>
@@ -260,25 +222,25 @@ function ConversionBlocks() {
   return (
     <>
       {/* REALITY (same layout as Solutions) */}
-<section className="conv conv-reality">
-  <h2 className="conv-h2">Without TradePageLink</h2>
-  <div className="solutions-grid">
-    {[
-      { i:'📵', t:'Missed calls = missed work', d:'People give up if they can’t find your contact you fast.' },
-      { i:'🔗', t:'Links all over the place', d:'Facebook, Insta, WhatsApp, website — customers don’t know where find them.' },
-      { i:'🧩', t:'Confusing sites', d:'Menus, fluff, and slow load times kill conversions.' },
-      { i:'⏳', t:'Quotes take too long', d:'Back-and-forth messages delay decisions, forms are slow and confusing.' },
-      { i:'🖼️', t:'Work not shown', d:'No quick gallery = trust drops.' },
-      { i:'📍', t:'Coverage unclear', d:'People don’t know if you serve their area or hours.' },
-    ].map((b, i) => (
-      <div key={i} className="sol-card">
-        <div className="sol-ic">{b.i}</div>
-        <div className="sol-t">{b.t}</div>
-        <div className="sol-d">{b.d}</div>
-      </div>
-    ))}
-  </div>
-</section>
+      <section className="conv conv-reality">
+        <h2 className="conv-h2">Without TradePageLink</h2>
+        <div className="solutions-grid">
+          {[
+            { i:'📵', t:'Missed calls = missed work', d:'People give up if they can’t find your contact you fast.' },
+            { i:'🔗', t:'Links all over the place', d:'Facebook, Insta, WhatsApp, website — customers don’t know where find them.' },
+            { i:'🧩', t:'Confusing sites', d:'Menus, fluff, and slow load times kill conversions.' },
+            { i:'⏳', t:'Quotes take too long', d:'Back-and-forth messages delay decisions, forms are slow and confusing.' },
+            { i:'🖼️', t:'Work not shown', d:'No quick gallery = trust drops.' },
+            { i:'📍', t:'Coverage unclear', d:'People don’t know if you serve their area or hours.' },
+          ].map((b, i) => (
+            <div key={i} className="sol-card">
+              <div className="sol-ic">{b.i}</div>
+              <div className="sol-t">{b.t}</div>
+              <div className="sol-d">{b.d}</div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* SOLUTIONS */}
       <section className="conv conv-solutions">
@@ -355,7 +317,7 @@ const styles = `
   --primary-1:#5aa6ff;
   --primary-2:#22a06b;
 
-  /* phone sizing for hero mock — ORIGINAL values */
+  /* phone sizing for hero visual — ORIGINAL values */
   --phone-w: 360px;
   --frame-inset: 10px;
   --screen-inset: 22px;
@@ -385,7 +347,7 @@ html,body{
 }
 .hero .container{
   display:grid;
-  grid-template-columns: 1fr;   /* ✅ mobile: text then mock below */
+  grid-template-columns: 1fr;   /* mobile: text then visual below */
   gap:28px;
 }
 .hero h1{
@@ -397,7 +359,7 @@ html,body{
   color:#fff;
 }
 .lead{font-size:16px;line-height:1.75;max-width:760px;color:rgba(255,255,255,.75)}
-.hero-visual{display:flex; justify-content:center;} /* ✅ center mock on mobile */
+.hero-visual{display:flex; justify-content:center;} /* center visual on mobile */
 
 /* Desktop only */
 @media (min-width:980px){
@@ -410,8 +372,19 @@ html,body{
   .hero-visual{justify-content:flex-end;} /* align right on desktop */
 }
 
+/* === NEW: image replacing phone mock === */
+.hero-img{
+  width: var(--phone-w);
+  max-width: 100%;
+  aspect-ratio: 9 / 19;      /* same proportions as old mock */
+  border-radius: 24px;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 40px 120px rgba(32,39,68,.18);
+  border: 1px solid rgba(255,255,255,.18);
+}
 
-/* Phone mock (unchanged, original sizing preserved) */
+/* (Old phone mock styles left intact; harmless if unused) */
 .device-ultra{position:relative;width:var(--phone-w);max-width:100%;aspect-ratio:9/19;border-radius:40px;background:linear-gradient(180deg,#b6bcc6,#8c929c);box-shadow:0 40px 120px rgba(32,39,68,.18);border:1px solid rgba(255,255,255,.45)}
 .frame2{position:absolute;inset:var(--frame-inset);border-radius:32px;background:#0a0d12;box-shadow:0 0 0 12px rgba(0,0,0,.18) inset;overflow:hidden}
 .screen{position:absolute;inset:var(--screen-inset);border-radius:24px;background:#000;object-fit:cover;display:block}
@@ -497,9 +470,9 @@ html,body{
 .card h4{margin:0 0 6px;font-size:16px;font-weight:1000}
 
 /* FAQ */
-.la-faq details{border:1px solid var(--la-border);background:#fff;border-radius:14px;margin:8px 0;padding:12px}
-.la-faq summary{font-weight:900;cursor:pointer;list-style:none}
-.la-faq summary::-webkit-details-marker{display:none}
+.light-area .la-faq details{border:1px solid var(--la-border);background:#fff;border-radius:14px;margin:8px 0;padding:12px}
+.light-area .la-faq summary{font-weight:900;cursor:pointer;list-style:none}
+.light-area .la-faq summary::-webkit-details-marker{display:none}
 
 /* Final CTA */
 .la-cta{text-align:center;margin-top:8px}
@@ -512,7 +485,7 @@ html,body{
   .la-compare{grid-template-columns:1fr 1fr}
 }
 
-/* Mobile hero phone sizing — ORIGINAL values preserved */
+/* Mobile hero sizing — ORIGINAL values preserved */
 @media (max-width:900px){
   :root{
     --phone-w: 340px; --frame-inset: 10px; --screen-inset: 22px;
