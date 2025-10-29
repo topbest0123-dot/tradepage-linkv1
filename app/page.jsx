@@ -32,18 +32,11 @@ export default function HomePage() {
           <div className="hero-visual">
             <div className="device-ultra">
               <div className="frame2">
-                <video
-                  className="screen"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  poster="/tradepage-demo.jpg"
-                  preload="metadata"
-                >
-                  <source src="/tradepage-demo.webm" type="video/webm" />
-                  <source src="/tradepage-demo.mp4" type="video/mp4" />
-                </video>
+               <img
+                 className="screen"
+                 src="/mockups/phone.jpg"   // put your file in /public/mockups/phone.jpg
+                 alt="TradePage demo"
+               />
 
                 {/* status bar */}
                 <div className="statusbar">
