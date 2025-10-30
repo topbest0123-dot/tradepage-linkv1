@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.tradepage.link" }],
+      "destination": "https://tradepage.link/$1",
+      "permanent": true
+    }
+  ]
+}
