@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-
+import { deriveAccountState } from '@/lib/accountState';
 
 /* -------- Premium theme tokens (dark + light) -------- */
 const THEMES = {
@@ -14,7 +14,6 @@ const THEMES = {
   'graphite-ember': { name:'Graphite Ember', vars:{'--bg':'#0a0a0c','--text':'#f3f3f7','--muted':'#d9d9e2','--border':'#34353a','--card-bg-1':'#16171c','--card-bg-2':'#0f1013','--chip-bg':'#121317','--chip-border':'#383a41','--btn-primary-1':'#ffb259','--btn-primary-2':'#ff7e6e','--btn-neutral-bg':'#1b1c21','--social-border':'#3a3b42'}},
   'sapphire-ice':   { name:'Sapphire Ice', vars:{'--bg':'#051018','--text':'#eaf6ff','--muted':'#cfe6ff','--border':'#1a3f63','--card-bg-1':'#0b2235','--card-bg-2':'#0b2235','--chip-bg':'#0a1d2c','--chip-border':'#1f4a77','--btn-primary-1':'#6cd2ff','--btn-primary-2':'#77ffa9','--btn-neutral-bg':'#0f1b28','--social-border':'#204a73'}},
   'forest-emerald': { name:'Forest Emerald', vars:{'--bg':'#07130e','--text':'#eafff5','--muted':'#c8f5e6','--border':'#1c4f3b','--card-bg-1':'#0c2b21','--card-bg-2':'#0a1f18','--chip-bg':'#0a231c','--chip-border':'#1d5f49','--btn-primary-1':'#38e6a6','--btn-primary-2':'#7bd7ff','--btn-neutral-bg':'#0f1d18','--social-border':'#215846'}},
-
   // LIGHT
   'porcelain-mint': { name:'Porcelain Mint', vars:{'--bg':'#f6fbf8','--text':'#0b1b16','--muted':'#4c6a5e','--border':'#cfe7dc','--card-bg-1':'#ffffff','--card-bg-2':'#f1f7f3','--chip-bg':'#eef5f0','--chip-border':'#cfe7dc','--btn-primary-1':'#21c58b','--btn-primary-2':'#5fb9ff','--btn-neutral-bg':'#e9f2ed','--social-border':'#c7e0d4'}},
   'paper-snow':     { name:'Paper Snow', vars:{'--bg':'#ffffff','--text':'#121417','--muted':'#5b6777','--border':'#e5e7ea','--card-bg-1':'#ffffff','--card-bg-2':'#f7f9fb','--chip-bg':'#f3f5f7','--chip-border':'#e5e7ea','--btn-primary-1':'#3b82f6','--btn-primary-2':'#22c55e','--btn-neutral-bg':'#eef2f6','--social-border':'#dfe3e8'}},
@@ -58,6 +57,9 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [msg, setMsg] = useState('');
 
+  // account / billing banner state
+  const [acct, setAcct] = useState(null); // {state, daysLeft}
+
   // slug availability state
   const [slugTaken, setSlugTaken] = useState(false);
   const [checkingSlug, setCheckingSlug] = useState(false);
@@ -82,7 +84,7 @@ export default function Dashboard() {
     other_trades: '',
   });
 
-  /* load profile */
+  /* load profile + subscription */
   useEffect(() => {
     const load = async () => {
       const { data: { user: me } } = await supabase.auth.getUser();
@@ -91,8 +93,20 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('slug,name,trade,city,phone,phone2,whatsapp,email,about,areas,services,prices,hours,facebook,instagram,tiktok,x,youtube,website,avatar_path,theme,other_info,gallery,location,location_url,other_trades')
+        .select(`
+          id, created_at, trial_start, trial_days,
+          slug,name,trade,city,phone,phone2,whatsapp,email,about,areas,services,prices,hours,
+          facebook,instagram,tiktok,x,youtube,website,avatar_path,theme,other_info,gallery,
+          location,location_url,other_trades
+        `)
         .eq('id', me.id).maybeSingle();
+
+      // subscription row for this user
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', me.id)
+        .maybeSingle();
 
       if (data) {
         setForm(prev => ({
@@ -109,6 +123,14 @@ export default function Dashboard() {
         }));
         setAvatarUrl(publicUrlFor(data.avatar_path ?? ''));
         applyTheme(data.theme ?? 'deep-navy');
+
+        // compute account state for banner
+        try {
+          const a = deriveAccountState({ profile: data, sub });
+          setAcct(a);
+        } catch {
+          // ignore — banner just won't show
+        }
       } else {
         applyTheme('deep-navy');
       }
@@ -367,12 +389,63 @@ export default function Dashboard() {
     height: 40, padding: '0 18px', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', cursor: 'pointer', ...style
   });
 
+  // tiny banner component (non-intrusive)
+  const Banner = () => {
+    if (!acct) return null;
+
+    if (acct.state === 'trial') {
+      return (
+        <div style={{
+          margin: '8px 0 16px', border: '1px dashed var(--border)',
+          background: 'var(--card-bg-2)', color: 'var(--text)',
+          borderRadius: 12, padding: '10px 12px', fontSize: 13
+        }}>
+          Free trial: <b>{acct.daysLeft ?? 0}</b> day{(acct.daysLeft ?? 0) === 1 ? '' : 's'} left.
+          {' '}Enjoy building your page!
+        </div>
+      );
+    }
+
+    if (acct.state === 'expired' || acct.state === 'past_due') {
+      const tone = acct.state === 'expired' ? '#b91c1c' : '#a16207';
+      const bg   = acct.state === 'expired' ? 'rgba(185,28,28,0.08)' : 'rgba(161,98,7,0.08)';
+      const text = acct.state === 'expired'
+        ? 'Your free trial has ended and your public page is suspended.'
+        : 'Your last payment failed and your public page is suspended.';
+      return (
+        <div style={{
+          margin: '8px 0 16px', border: `1px solid ${tone}`,
+          background: bg, color: 'var(--text)',
+          borderRadius: 12, padding: '10px 12px', fontSize: 13, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap'
+        }}>
+          <span>{text}</span>
+          <button
+            type="button"
+            onClick={() => router.push('/subscribe')}
+            style={btn({
+              background: `linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))`,
+              color: '#08101e', border: '1px solid var(--border)', height: 32, padding: '0 14px', fontSize: 13
+            })}
+          >
+            Subscribe
+          </button>
+        </div>
+      );
+    }
+
+    // active → show nothing
+    return null;
+  };
+
   return (
     <section>
       <h2>Dashboard</h2>
-      <p style={{ opacity: 0.8, marginBottom: 16 }}>
+      <p style={{ opacity: 0.8, marginBottom: 8 }}>
         Signed in as <b>{user.email}</b>
       </p>
+
+      {/* tiny billing/trial notice */}
+      <Banner />
 
       {input('Public link (slug)', 'slug', 'e.g. best handyman')}
 
