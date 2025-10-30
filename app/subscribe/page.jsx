@@ -23,7 +23,8 @@ export default function SubscribePage() {
 
   // Use www.paypal.com; the client-id decides sandbox vs live
   const sdkSrc =
-    `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(CLIENT_ID)}&components=buttons&vault=true&intent=subscription`;
+  `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(CLIENT_ID)}&vault=true&intent=subscription&components=buttons&disable-funding=card`;
+
 
   // Get current session + listen for changes
   useEffect(() => {
