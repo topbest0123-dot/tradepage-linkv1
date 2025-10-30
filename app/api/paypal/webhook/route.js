@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const {
-  PAYPAL_ENV,
-  PAYPAL_API_BASE = 'https://api-m.paypal.com',
+  PAYPAL_ENV, // 'sandbox' | 'live'
+  PAYPAL_API_BASE,
   PAYPAL_CLIENT_ID,
   PAYPAL_SECRET,
   PAYPAL_WEBHOOK_ID,
@@ -12,26 +12,41 @@ const {
   SUPABASE_SERVICE_ROLE_KEY,
 } = process.env;
 
+// Pick the correct base; allow explicit override by PAYPAL_API_BASE
+const API_BASE =
+  PAYPAL_API_BASE ||
+  (PAYPAL_ENV === 'sandbox'
+    ? 'https://api-m.sandbox.paypal.com'
+    : 'https://api-m.paypal.com');
+
 // Server-side Supabase (service role so we can update any user on webhook)
 const supabaseAdmin = SUPABASE_SERVICE_ROLE_KEY
-  ? createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+  ? createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    })
   : null;
 
-// Helper: PayPal access token
+// ---- Helpers ----
+
+// Get PayPal access token
 async function getPayPalAccessToken() {
-  const creds = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`).toString('base64');
-  const res = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
+  const creds = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`).toString(
+    'base64',
+  );
+  const res = await fetch(`${API_BASE}/v1/oauth2/token`, {
     method: 'POST',
-    headers: { 'Authorization': `Basic ${creds}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      Authorization: `Basic ${creds}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
     body: 'grant_type=client_credentials',
-    // No caching
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error('PayPal token fetch failed');
-  return res.json();
+  if (!res.ok) throw new Error(`PayPal token fetch failed: ${res.status}`);
+  return res.json(); // { access_token, ... }
 }
 
-// Verify webhook with PayPal
+// Verify webhook signature with PayPal
 async function verifySignature(headers, rawBody) {
   const access = await getPayPalAccessToken();
 
@@ -45,99 +60,159 @@ async function verifySignature(headers, rawBody) {
     webhook_event: JSON.parse(rawBody),
   };
 
-  const res = await fetch(`${PAYPAL_API_BASE}/v1/notifications/verify-webhook-signature`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${access.access_token}`,
-      'Content-Type': 'application/json',
+  const res = await fetch(
+    `${API_BASE}/v1/notifications/verify-webhook-signature`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${access.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      cache: 'no-store',
     },
-    body: JSON.stringify(payload),
-    cache: 'no-store',
-  });
+  );
 
   if (!res.ok) throw new Error(`Verify call failed ${res.status}`);
   const json = await res.json();
   return json.verification_status === 'SUCCESS';
 }
 
-// Update your DB based on event
+// Fetch subscription details (to obtain custom_id if missing on the event)
+async function fetchSubscriptionDetails(subId) {
+  const access = await getPayPalAccessToken();
+  const res = await fetch(`${API_BASE}/v1/billing/subscriptions/${subId}`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${access.access_token}` },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Fetch subscription ${subId} failed: ${res.status}`);
+  return res.json(); // includes custom_id if set during creation
+}
+
+// ---- Core: act on the event ----
 async function handleEvent(evt) {
   if (!supabaseAdmin) {
     console.warn('No SUPABASE_SERVICE_ROLE_KEY → skipping DB write.');
     return;
   }
 
-  // Common fields
   const type = evt?.event_type;
   const resource = evt?.resource || {};
-  const subId = resource?.id || resource?.billing_agreement_id || null;
 
-  // YOU set custom_id = userId when creating the subscription on the client
-  const userId = resource?.custom_id || resource?.subscriber?.payer_id || null;
+  // Subscription id can live in a few places depending on event type
+  let subId =
+    resource?.id || // typical for subscription resource events
+    resource?.billing_agreement_id || // common on SALE events
+    resource?.supplementary_data?.related_ids?.billing_agreement_id ||
+    null;
 
-  // Upsert into your subscriptions table (adjust to your schema)
-  if (userId && subId) {
-    if (type === 'BILLING.SUBSCRIPTION.ACTIVATED') {
-      await supabaseAdmin
-        .from('subscriptions')
-        .upsert({
-          user_id: userId,
-          provider: 'paypal',
-          subscription_id: subId,
-          status: 'active',
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
-    } else if (type === 'BILLING.SUBSCRIPTION.CANCELLED' || type === 'BILLING.SUBSCRIPTION.SUSPENDED' || type === 'BILLING.SUBSCRIPTION.EXPIRED') {
-      await supabaseAdmin
-        .from('subscriptions')
-        .upsert({
-          user_id: userId,
-          provider: 'paypal',
-          subscription_id: subId,
-          status: 'inactive',
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
-    } else if (type === 'PAYMENT.SALE.COMPLETED') {
-      await supabaseAdmin
-        .from('subscriptions')
-        .upsert({
-          user_id: userId,
-          provider: 'paypal',
-          subscription_id: subId,
-          status: 'active',
-          last_payment_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
-    } else {
-      // For any other events, just store/update status lightly
-      await supabaseAdmin
-        .from('subscriptions')
-        .upsert({
-          user_id: userId,
-          provider: 'paypal',
-          subscription_id: subId,
-          status: (resource?.status || '').toLowerCase() || null,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
+  // Your userId: ideally set as custom_id when creating the subscription
+  let userId =
+    resource?.custom_id || // best source
+    resource?.subscriber?.payer_id || // fallback (not your app user id)
+    null;
+
+  // If we don't know userId yet but we know the subscription id, fetch it
+  if (!userId && subId) {
+    try {
+      const sub = await fetchSubscriptionDetails(subId);
+      userId = sub?.custom_id || userId;
+    } catch (e) {
+      console.warn('Could not fetch subscription details:', e?.message || e);
     }
   }
 
-  // Optional: log the raw events in an audit table
-  // await supabaseAdmin.from('subscription_events').insert({ user_id: userId, type, payload: evt });
+  // If either is missing, we can't upsert a user-bound subscription record
+  if (!userId || !subId) {
+    console.warn('Missing userId or subId; skipping upsert.', {
+      type,
+      subId,
+      hasUserId: !!userId,
+    });
+    return;
+  }
+
+  const now = new Date().toISOString();
+
+  if (type === 'BILLING.SUBSCRIPTION.ACTIVATED') {
+    await supabaseAdmin.from('subscriptions').upsert(
+      {
+        user_id: userId,
+        provider: 'paypal',
+        subscription_id: subId,
+        status: 'active',
+        updated_at: now,
+      },
+      { onConflict: 'user_id' },
+    );
+  } else if (
+    type === 'BILLING.SUBSCRIPTION.CANCELLED' ||
+    type === 'BILLING.SUBSCRIPTION.SUSPENDED' ||
+    type === 'BILLING.SUBSCRIPTION.EXPIRED'
+  ) {
+    await supabaseAdmin.from('subscriptions').upsert(
+      {
+        user_id: userId,
+        provider: 'paypal',
+        subscription_id: subId,
+        status: 'inactive',
+        updated_at: now,
+      },
+      { onConflict: 'user_id' },
+    );
+  } else if (type === 'PAYMENT.SALE.COMPLETED') {
+    // Mark active and note the last successful payment
+    await supabaseAdmin.from('subscriptions').upsert(
+      {
+        user_id: userId,
+        provider: 'paypal',
+        subscription_id: subId,
+        status: 'active',
+        last_payment_at: now,
+        updated_at: now,
+      },
+      { onConflict: 'user_id' },
+    );
+  } else {
+    // Generic catch-all update (keeps subscription_id and status in sync)
+    await supabaseAdmin.from('subscriptions').upsert(
+      {
+        user_id: userId,
+        provider: 'paypal',
+        subscription_id: subId,
+        status: (resource?.status || '').toLowerCase() || null,
+        updated_at: now,
+      },
+      { onConflict: 'user_id' },
+    );
+  }
+
+  // Optional audit log
+  // await supabaseAdmin.from('subscription_events').insert({
+  //   user_id: userId,
+  //   type,
+  //   payload: evt,
+  //   created_at: now
+  // });
 }
 
-// ✅ Add this in app/api/paypal/webhook/route.js (e.g., just above the POST)
+// ---- Routes ----
+
+// Simple GET to confirm the endpoint is reachable
 export async function GET() {
-  return NextResponse.json({ ok: true, path: '/api/paypal/webhook', expects: 'POST' });
+  return NextResponse.json({
+    ok: true,
+    path: '/api/paypal/webhook',
+    expects: 'POST',
+  });
 }
-
 
 export async function POST(req) {
   try {
-    // Raw body is required for signature verification
+    // Raw body is required for PayPal signature verification
     const raw = await req.text();
 
-    // Verify signature
     const ok = await verifySignature(req.headers, raw);
     if (!ok) {
       console.warn('PayPal webhook verification FAILED');
@@ -145,14 +220,12 @@ export async function POST(req) {
     }
 
     const event = JSON.parse(raw);
-
-    // Act on the event
     await handleEvent(event);
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err) {
     console.error('Webhook error:', err?.message || err);
-    // Always 200 to avoid PayPal retry storms; but log the error.
+    // Avoid retry storms: return 200 but keep the error in logs
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 }
