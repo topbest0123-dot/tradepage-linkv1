@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const {
-  PAYPAL_API_BASE = 'https://api-m.paypal.com', // live
+  PAYPAL_API_BASE = 'https://api-m.paypal.com',
   PAYPAL_CLIENT_ID,
   PAYPAL_SECRET,
   PAYPAL_WEBHOOK_ID,
@@ -11,19 +11,16 @@ const {
   SUPABASE_SERVICE_ROLE_KEY,
 } = process.env;
 
-// Server-side Supabase (service role)
+// --- Supabase admin client (service role) ---
 const supabaseAdmin = SUPABASE_SERVICE_ROLE_KEY
   ? createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { persistSession: false },
     })
   : null;
 
-// ---- Utils ---------------------------------------------------------------
-
+// --- Helpers ---
 async function getPayPalAccessToken() {
-  const creds = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`).toString(
-    'base64'
-  );
+  const creds = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`).toString('base64');
   const res = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
@@ -33,7 +30,7 @@ async function getPayPalAccessToken() {
     body: 'grant_type=client_credentials',
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error('PayPal token fetch failed');
+  if (!res.ok) throw new Error(`PayPal token fetch failed (${res.status})`);
   return res.json();
 }
 
@@ -62,140 +59,95 @@ async function verifySignature(headers, rawBody) {
       cache: 'no-store',
     }
   );
+
   if (!res.ok) throw new Error(`Verify call failed ${res.status}`);
   const json = await res.json();
   return json.verification_status === 'SUCCESS';
 }
 
-// Robust extractors: work for sale + subscription payloads
-function extractUserId(resource = {}) {
-  // PayPal SALE → "custom"
-  // PayPal SUBSCRIPTION → sometimes "custom_id"
-  return (
-    resource.custom_id ||
-    resource.custom || // <— this is what your live payload has
-    resource?.subscriber?.payer_id ||
-    null
+async function fetchSubscriptionDetails(subscriptionId) {
+  const access = await getPayPalAccessToken();
+  const res = await fetch(
+    `${PAYPAL_API_BASE}/v1/billing/subscriptions/${subscriptionId}`,
+    {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${access.access_token}` },
+      cache: 'no-store',
+    }
   );
+  if (!res.ok) {
+    throw new Error(
+      `Fetch subscription ${subscriptionId} failed (${res.status})`
+    );
+  }
+  return res.json();
 }
 
-function extractSubscriptionId(resource = {}) {
-  // Prefer explicit id, else billing agreement id, else related ids
-  return (
-    resource.id ||
-    resource.billing_agreement_id ||
-    resource?.supplementary_data?.related_ids?.billing_agreement_id ||
-    null
-  );
-}
-
-async function upsertSubscription({
-  userId,
-  subscriptionId,
-  status,
-  planId,
-  payerEmail,
-  lastPaymentAt,
-}) {
+// Normalizes + writes to DB
+async function upsertSubscription({ userId, subId, type, resource }) {
   if (!supabaseAdmin) {
     console.warn('No SUPABASE_SERVICE_ROLE_KEY → skipping DB write.');
     return;
   }
 
-  const payload = {
-    user_id: userId,
-    provider: 'paypal',
-    subscription_id: subscriptionId,
-    status,
-    plan_id: planId ?? null,
-    payer_email: payerEmail ?? null,
-    updated_at: new Date().toISOString(),
+  // Minimal fields we can get from any event
+  let row = {
+    user_id: userId || null,
+    subscription_id: subId || null,
+    status: (resource?.status || '').toLowerCase() || 'active',
+    custom_id: resource?.custom_id || resource?.custom || null,
+    update_time: new Date().toISOString(),
   };
-  if (lastPaymentAt) payload.last_payment_at = lastPaymentAt;
+
+  // Decide whether we should fetch full details
+  const isBillingEvent =
+    type?.startsWith('BILLING.SUBSCRIPTION.') === true;
+
+  // If we need more details (plan_id, payer_email, times), call Subscriptions API
+  try {
+    if ((isBillingEvent || !row.custom_id || !row.status || !row.user_id) && subId) {
+      const details = await fetchSubscriptionDetails(subId);
+      // Typical useful fields
+      row = {
+        ...row,
+        plan_id: details?.plan_id || row.plan_id || null,
+        payer_email:
+          details?.subscriber?.email_address || row.payer_email || null,
+        start_time: details?.start_time
+          ? new Date(details.start_time).toISOString()
+          : row.start_time || null,
+        next_billing_time:
+          details?.billing_info?.next_billing_time
+            ? new Date(details.billing_info.next_billing_time).toISOString()
+            : row.next_billing_time || null,
+        status: (details?.status || row.status || '').toLowerCase(),
+      };
+    }
+  } catch (e) {
+    // Not fatal for write; we still upsert what we have
+    console.warn('Subscription details fetch failed:', e?.message || e);
+  }
+
+  // Final guard: require userId + subId to write
+  if (!row.user_id || !row.subscription_id) {
+    console.warn('No userId/subId → skipping write', { row, type });
+    return;
+  }
 
   const { error } = await supabaseAdmin
     .from('subscriptions')
-    .upsert(payload, { onConflict: 'user_id' });
+    .upsert(row, { onConflict: 'user_id' });
 
   if (error) {
     console.error('Supabase upsert error:', error);
   } else {
-    console.log('Supabase upsert ok:', {
-      userId,
-      subscriptionId,
-      status,
-      planId: planId ?? null,
-    });
+    console.log(
+      `Supabase upsert ok: { userId: '${row.user_id}', subscriptionId: '${row.subscription_id}', status: '${row.status}', planId: ${row.plan_id || null} }`
+    );
   }
 }
 
-// ---- Event handler -------------------------------------------------------
-
-async function handleEvent(evt) {
-  const type = evt?.event_type;
-  const r = evt?.resource || {};
-
-  const userId = extractUserId(r);
-  const subscriptionId = extractSubscriptionId(r);
-  const planId = r?.plan_id || r?.plan?.id || null;
-  const payerEmail =
-    r?.payer?.email || r?.payer?.email_address || r?.subscriber?.email || null;
-
-  console.log('PP webhook:', {
-    type,
-    hasCustom: !!r.custom,
-    hasCustomId: !!r.custom_id,
-    userId,
-    subscriptionId,
-    planId,
-  });
-
-  if (!userId) {
-    console.warn('No userId (custom/custom_id/subscriber) → skipping write');
-    return;
-  }
-
-  // Default status resolution
-  let status = (r?.status || '').toLowerCase() || null;
-  if (
-    type === 'BILLING.SUBSCRIPTION.ACTIVATED' ||
-    type === 'PAYMENT.SALE.COMPLETED'
-  ) {
-    status = 'active';
-  }
-  if (
-    type === 'BILLING.SUBSCRIPTION.CANCELLED' ||
-    type === 'BILLING.SUBSCRIPTION.SUSPENDED' ||
-    type === 'BILLING.SUBSCRIPTION.EXPIRED'
-  ) {
-    status = 'inactive';
-  }
-
-  // last payment timestamp for SALES
-  const lastPaymentAt =
-    type === 'PAYMENT.SALE.COMPLETED'
-      ? new Date().toISOString()
-      : null;
-
-  await upsertSubscription({
-    userId,
-    subscriptionId,
-    status,
-    planId,
-    payerEmail,
-    lastPaymentAt,
-  });
-
-  // Optional event audit
-  // await supabaseAdmin.from('subscription_events').insert({
-  //   user_id: userId,
-  //   type,
-  //   payload: evt,
-  // });
-}
-
-// ---- Routes --------------------------------------------------------------
-
+// --- Public handlers ---
 export async function GET() {
   return NextResponse.json({
     ok: true,
@@ -214,13 +166,24 @@ export async function POST(req) {
       return NextResponse.json({ status: 'ignored' }, { status: 400 });
     }
 
-    const event = JSON.parse(raw);
-    await handleEvent(event);
+    const evt = JSON.parse(raw);
+    const type = evt?.event_type;
+    const resource = evt?.resource || {};
+
+    // Extract identifiers from either SALE or BILLING events
+    const subId =
+      resource?.id || resource?.billing_agreement_id || null;
+
+    // When you created the subscription you set custom_id = userId
+    const userId =
+      resource?.custom_id || resource?.custom || resource?.subscriber?.payer_id || null;
+
+    await upsertSubscription({ userId, subId, type, resource });
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err) {
     console.error('Webhook error:', err?.message || err);
-    // Always 200 to avoid PayPal storm retries
+    // Return 200 to avoid PayPal retry storms; we already log the error
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 }
