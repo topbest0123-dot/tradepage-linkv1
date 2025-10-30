@@ -2,6 +2,8 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import PublicPage from '@/components/PublicPage'; // client component below
+import { deriveAccountState } from '@/lib/accountState';
+
 
 export const dynamic = 'force-dynamic';  // always fetch fresh
 export const revalidate = 0;
@@ -75,3 +77,38 @@ export default async function Page({ params }) {
 
   return <PublicPage profile={p} />;
 }
+
+// after you have `profile` (with `id` for the owner):
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  { auth: { persistSession: false } }
+);
+
+const { data: sub } = await supabase
+  .from('subscriptions')
+  .select('*')
+  .eq('user_id', profile.id)
+  .maybeSingle();
+
+const acct = deriveAccountState({ profile, sub });
+
+// Block page if not active and not in trial
+if (acct.state === 'expired' || acct.state === 'past_due') {
+  return (
+    <main className="container mx-auto px-4 py-10">
+      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-6 text-red-800">
+        <h2 className="text-lg font-semibold mb-1">This page is suspended</h2>
+        <p className="text-sm opacity-90">Ask the owner to renew their subscription to reactivate it.</p>
+      </div>
+    </main>
+  );
+}
+
+// Otherwise render the normal public page UI (active OR still in trial)
+return (
+  <>
+    {/* ...existing public page JSX... */}
+  </>
+);
+
