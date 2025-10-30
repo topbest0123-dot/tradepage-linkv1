@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import { deriveAccountState } from '@/lib/accountState';
 
 
 /* -------- Premium theme tokens (dark + light) -------- */
@@ -191,59 +190,6 @@ export default function Dashboard() {
       });
       const initJson = await initRes.json();
       if (!initRes.ok) throw new Error(initJson.error || 'Upload init failed');
-
-      {/* === Billing banner (trial / alerts) === */}
-{/*
-  Minimal Supabase reads: profile + subscriptions (one row)
-  Works on server components too.
-*/}
-{await (async () => {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    { auth: { persistSession: false } }
-  );
-
-  const [{ data: profile }, { data: sub }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-    supabase.from('subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
-  ]);
-
-  const acct = deriveAccountState({ profile, sub });
-
-  if (acct.state === 'active') return null;
-
-  // Tailwind classes for a tiny, unobtrusive bar
-  if (acct.state === 'trial') {
-    return (
-      <div className="mt-3 mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        Free trial: <b>{acct.daysLeft}</b> day{acct.daysLeft !== 1 ? 's' : ''} left.{' '}
-        <a href="/subscribe" className="underline hover:opacity-80">Upgrade</a>
-      </div>
-    );
-  }
-
-  if (acct.state === 'expired') {
-    return (
-      <div className="mt-3 mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-        Your free trial has expired and your public page is suspended.{' '}
-        <a href="/subscribe" className="underline font-medium hover:opacity-80">Pay to continue</a>.
-      </div>
-    );
-  }
-
-  if (acct.state === 'past_due') {
-    return (
-      <div className="mt-3 mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-        Your payment failed and your public page is suspended.{' '}
-        <a href="/subscribe" className="underline font-medium hover:opacity-80">Fix payment</a>.
-      </div>
-    );
-  }
-
-  return null;
-})()}
-
 
       // Use Supabase helper to upload with the signed token (no custom headers)
       const { error: upErr } = await supabase
