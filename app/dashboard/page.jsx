@@ -56,6 +56,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [msg, setMsg] = useState('');
+  // SUBSCRIPTION STATE
+ const [sub, setSub] = useState(null);
+
 
   // slug availability state
   const [slugTaken, setSlugTaken] = useState(false);
@@ -127,6 +130,24 @@ export default function Dashboard() {
   /* live theme preview */
   useEffect(() => { applyTheme(form.theme); }, [form.theme]);
 
+  /* load latest subscription row for this user */
+useEffect(() => {
+  if (!user) return;
+  let alive = true;
+  (async () => {
+    const { data } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('id', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (alive) setSub(data || null);
+  })();
+  return () => { alive = false; };
+}, [user]);
+
+
   /* live slug availability check */
   useEffect(() => {
     const s = (form.slug || '')
@@ -163,6 +184,37 @@ export default function Dashboard() {
     }
     return session?.access_token || null;
   };
+
+  /* ─── cancel current PayPal subscription ─── */
+const cancelSub = async () => {
+  if (!sub?.subscription_id) return;
+  if (!confirm('Cancel your subscription now?')) return;
+
+  try {
+    const bearer = await getBearer();
+    if (!bearer) { setMsg('Please sign in again.'); return; }
+
+    const res = await fetch('/api/paypal/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', authorization: `Bearer ${bearer}` },
+      body: JSON.stringify({ id: sub.subscription_id })
+    });
+
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || j?.ok === false) {
+      setMsg(j.error || 'Cancel failed');
+      return;
+    }
+
+    // reflect the change immediately in UI
+    setSub(prev => (prev ? { ...prev, status: 'CANCELLED', cancelled_at: new Date().toISOString() } : prev));
+    setMsg('Your subscription was cancelled.');
+  } catch (e) {
+    console.error(e);
+    setMsg(e?.message || 'Cancel failed');
+  }
+};
+
 
   /* ─── avatar upload via signed URL token ─── */
   const onAvatarFile = async (e) => {
@@ -372,6 +424,61 @@ export default function Dashboard() {
       <p style={{ opacity: 0.8, marginBottom: 16 }}>
         Signed in as <b>{user.email}</b>
       </p>
+
+      {/* Subscription card */}
+<div style={{
+  margin: '12px 0 20px',
+  padding: 12,
+  border: '1px solid var(--chip-border)',
+  borderRadius: 12,
+  background: 'var(--chip-bg)'
+}}>
+  <div style={{ fontWeight: 700, marginBottom: 6 }}>Subscription</div>
+
+  {sub ? (
+    <>
+      <div style={{ fontSize: 14, opacity: 0.9 }}>
+        Status: <b>{sub.status || 'UNKNOWN'}</b>
+        {sub.plan_id ? <> • Plan: <code>{sub.plan_id}</code></> : null}
+        {sub.current_period_end ? (
+          <> • Renews/Cancels at: <time>{new Date(sub.current_period_end).toLocaleString()}</time></>
+        ) : null}
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+        {sub.status === 'ACTIVE' ? (
+          <button
+            type="button"
+            onClick={cancelSub}
+            style={btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)' })}
+          >
+            Cancel subscription
+          </button>
+        ) : (
+          <a
+            href="/subscribe"
+            style={btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)' })}
+          >
+            Subscribe
+          </a>
+        )}
+      </div>
+    </>
+  ) : (
+    <>
+      <div style={{ fontSize: 14, opacity: 0.9 }}>You don’t have an active subscription.</div>
+      <div style={{ marginTop: 10 }}>
+        <a
+          href="/subscribe"
+          style={btn({ background: 'transparent', color: 'var(--text)', border: '1px solid var(--social-border)' })}
+        >
+          Subscribe
+        </a>
+      </div>
+    </>
+  )}
+</div>
+
 
       {input('Public link (slug)', 'slug', 'e.g. best handyman')}
 
