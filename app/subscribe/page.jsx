@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 import { createClient } from '@supabase/supabase-js';
 
+// Create a client (client-side anon key)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -17,130 +18,108 @@ export default function SubscribePage() {
 
   const [sdkReady, setSdkReady] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [msg, setMsg] = useState('');
 
-  const CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-  const PLAN_ID = process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID;
+  // Read envs safely + trim
+  const CLIENT_ID = (process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '').trim();
+  const PLAN_ID   = (process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID || '').trim();
 
-  // Robust user detection (updates when auth changes)
+  // Build SDK src (visible for debug)
+  const sdkSrc =
+    `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(CLIENT_ID)}&vault=true&intent=subscription`;
+
+  // Fetch current session + listen for auth changes
   useEffect(() => {
-    let mounted = true;
+    let alive = true;
 
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (mounted) setUserId(session?.user?.id ?? null);
+      if (alive) setUserId(session?.user?.id ?? null);
     })();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) setUserId(session?.user?.id ?? null);
+      if (alive) setUserId(session?.user?.id ?? null);
     });
 
     return () => {
-      mounted = false;
-      subscription.unsubscribe();
+      alive = false;
+      subscription?.unsubscribe?.();
     };
   }, []);
 
-  // Render the PayPal Subscriptions button once the SDK is ready.
-  // NOTE: we DO NOT block rendering on userId anymore; if userId is null,
-  // we still create the subscription and then attach it server-side onApprove.
+  // Render PayPal button when SDK + userId ready
   useEffect(() => {
-    if (renderedRef.current) return;               // prevent double render
-    if (!sdkReady || !btnRef.current) return;      // wait for SDK + mount
-    if (!window.paypal) return;                    // SDK not present yet
+    if (renderedRef.current) return;
+    if (!sdkReady || !userId || !btnRef.current) return;
+    if (!window.paypal) return;
 
     renderedRef.current = true;
 
     window.paypal.Buttons({
       style: { shape: 'rect', layout: 'vertical', label: 'subscribe' },
-
-      createSubscription: async (_data, actions) => {
-        try {
-          // Pass plan id; include custom_id only if we already have it
-          const body = {
-            plan_id: PLAN_ID,
-            // JSON.stringify omits undefined — so this is safe:
-            custom_id: userId || undefined,
-            application_context: { brand_name: 'TradePage.link', user_action: 'SUBSCRIBE_NOW' }
-          };
-          return await actions.subscription.create(body);
-        } catch (err) {
-          console.error('createSubscription error', err);
-          alert('PayPal error creating subscription. Ensure your Sandbox plan is ACTIVE and belongs to this merchant.');
-          throw err;
-        }
+      createSubscription: (_data, actions) => {
+        return actions.subscription.create({
+          plan_id: PLAN_ID,
+          custom_id: userId,
+          application_context: {
+            brand_name: 'TradePage.link',
+            user_action: 'SUBSCRIBE_NOW',
+          },
+        });
       },
-
       onApprove: async (data) => {
-        try {
-          // Attach the subscription to the logged-in user (fills user_id in DB)
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.access_token && data?.subscriptionID) {
-            await fetch('/api/paypal/attach', {
-              method: 'POST',
-              headers: {
-                'content-type': 'application/json',
-                authorization: `Bearer ${session.access_token}`
-              },
-              body: JSON.stringify({ subscription_id: data.subscriptionID })
-            });
-          }
-        } catch (e) {
-          console.warn('Attach skipped:', e);
-        }
-
         alert('Subscription started: ' + data.subscriptionID);
         window.location.href = '/dashboard';
       },
-
       onError: (err) => {
         console.error('PayPal error', err);
         alert('Payment error. Please try again.');
-      }
+      },
     }).render(btnRef.current);
-  }, [sdkReady, PLAN_ID, userId]);
-
-  const missingClient = !CLIENT_ID;
-  const missingPlan = !PLAN_ID;
+  }, [sdkReady, userId, PLAN_ID]);
 
   return (
     <main className="container" style={{ padding: 24 }}>
       <h1>Subscribe to TradePage.link</h1>
-      <p>You’ll be charged according to the plan you selected in PayPal.</p>
+      <p>You’ll be charged according to the plan configured in PayPal.</p>
 
-      {/* Helpful messages if something is missing */}
-      {missingClient && (
-        <p style={{ color: '#f87171', marginTop: 12 }}>
-          Missing <code>NEXT_PUBLIC_PAYPAL_CLIENT_ID</code>. Set it in your environment and redeploy.
-        </p>
-      )}
-      {missingPlan && (
-        <p style={{ color: '#fbbf24', marginTop: 8 }}>
-          Missing <code>NEXT_PUBLIC_PAYPAL_PLAN_ID</code>. Add your PayPal plan ID (starts with <code>P-</code>).
-        </p>
-      )}
-      {!userId && (
-        <p style={{ color: '#94a3b8', marginTop: 8 }}>
-          You can subscribe now; we’ll link it to your account on approval.
+      {/* Helpful inline diagnostics */}
+      <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8, lineHeight: 1.6 }}>
+        SDK ready: <b>{String(sdkReady)}</b> • plan set: <b>{String(!!PLAN_ID)}</b> • userId set: <b>{String(!!userId)}</b><br />
+        clientId len: <b>{CLIENT_ID.length}</b> • SDK URL: <a href={sdkSrc} target="_blank" rel="noreferrer">{sdkSrc}</a>
+      </div>
+
+      {/* Show clear message if client id missing */}
+      {!CLIENT_ID && (
+        <p style={{ color: '#ef4444', marginTop: 12 }}>
+          Missing <code>NEXT_PUBLIC_PAYPAL_CLIENT_ID</code>. Set it in Vercel (Production) and redeploy.
         </p>
       )}
 
-      {/* PayPal JS SDK – vault + subscriptions. Hide card flows for now. */}
-      {!missingClient && (
-<Script
-  src={`https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription&enable-funding=card`}
-  strategy="afterInteractive"
-  onLoad={() => setSdkReady(true)}
-  onError={(e) => { console.error('PayPal SDK failed to load', e); alert('PayPal SDK failed to load. Check NEXT_PUBLIC_PAYPAL_CLIENT_ID or ad-blockers.'); }}
-/>
-
+      {/* Load PayPal SDK (only when we have a client id) */}
+      {CLIENT_ID && (
+        <Script
+          src={sdkSrc}
+          strategy="afterInteractive"
+          onLoad={() => { console.log('PayPal SDK loaded:', sdkSrc); setSdkReady(true); }}
+          onError={(e) => {
+            console.error('PayPal SDK failed:', sdkSrc, e);
+            alert('PayPal SDK failed to load. Check NEXT_PUBLIC_PAYPAL_CLIENT_ID or ad-blockers.');
+          }}
+        />
       )}
 
+      {/* Button mount point */}
       <div ref={btnRef} style={{ marginTop: 24 }} />
 
-      {/* DEBUG (remove anytime) */}
-      <div style={{ fontSize: 12, opacity: 0.6, marginTop: 10 }}>
-        SDK ready: {String(sdkReady)} • plan set: {String(!missingPlan)} • userId set: {String(!!userId)}
-      </div>
+      {/* If not logged in, show a sign-in nudge */}
+      {!userId && (
+        <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
+          Please <a href="/signin">sign in</a> first. The button appears once you’re logged in.
+        </div>
+      )}
+
+      {msg ? <p style={{ marginTop: 12 }}>{msg}</p> : null}
     </main>
   );
 }
