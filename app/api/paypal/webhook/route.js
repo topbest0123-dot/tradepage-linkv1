@@ -126,6 +126,12 @@ async function handleEvent(evt) {
   // await supabaseAdmin.from('subscription_events').insert({ user_id: userId, type, payload: evt });
 }
 
+// ✅ Add this in app/api/paypal/webhook/route.js (e.g., just above the POST)
+export async function GET() {
+  return NextResponse.json({ ok: true, path: '/api/paypal/webhook', expects: 'POST' });
+}
+
+
 export async function POST(req) {
   try {
     // Raw body is required for signature verification
