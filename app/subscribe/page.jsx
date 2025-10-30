@@ -17,24 +17,26 @@ export default function SubscribePage() {
   const [sdkReady, setSdkReady] = useState(false);
   const [msg, setMsg] = useState('');
 
+  const ENV       = (process.env.NEXT_PUBLIC_PAYPAL_ENV || 'sandbox').trim(); // sandbox | live
   const CLIENT_ID = (process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '').trim();
   const PLAN_ID   = (process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID || '').trim();
 
-  const baseParams =
-    `client-id=${encodeURIComponent(CLIENT_ID)}&components=buttons` +
-    `&vault=true&intent=subscription&enable-funding=card`;
+  const HOST = ENV === 'live'
+    ? 'https://www.paypal.com'
+    : 'https://www.sandbox.paypal.com';
 
-  const PRIMARY  = `https://www.paypal.com/sdk/js?${baseParams}`;
-  const FALLBACK = `https://www.sandbox.paypal.com/sdk/js?${baseParams}`;
+  const qs =
+    `client-id=${encodeURIComponent(CLIENT_ID)}` +
+    `&components=buttons&vault=true&intent=subscription&enable-funding=card`;
 
-  // show user id if present (not required for button)
+  const SDK_URL = `${HOST}/sdk/js?${qs}`;
+
+  // keep user id (not required for loading SDK)
   useEffect(() => {
     let alive = true;
     (async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (alive) setUserId(session?.user?.id ?? null);
-      } catch {}
+      const { data: { session } } = await supabase.auth.getSession();
+      if (alive) setUserId(session?.user?.id ?? null);
     })();
     const { data } = supabase.auth.onAuthStateChange((_e, session) => {
       if (!alive) return;
@@ -43,63 +45,48 @@ export default function SubscribePage() {
     return () => { alive = false; data?.subscription?.unsubscribe?.(); };
   }, []);
 
-  function inject(url) {
+  function loadSDK(url) {
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.id = `paypal-sdk-${Math.random().toString(36).slice(2)}`;
       s.src = url;
       s.async = true;
       s.crossOrigin = 'anonymous';
-      s.onload  = () => resolve('ok');
+      s.onload = () => resolve('ok');
       s.onerror = (e) => reject(e);
       document.head.appendChild(s);
     });
   }
 
-  // Try primary → then fallback
   useEffect(() => {
     if (!CLIENT_ID) { setMsg('Missing NEXT_PUBLIC_PAYPAL_CLIENT_ID'); return; }
     setMsg('');
     (async () => {
       try {
-        await inject(PRIMARY);
-        if (!window.paypal) throw new Error('SDK attached = false (primary)');
+        await loadSDK(SDK_URL);
+        if (!window.paypal) throw new Error('SDK attached = false');
+        console.log('[PayPal] SDK loaded:', SDK_URL);
         setSdkReady(true);
-        console.log('[PayPal] SDK loaded (primary).');
-      } catch (err1) {
-        console.warn('[PayPal] primary failed:', err1);
-        try {
-          await inject(FALLBACK);
-          if (!window.paypal) throw new Error('SDK attached = false (fallback)');
-          setSdkReady(true);
-          console.log('[PayPal] SDK loaded (fallback).');
-        } catch (err2) {
-          console.error('[PayPal] fallback failed:', err2);
-          setMsg('Failed to load PayPal SDK (network/CSP/filter).');
-          setSdkReady(false);
-        }
+      } catch (err) {
+        console.error('[PayPal] SDK 400/blocked:', err, SDK_URL);
+        setMsg('PayPal SDK returned 400 (env/client-id mismatch or key invalid).');
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [CLIENT_ID]);
+  }, [SDK_URL, CLIENT_ID]);
 
-  // Render the button once
   useEffect(() => {
     if (renderedRef.current) return;
     if (!sdkReady || !PLAN_ID || !mountRef.current) return;
     if (!window.paypal?.Buttons) return;
 
     renderedRef.current = true;
-
     window.paypal.Buttons({
       style: { layout: 'vertical', shape: 'rect', label: 'subscribe' },
-      createSubscription: (_data, actions) => {
-        return actions.subscription.create({
+      createSubscription: (_data, actions) =>
+        actions.subscription.create({
           plan_id: PLAN_ID,
           ...(userId ? { custom_id: userId } : {}),
           application_context: { brand_name: 'TradePage.link', user_action: 'SUBSCRIBE_NOW' }
-        });
-      },
+        }),
       onApprove: (data) => {
         alert(`Subscription started: ${data.subscriptionID}`);
         window.location.href = '/dashboard';
@@ -117,10 +104,8 @@ export default function SubscribePage() {
       <p>You’ll be charged according to the plan configured in PayPal.</p>
 
       <div style={{ fontSize: 12, opacity: 0.75, marginTop: 8, lineHeight: 1.6 }}>
-        SDK ready: <b>{String(sdkReady)}</b> • plan set: <b>{String(!!PLAN_ID)}</b> • user set: <b>{String(!!userId)}</b><br />
-        clientId len: <b>{CLIENT_ID.length}</b> • URLs:&nbsp;
-        <a href={PRIMARY}  target="_blank" rel="noreferrer">primary</a> ·{' '}
-        <a href={FALLBACK} target="_blank" rel="noreferrer">fallback</a>
+        ENV: <b>{ENV}</b> • SDK ready: <b>{String(sdkReady)}</b> • plan set: <b>{String(!!PLAN_ID)}</b> • user set: <b>{String(!!userId)}</b><br/>
+        clientId len: <b>{CLIENT_ID.length}</b> • SDK URL: <a href={SDK_URL} target="_blank" rel="noreferrer">{SDK_URL}</a>
       </div>
 
       <div ref={mountRef} style={{ marginTop: 20 }} />
