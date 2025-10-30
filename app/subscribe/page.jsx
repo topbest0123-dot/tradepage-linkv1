@@ -3,14 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
-import { createClient } from '@supabase/supabase-js';
-
-// Create a client (client-side anon key)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  { auth: { persistSession: true } }
-);
+import { supabase } from '@/lib/supabaseClient'; // ✅ use the shared client (same as dashboard)
 
 export default function SubscribePage() {
   const btnRef = useRef(null);
@@ -25,10 +18,11 @@ export default function SubscribePage() {
   const PLAN_ID   = (process.env.NEXT_PUBLIC_PAYPAL_PLAN_ID || '').trim();
 
   // Build SDK src (visible for debug)
-  const sdkSrc =
-    `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(CLIENT_ID)}&vault=true&intent=subscription`;
+  const sdkSrc = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(
+    CLIENT_ID
+  )}&components=buttons&vault=true&intent=subscription&enable-funding=card`;
 
-  // Fetch current session + listen for auth changes
+  // Fetch current session + listen for auth changes (shared client → shares session with dashboard)
   useEffect(() => {
     let alive = true;
 
@@ -47,24 +41,32 @@ export default function SubscribePage() {
     };
   }, []);
 
+  // If SDK already on page (cache / earlier load), mark ready
+  useEffect(() => {
+    if (!sdkReady && typeof window !== 'undefined' && window.paypal) {
+      setSdkReady(true);
+    }
+  }, [sdkReady]);
+
   // Render PayPal button when SDK + userId ready
   useEffect(() => {
     if (renderedRef.current) return;
     if (!sdkReady || !userId || !btnRef.current) return;
-    if (!window.paypal) return;
+    if (typeof window === 'undefined' || !window.paypal) return;
+    if (!PLAN_ID) return; // safety
 
     renderedRef.current = true;
 
-    window.paypal.Buttons({
+    const buttons = window.paypal.Buttons({
       style: { shape: 'rect', layout: 'vertical', label: 'subscribe' },
       createSubscription: (_data, actions) => {
         return actions.subscription.create({
           plan_id: PLAN_ID,
-          custom_id: userId,
+          custom_id: userId, // tie PayPal sub to Supabase user
           application_context: {
             brand_name: 'TradePage.link',
-            user_action: 'SUBSCRIBE_NOW',
-          },
+            user_action: 'SUBSCRIBE_NOW'
+          }
         });
       },
       onApprove: async (data) => {
@@ -74,8 +76,16 @@ export default function SubscribePage() {
       onError: (err) => {
         console.error('PayPal error', err);
         alert('Payment error. Please try again.');
-      },
-    }).render(btnRef.current);
+      }
+    });
+
+    buttons.render(btnRef.current);
+
+    // Cleanup on unmount / re-nav
+    return () => {
+      try { btnRef.current && (btnRef.current.innerHTML = ''); } catch {}
+      renderedRef.current = false;
+    };
   }, [sdkReady, userId, PLAN_ID]);
 
   return (
@@ -89,10 +99,15 @@ export default function SubscribePage() {
         clientId len: <b>{CLIENT_ID.length}</b> • SDK URL: <a href={sdkSrc} target="_blank" rel="noreferrer">{sdkSrc}</a>
       </div>
 
-      {/* Show clear message if client id missing */}
+      {/* Show clear messages if something is missing */}
       {!CLIENT_ID && (
         <p style={{ color: '#ef4444', marginTop: 12 }}>
-          Missing <code>NEXT_PUBLIC_PAYPAL_CLIENT_ID</code>. Set it in Vercel (Production) and redeploy.
+          Missing <code>NEXT_PUBLIC_PAYPAL_CLIENT_ID</code>. Set it in your environment and redeploy.
+        </p>
+      )}
+      {!PLAN_ID && (
+        <p style={{ color: '#f59e0b', marginTop: 8 }}>
+          Missing <code>NEXT_PUBLIC_PAYPAL_PLAN_ID</code>. Add your PayPal plan ID (starts with <code>P-</code>).
         </p>
       )}
 
@@ -101,7 +116,7 @@ export default function SubscribePage() {
         <Script
           src={sdkSrc}
           strategy="afterInteractive"
-          onLoad={() => { console.log('PayPal SDK loaded:', sdkSrc); setSdkReady(true); }}
+          onLoad={() => { try { if (window.paypal) setSdkReady(true); } catch {} }}
           onError={(e) => {
             console.error('PayPal SDK failed:', sdkSrc, e);
             alert('PayPal SDK failed to load. Check NEXT_PUBLIC_PAYPAL_CLIENT_ID or ad-blockers.');
