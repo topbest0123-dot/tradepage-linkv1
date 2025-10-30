@@ -1,4 +1,4 @@
-// app/api/paypal/webhook/route.js
+// app/api/paypal/webhook/route.js  — v5
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -11,6 +11,8 @@ const {
   NEXT_PUBLIC_SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY,
 } = process.env;
+
+const VERSION = 'v5.0';
 
 const supabaseAdmin = SUPABASE_SERVICE_ROLE_KEY
   ? createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -30,23 +32,23 @@ async function getPayPalAccessToken() {
     body: 'grant_type=client_credentials',
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error(`PayPal token fetch failed (${res.status})`);
+  if (!res.ok) throw new Error(`[webhook ${VERSION}] PayPal token fetch failed (${res.status})`);
   return res.json();
 }
 
 async function fetchSubscriptionFromPayPal(subId) {
   const access = await getPayPalAccessToken();
-  const res = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions/${subId}`, {
+  const url = `${PAYPAL_API_BASE}/v1/billing/subscriptions/${subId}`;
+  const res = await fetch(url, {
     headers: { Authorization: `Bearer ${access.access_token}` },
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error(`Fetch subscription ${subId} failed (${res.status})`);
+  if (!res.ok) throw new Error(`[webhook ${VERSION}] Fetch subscription ${subId} failed (${res.status})`);
   return res.json(); // contains custom_id, plan_id, subscriber, status, etc.
 }
 
 async function verifySignature(headers, rawBody) {
   const access = await getPayPalAccessToken();
-
   const payload = {
     auth_algo: headers.get('paypal-auth-algo'),
     cert_url: headers.get('paypal-cert-url'),
@@ -67,7 +69,7 @@ async function verifySignature(headers, rawBody) {
     cache: 'no-store',
   });
 
-  if (!res.ok) throw new Error(`Verify call failed ${res.status}`);
+  if (!res.ok) throw new Error(`[webhook ${VERSION}] Verify call failed ${res.status}`);
   const json = await res.json();
   return json.verification_status === 'SUCCESS';
 }
@@ -75,34 +77,36 @@ async function verifySignature(headers, rawBody) {
 /* ---------- DB writer ---------- */
 async function handleEvent(evt) {
   if (!supabaseAdmin) {
-    console.warn('No SUPABASE_SERVICE_ROLE_KEY → skipping DB write.');
+    console.warn(`[webhook ${VERSION}] No SUPABASE_SERVICE_ROLE_KEY → skipping DB write.`);
     return;
   }
 
   const type = evt?.event_type || '';
   const resource = evt?.resource || {};
+  console.log(`[webhook ${VERSION}] incoming type=${type}`);
 
-  // Try to determine subscription id from different event shapes
+  // Try to detect subscription id from all known places
   let subId =
-    resource?.id || // for many SUBSCRIPTION.* events this is the subscription id
+    resource?.id || // most SUBSCRIPTION.* events use this
     resource?.billing_agreement_id || // present on PAYMENT.SALE.COMPLETED
     resource?.supplementary_data?.related_ids?.subscription_id ||
     null;
 
-  // Try to get user id from the event, or we will fetch it
+  // Pull userId directly if present
   let userId =
-    resource?.custom_id ||            // what we set in createSubscription
+    resource?.custom_id ||            // we set this when creating subscription
     resource?.subscriber?.payer_id || // sometimes present
     null;
 
-  // Best-effort metadata
   let planId = resource?.plan_id || null;
   let payerEmail =
     resource?.subscriber?.email_address ||
     resource?.payer?.email_address ||
     null;
 
-  // If we have no user id, try to look up an existing row by subscription
+  console.log(`[webhook ${VERSION}] initial parse → subId=${subId} userId=${userId} planId=${planId} email=${payerEmail}`);
+
+  // If we have no user id but do have a subscription id, try DB first
   if (!userId && subId) {
     const { data: existing, error: exErr } = await supabaseAdmin
       .from('subscriptions')
@@ -110,37 +114,32 @@ async function handleEvent(evt) {
       .eq('subscription_id', subId)
       .maybeSingle();
 
-    if (!exErr && existing?.user_id) {
+    if (exErr) {
+      console.warn(`[webhook ${VERSION}] DB lookup by subscription failed:`, exErr.message);
+    }
+    if (existing?.user_id) {
       userId = existing.user_id;
-      console.log('[webhook] Resolved user from DB by subscription:', { subId, userId });
+      console.log(`[webhook ${VERSION}] Resolved user from DB by subscription: ${userId}`);
     }
   }
 
-  // If still no user id, fetch the subscription from PayPal (gives custom_id, plan, subscriber)
+  // If still no user id and we have a subId → fetch from PayPal
   if (!userId && subId) {
     try {
       const ppSub = await fetchSubscriptionFromPayPal(subId);
       userId = ppSub?.custom_id || ppSub?.subscriber?.payer_id || null;
       planId = planId || ppSub?.plan_id || null;
       payerEmail = payerEmail || ppSub?.subscriber?.email_address || null;
-      console.log('[webhook] Resolved user from PayPal subscription:', { subId, userId });
+      console.log(`[webhook ${VERSION}] Resolved user from PayPal subscription: ${userId}`);
     } catch (e) {
-      console.warn('[webhook] PayPal subscription fetch failed:', e?.message || e);
+      console.warn(`[webhook ${VERSION}] PayPal subscription fetch failed:`, e?.message || e);
     }
   }
 
-  // Decide a reasonable status
+  // Decide a status
   let status = (resource?.status || '').toLowerCase();
-  if (/BILLING\.SUBSCRIPTION\.ACTIVATED/.test(type) || /PAYMENT\.SALE\.COMPLETED/.test(type)) {
-    status = 'active';
-  }
-  if (
-    /BILLING\.SUBSCRIPTION\.CANCELLED/.test(type) ||
-    /BILLING\.SUBSCRIPTION\.SUSPENDED/.test(type) ||
-    /BILLING\.SUBSCRIPTION\.EXPIRED/.test(type)
-  ) {
-    status = 'inactive';
-  }
+  if (/BILLING\.SUBSCRIPTION\.ACTIVATED/.test(type) || /PAYMENT\.SALE\.COMPLETED/.test(type)) status = 'active';
+  if (/BILLING\.SUBSCRIPTION\.(CANCELLED|SUSPENDED|EXPIRED)/.test(type)) status = 'inactive';
 
   if (userId && subId) {
     const row = {
@@ -153,45 +152,44 @@ async function handleEvent(evt) {
       updated_at: new Date().toISOString(),
     };
 
-    // Upsert by user_id (your current schema). If you later add a unique index on subscription_id,
-    // you can change onConflict to 'subscription_id'.
     const { error } = await supabaseAdmin
       .from('subscriptions')
       .upsert(row, { onConflict: 'user_id' });
 
     if (error) {
-      console.error('[webhook] Supabase upsert error:', error.message);
+      console.error(`[webhook ${VERSION}] Supabase upsert error:`, error.message);
     } else {
-      console.log('[webhook] Upserted subscription row:', { subId, userId, status });
+      console.log(`[webhook ${VERSION}] Upserted subscription row`, { subId, userId, status });
     }
   } else {
-    console.warn('[webhook] Missing userId or subId → skipping write', { type, subId, userId });
+    console.warn(`[webhook ${VERSION}] Missing userId or subId → skipping write`, { type, subId, userId });
   }
 }
 
 /* ---------- Debug (GET) ---------- */
 export async function GET() {
-  return NextResponse.json({ ok: true, path: '/api/paypal/webhook', expects: 'POST' });
+  return NextResponse.json({ ok: true, version: VERSION, path: '/api/paypal/webhook', expects: 'POST' });
 }
 
 /* ---------- Main (POST) ---------- */
 export async function POST(req) {
   try {
     const raw = await req.text();
+    console.log(`[webhook ${VERSION}] POST hit`); // banner
 
     const ok = await verifySignature(req.headers, raw);
     if (!ok) {
-      console.warn('[webhook] PayPal signature verification FAILED');
+      console.warn(`[webhook ${VERSION}] PayPal signature verification FAILED`);
       return NextResponse.json({ status: 'ignored' }, { status: 400 });
     }
 
     const event = JSON.parse(raw);
     await handleEvent(event);
 
-    return NextResponse.json({ received: true }, { status: 200 });
+    return NextResponse.json({ received: true, version: VERSION }, { status: 200 });
   } catch (err) {
-    console.error('[webhook] error:', err?.message || err);
-    // Always 200 to prevent PayPal retry storms
-    return NextResponse.json({ ok: true }, { status: 200 });
+    console.error(`[webhook ${VERSION}] error:`, err?.message || err);
+    // Always 200 to prevent retry storms
+    return NextResponse.json({ ok: true, version: VERSION }, { status: 200 });
   }
 }
