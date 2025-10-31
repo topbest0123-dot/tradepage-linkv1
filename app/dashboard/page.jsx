@@ -437,17 +437,17 @@ export default function Dashboard() {
     return null;
   };
 
-  return (
-    <section>
-      <h2>Dashboard</h2>
-      <p style={{ opacity: 0.8, marginBottom: 8 }}>
-        Signed in as <b>{user.email}</b>
-      </p>
+ return (
+  <section>
+    {/* tiny billing/trial notice — now right under the header */}
+    <Banner />
 
-      {/* tiny billing/trial notice */}
-      <Banner />
+    <h2>Dashboard</h2>
+    <p style={{ opacity: 0.8, marginBottom: 8 }}>
+      Signed in as <b>{user.email}</b>
+    </p>
 
-      {input('Public link (slug)', 'slug', 'e.g. best handyman')}
+    {input('Public link (slug)', 'slug', 'e.g. best handyman')}
 
       {/* availability hint */}
       {form.slug ? (
