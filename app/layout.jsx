@@ -4,6 +4,8 @@ import AuthLinks from '@/components/AuthLinks';
 import AuthHandler from './AuthHandler'; // ⬅️ added
 import HeaderHider from '@/components/HeaderHider';
 import SiteMenu from '@/components/SiteMenu';
+import HeaderBar from '@/components/HeaderBar';
+
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.tradepage.link'),
@@ -57,53 +59,8 @@ export default function RootLayout({ children }) {
         {/* <AuthHandler /> */}
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
-          <header
-  className="site-header"
-  style={{
-    padding: '16px 0',
-    borderBottom: '1px solid var(--border)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    flexWrap: 'nowrap'
-  }}
->
-  {/* Brand: two-line, all caps */}
-  <div
-    className="site-brand"
-    style={{
-      minWidth: 0,
-      flex: '0 0 auto',
-      display: 'flex',
-      flexDirection: 'column',
-      lineHeight: 1,
-    }}
-  >
-    <b style={{ textTransform: 'uppercase', fontSize: 18, letterSpacing: '0.4px' }}>
-      TradePage
-    </b>
-    <span style={{ textTransform: 'uppercase', fontSize: 14, opacity: 0.85, letterSpacing: '0.3px' }}>
-      Link
-    </span>
-  </div>
-
-  {/* Actions on one line (Create / Auth / Burger) */}
-  <div
-    className="site-actions"
-    style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 8,
-      flexShrink: 0,
-      whiteSpace: 'nowrap'
-    }}
-  >
-    <AuthLinks />
-    <SiteMenu />
-  </div>
-</header>
-
+          
+         <HeaderBar />
 
           {/* controller that hides header/brand or swaps to hamburger where needed */}
           <HeaderHider />
