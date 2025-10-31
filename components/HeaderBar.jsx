@@ -34,23 +34,47 @@ export default function HeaderBar() {
         flexWrap: 'nowrap',
       }}
     >
-      {/* Brand: two lines, slightly smaller to avoid wrapping */}
+      {/* Brand: logo + two-line name (Title Case: "Trade Page" / "Link") */}
       <div
         style={{
           minWidth: 0,
           flex: '0 1 auto',
           display: 'flex',
-          flexDirection: 'column',
-          lineHeight: 1,
+          alignItems: 'center',
+          gap: 10,
           overflow: 'hidden',
         }}
       >
-        <b style={{ textTransform: 'uppercase', fontSize: 'clamp(14px,2.4vw,18px)', letterSpacing: '0.4px' }}>
-          TradePage
-        </b>
-        <span style={{ textTransform: 'uppercase', fontSize: 'clamp(11px,1.9vw,14px)', opacity: 0.85, letterSpacing: '0.3px' }}>
-          Link
-        </span>
+        <img
+          src="/logo.svg"                 /* put your logo at /public/logo.svg (or change path) */
+          alt="TradePageLink logo"
+          style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
+        />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            lineHeight: 1.05,
+            minWidth: 0,
+          }}
+        >
+          <b style={{
+            fontSize: 'clamp(16px,2.4vw,20px)',
+            letterSpacing: '0.3px',
+            whiteSpace: 'nowrap'
+          }}>
+            Trade Page
+          </b>
+          <span style={{
+            fontWeight: 800,
+            fontSize: 'clamp(16px,2.3vw,20px)',
+            letterSpacing: '0.3px',
+            marginTop: 2,
+            whiteSpace: 'nowrap'
+          }}>
+            Link
+          </span>
+        </div>
       </div>
 
       {/* Right-side actions: single button + burger on non-dashboard; full AuthLinks on dashboard */}
@@ -64,10 +88,10 @@ export default function HeaderBar() {
         }}
       >
         {onDashboard ? (
-          // Dashboard: keep your existing two inline buttons (Dashboard + Sign out)
+          /* Dashboard: keep your existing two inline buttons (Dashboard + Sign out) */
           <AuthLinks />
         ) : (
-          // Everywhere else (e.g., homepage): show ONLY one primary button, and keep Sign out inside the burger menu
+          /* Everywhere else: one primary button (Sign in/Create or Dashboard) */
           <>
             {user ? (
               <a
