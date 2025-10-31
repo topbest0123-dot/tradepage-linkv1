@@ -65,16 +65,15 @@ export default function SubscribePage() {
         createSubscription: (_data, actions) => {
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            custom_id: userId, // ← we use this in the webhook to map to the Supabase user
+            custom_id: userId, // used in the webhook to map to the Supabase user
             application_context: {
               brand_name: 'TradePage.link',
               user_action: 'SUBSCRIBE_NOW',
             },
           });
         },
-        onApprove: async (data) => {
+        onApprove: async (_data) => {
           setMsg('Subscription active. Redirecting…');
-          // Small delay to let PayPal finish UI cleanup
           setTimeout(() => { window.location.href = '/dashboard'; }, 500);
         },
         onError: (err) => {
@@ -131,7 +130,7 @@ export default function SubscribePage() {
             </>
           ) : null}
 
-          {/* Helpful, quiet error states */}
+          {/* Quiet error states for missing envs (safe to keep) */}
           {!CLIENT_ID && (
             <div className="error">
               Missing <code>NEXT_PUBLIC_PAYPAL_CLIENT_ID</code>. Set it in Vercel (Production) and redeploy.
@@ -145,19 +144,11 @@ export default function SubscribePage() {
 
           {msg ? <div className="note">{msg}</div> : null}
 
-          {/* Collapsible technical details (hidden by default) */}
-          <details className="tech">
-            <summary>Having trouble? Show technical details</summary>
-            <div className="tech-body">
-              <div>SDK loaded: <b>{String(sdkReady)}</b></div>
-              <div>User ID set: <b>{String(!!userId)}</b></div>
-              <div>Plan set: <b>{String(!!PLAN_ID)}</b></div>
-              <div style={{ wordBreak: 'break-all' }}>
-                SDK URL: <code>{sdkSrc || '(no client id)'}</code>
-              </div>
-              <div className="tiny">Tip: disable ad blockers or try incognito.</div>
-            </div>
-          </details>
+          {/* Simple help area (replaces technical details) */}
+          <div className="help">
+            <div className="help-title">Having trouble?</div>
+            <a href="/contact" className="cta cta-secondary small">Contact us</a>
+          </div>
         </div>
       </div>
 
@@ -273,6 +264,7 @@ h1 {
   border: 1px solid var(--social-border);
   margin-top: 8px;
 }
+.cta.small { height: 36px; padding: 0 14px; font-size: 13px; }
 
 .error, .note {
   margin-top: 10px;
@@ -291,19 +283,16 @@ h1 {
   color: var(--text);
 }
 
-.tech {
-  margin-top: 12px;
+.help {
+  margin-top: 14px;
+  border-top: 1px dashed var(--border);
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.tech summary {
-  cursor: pointer;
+.help-title {
   opacity: 0.8;
-}
-.tech-body {
-  margin-top: 8px;
-  border: 1px dashed var(--border);
-  border-radius: 10px;
-  padding: 10px;
-  background: var(--chip-bg);
-  color: var(--text);
+  font-size: 13px;
 }
 `;
