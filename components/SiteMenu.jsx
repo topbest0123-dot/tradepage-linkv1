@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -15,6 +15,7 @@ const itemStyle = {
 export default function SiteMenu() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState(null);
+  const rootRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -23,15 +24,35 @@ export default function SiteMenu() {
     })();
   }, []);
 
+  // Close on click/touch outside or Esc
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (!rootRef.current) return;
+      if (!rootRef.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown, { passive: true });
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   const onSignOut = async () => {
     try { await supabase.auth.signOut(); } finally {
-      // Hard redirect clears any stale client state
       window.location.href = '/';
     }
   };
 
+  // helper: close then navigate
+  const linkProps = { style: itemStyle, onClick: () => setOpen(false) };
+
   return (
-    <div className="site-menu" style={{ position: 'relative' }}>
+    <div className="site-menu" ref={rootRef} style={{ position: 'relative' }}>
       <button
         type="button"
         aria-label="Menu"
@@ -58,17 +79,18 @@ export default function SiteMenu() {
             background: 'var(--card-bg-1)', borderRadius: 12, padding: 8,
             boxShadow: '0 8px 24px rgba(0,0,0,.25)'
           }}
+          role="menu"
         >
           {!email ? (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <li><Link href="/signin" style={itemStyle}>Create your page</Link></li>
-              <li><Link href="/#features" style={itemStyle}>Features</Link></li>
-              <li><Link href="/#pricing" style={itemStyle}>Pricing</Link></li>
-              <li><Link href="/contact" style={itemStyle}>Contact</Link></li>
+              <li><Link href="/signin" {...linkProps}>Create your page</Link></li>
+              <li><Link href="/#features" {...linkProps}>Features</Link></li>
+              <li><Link href="/#pricing" {...linkProps}>Pricing</Link></li>
+              <li><Link href="/contact" {...linkProps}>Contact</Link></li>
             </ul>
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <li><Link href="/dashboard" style={itemStyle}>Dashboard</Link></li>
+              <li><Link href="/dashboard" {...linkProps}>Dashboard</Link></li>
               <li>
                 <button
                   onClick={onSignOut}
