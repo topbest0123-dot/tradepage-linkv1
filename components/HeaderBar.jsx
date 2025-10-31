@@ -46,7 +46,7 @@ export default function HeaderBar() {
         }}
       >
         <img
-          src="/logo.svg"                 /* put your logo at /public/logo.svg (or change path) */
+          src="/logo.png"                 /* put your logo at /public/logo.svg (or change path) */
           alt="TradePageLink logo"
           style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
         />
