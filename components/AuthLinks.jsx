@@ -1,39 +1,63 @@
+// components/AuthLinks.jsx
 'use client';
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
+
+import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
-const linkStyle = {
-  padding: '8px 12px',
-  border: '1px solid var(--social-border)',
+const btnBase = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: 36,                 // ⬅️ same height for both
+  padding: '0 14px',
   borderRadius: 10,
-  color: 'var(--text)',
+  fontWeight: 700,
+  fontSize: 14,               // ⬅️ same font-size for both
   textDecoration: 'none',
-  whiteSpace: 'nowrap'
+  cursor: 'pointer',
 };
 
 export default function AuthLinks() {
-  const [email, setEmail] = useState(null);
+  const [signingOut, setSigningOut] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setEmail(user?.email ?? null);
-    })();
-  }, []);
-
-  if (!email) {
-    return <Link href="/signin" style={linkStyle}>Create your page</Link>;
-  }
+  const onSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    } catch (_) {
+      setSigningOut(false);
+    }
+  };
 
   return (
-    <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'nowrap' }}>
-      <Link href="/dashboard" style={linkStyle}>Dashboard</Link>
-      <button
-        onClick={async () => { try { await supabase.auth.signOut(); } finally { window.location.href = '/'; } }}
-        style={{ ...linkStyle, background: 'transparent', border: '1px solid var(--social-border)' }}
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+      <a
+        href="/dashboard"
+        style={{
+          ...btnBase,
+          background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
+          color: '#08101e',
+          border: '1px solid var(--border)',
+        }}
       >
-        Sign out
+        Dashboard
+      </a>
+
+      <button
+        type="button"
+        onClick={onSignOut}
+        disabled={signingOut}
+        style={{
+          ...btnBase,
+          background: 'transparent',
+          color: 'var(--text)',
+          border: '1px solid var(--social-border)',
+          opacity: signingOut ? 0.6 : 1,
+        }}
+      >
+        {signingOut ? 'Signing out…' : 'Sign out'}
       </button>
     </div>
   );
