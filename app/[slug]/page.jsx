@@ -2,18 +2,33 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import PublicPage from '@/components/PublicPage'; // client component below
-import { deriveAccountState } from '@/lib/accountState';
 
 export const dynamic = 'force-dynamic';  // always fetch fresh
 export const revalidate = 0;
 
-/** Helper: which states are considered suspended on the public route */
-const isSuspendedState = (state) => {
-  const s = (state || '').toLowerCase();
-  return s === 'expired' || s === 'past_due' || s === 'inactive';
-};
+// ───────────────── helpers ─────────────────
+function addDaysISO(iso, days) {
+  const t = new Date(iso || Date.now()).getTime();
+  return new Date(t + days * 86400000).toISOString();
+}
 
-/* OG/Twitter metadata + robots control for suspended pages */
+function computeSuspended(profile, sub) {
+  // active only if subscription row exists AND is 'active'
+  const hasActiveSub = !!(sub && sub.status === 'active');
+
+  // trial math
+  const trialDays = Number.isFinite(profile?.trial_days) ? Number(profile.trial_days) : 14;
+  const startISO = profile?.trial_start || profile?.created_at || new Date().toISOString();
+  const trialEndISO = addDaysISO(startISO, trialDays);
+  const now = new Date();
+
+  const isExpired =
+    !hasActiveSub && (trialDays <= 0 || now >= new Date(trialEndISO));
+
+  return { isExpired, endsAt: trialEndISO, hasActiveSub };
+}
+
+// ───────────────── metadata ─────────────────
 export async function generateMetadata({ params }) {
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -23,36 +38,31 @@ export async function generateMetadata({ params }) {
 
   const { data: p } = await sb
     .from('profiles')
-    .select('slug,name,trade,city,avatar_path')
+    .select('id,slug,name,trade,city,avatar_path,created_at,trial_start,trial_days')
     .ilike('slug', params.slug)
     .maybeSingle();
 
-  // If no profile at all, standard 404 metadata
   if (!p) {
     return {
       title: 'TradePage',
       description: 'Your business in a link',
-      robots: { index: false, follow: false }
+      robots: { index: false, follow: false },
     };
   }
 
-  // Check account state to decide indexing policy (fail-safe if derive throws)
-  let state = 'active';
-  try {
-    const out = await deriveAccountState(sb, p.slug);
-    state = out?.state ?? 'active';
-  } catch {}
+  const { data: sub } = await sb
+    .from('subscriptions')
+    .select('status')
+    .eq('user_id', p.id)
+    .maybeSingle();
+
+  const { isExpired } = computeSuspended(p, sub);
 
   const title = p?.name || 'TradePage';
-  const description =
-    [p?.trade, p?.city].filter(Boolean).join(' • ') || 'Your business in a link';
-
+  const description = [p?.trade, p?.city].filter(Boolean).join(' • ') || 'Your business in a link';
   const image = p?.avatar_path
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${p.avatar_path}`
     : '/og-default.png';
-
-  // If suspended, keep the URL out of search results while suspended
-  const robots = isSuspendedState(state) ? { index: false, follow: false } : undefined;
 
   return {
     title,
@@ -71,10 +81,12 @@ export async function generateMetadata({ params }) {
       description,
       images: [image],
     },
-    robots,
+    // Keep suspended profiles out of search while inactive
+    robots: isExpired ? { index: false, follow: false } : undefined,
   };
 }
 
+// ───────────────── page ─────────────────
 export default async function Page({ params }) {
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -82,56 +94,59 @@ export default async function Page({ params }) {
     { auth: { persistSession: false } }
   );
 
+  // Fetch full profile (now includes id + trial fields so we can gate correctly)
   const { data: p, error } = await sb
     .from('profiles')
     .select(`
-      slug,name,trade,city,
-      phone,phone2,whatsapp,email,
-      about,areas,services,prices,hours,
-      facebook,instagram,tiktok,x,youtube,website,
+      id, created_at, trial_start, trial_days,
+      slug, name, trade, city,
+      phone, phone2, whatsapp, email,
+      about, areas, services, prices, hours,
+      facebook, instagram, tiktok, x, youtube, website,
       location, location_url,
-      avatar_path,other_info,theme,other_trades,
+      avatar_path, other_info, theme, other_trades,
       gallery
     `)
     .ilike('slug', params.slug)
     .maybeSingle();
 
   if (error) return notFound();
-  if (!p)   return notFound();
+  if (!p) return notFound();
 
-  // Check subscription/trial status (fail-safe defaults)
-  let state = 'active';
-  let endsAt = null;
-  try {
-    const out = await deriveAccountState(sb, p.slug);
-    state  = out?.state ?? 'active';
-    endsAt = out?.endsAt ?? null;
-  } catch {}
+  // Lookup subscription for this profile
+  const { data: sub } = await sb
+    .from('subscriptions')
+    .select('status')
+    .eq('user_id', p.id)
+    .maybeSingle();
 
-  // Friendlier alternative to 404: show a temporary-hold page
-  if (isSuspendedState(state)) {
+  // Decide visibility
+  const { isExpired, endsAt } = computeSuspended(p, sub);
+
+  if (isExpired) {
+    // Friendlier than 404: show a temporary hold page (200 + noindex via metadata).
     return (
-      <main style={{minHeight:'70vh',display:'grid',placeItems:'center',padding:'48px'}}>
-        <div style={{maxWidth:680,textAlign:'center'}}>
-          <h1 style={{marginBottom:12}}>Profile temporarily unavailable</h1>
-          <p style={{opacity:.8,marginBottom:8}}>
-            This page is currently suspended (trial ended or subscription requires payment).
+      <main style={{ minHeight: '70vh', display: 'grid', placeItems: 'center', padding: '48px' }}>
+        <div style={{ maxWidth: 680, textAlign: 'center' }}>
+          <h1 style={{ marginBottom: 12 }}>Profile temporarily unavailable</h1>
+          <p style={{ opacity: .8, marginBottom: 8 }}>
+            This page is currently suspended (trial ended or subscription inactive).
           </p>
           {endsAt ? (
-            <p style={{opacity:.6,marginBottom:20,fontSize:14}}>
+            <p style={{ opacity: .6, marginBottom: 20, fontSize: 14 }}>
               Last active: {new Date(endsAt).toLocaleString()}
             </p>
           ) : null}
           <a
             href="/signin"
             style={{
-              padding:'10px 16px',
-              border:'1px solid var(--chip-border)',
-              background:'var(--chip-bg)',
-              color:'var(--text)',
-              borderRadius:10,
-              display:'inline-flex',
-              gap:8
+              padding: '10px 16px',
+              border: '1px solid var(--chip-border)',
+              background: 'var(--chip-bg)',
+              color: 'var(--text)',
+              borderRadius: 10,
+              display: 'inline-flex',
+              gap: 8
             }}
           >
             Sign in to reactivate
@@ -141,6 +156,6 @@ export default async function Page({ params }) {
     );
   }
 
-  // Active or on trial → show public page
+  // Active or in-trial → render public profile
   return <PublicPage profile={p} />;
 }
