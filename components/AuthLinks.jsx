@@ -1,83 +1,38 @@
 'use client';
-
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
+const linkStyle = {
+  padding: '8px 12px',
+  border: '1px solid var(--social-border)',
+  borderRadius: 10,
+  color: 'var(--text)',
+  textDecoration: 'none',
+  whiteSpace: 'nowrap'
+};
+
 export default function AuthLinks() {
-  const [session, setSession] = useState(null);
-  const router = useRouter();
-  const pathname = usePathname();
+  const [email, setEmail] = useState(null);
 
   useEffect(() => {
-    let ignore = false;
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!ignore) setSession(data.session ?? null);
-    });
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      if (!ignore) setSession(s ?? null);
-    });
-
-    return () => {
-      ignore = true;
-      sub?.subscription?.unsubscribe?.();
-    };
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setEmail(user?.email ?? null);
+    })();
   }, []);
 
-  const go = (href) => router.push(href);
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/signin');
-  };
+  if (!email) {
+    return <Link href="/signin" style={linkStyle}>Create your page</Link>;
+  }
 
-  // Same tokens used by Call / WhatsApp buttons on the public page
-  const btnBase = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 40,
-    padding: '0 18px',
-    borderRadius: 12,
-    border: '1px solid var(--border)',
-    fontWeight: 700,
-    cursor: 'pointer',
-    background: 'transparent',
-    outline: 'none',
-  };
-  const btnPrimary = {
-    background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
-    color: '#08101e',
-  };
-  const btnNeutral = {
-    background: 'var(--btn-neutral-bg)',
-    color: 'var(--text)',
-  };
-
-  if (!session) {
   return (
-    <button
-      type="button"
-      onClick={() => go('/signin')}
-      // you can use btnPrimary to make it pop, or keep btnNeutral
-      style={{ ...btnBase, ...btnPrimary }}
-      aria-label="Create your trade page"
-      title="Create your trade page"
-    >
-      Create your trade page
-    </button>
-  );
-}
-
-
-  // Authenticated: Dashboard (neutral) + Sign out (primary) — same look as WhatsApp + Call
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <button type="button" onClick={() => go('/dashboard')} style={{ ...btnBase, ...btnNeutral }}>
-        Dashboard
-      </button>
-      <button type="button" onClick={signOut} style={{ ...btnBase, ...btnPrimary }}>
+    <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'nowrap' }}>
+      <Link href="/dashboard" style={linkStyle}>Dashboard</Link>
+      <button
+        onClick={async () => { try { await supabase.auth.signOut(); } finally { window.location.href = '/'; } }}
+        style={{ ...linkStyle, background: 'transparent', border: '1px solid var(--social-border)' }}
+      >
         Sign out
       </button>
     </div>
