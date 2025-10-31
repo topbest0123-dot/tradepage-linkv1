@@ -58,30 +58,52 @@ export default function RootLayout({ children }) {
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
           <header
-            className="site-header"
-            style={{
-              padding: '16px 0',
-              borderBottom: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-            }}
-          >
-            <div className="brand">
-              <a href="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <b>TradePageLink</b>
-              </a>
-              <div style={{ opacity: 0.7, fontSize: 16, lineHeight: '18px' }}>
-                Your business in a link
-              </div>
-            </div>
+  className="site-header"
+  style={{
+    padding: '16px 0',
+    borderBottom: '1px solid var(--border)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    flexWrap: 'nowrap'
+  }}
+>
+  {/* Brand: two-line, all caps */}
+  <div
+    className="site-brand"
+    style={{
+      minWidth: 0,
+      flex: '0 0 auto',
+      display: 'flex',
+      flexDirection: 'column',
+      lineHeight: 1,
+    }}
+  >
+    <b style={{ textTransform: 'uppercase', fontSize: 18, letterSpacing: '0.4px' }}>
+      TradePage
+    </b>
+    <span style={{ textTransform: 'uppercase', fontSize: 14, opacity: 0.85, letterSpacing: '0.3px' }}>
+      Link
+    </span>
+  </div>
 
-            <div className="actions" style={{ display: 'inline-flex', gap: 12, alignItems: 'center' }}>
-              <AuthLinks />
-              <SiteMenu />
-            </div>
-          </header>
+  {/* Actions on one line (Create / Auth / Burger) */}
+  <div
+    className="site-actions"
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 8,
+      flexShrink: 0,
+      whiteSpace: 'nowrap'
+    }}
+  >
+    <AuthLinks />
+    <SiteMenu />
+  </div>
+</header>
+
 
           {/* controller that hides header/brand or swaps to hamburger where needed */}
           <HeaderHider />
