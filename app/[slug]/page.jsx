@@ -7,7 +7,13 @@ import { deriveAccountState } from '@/lib/accountState';
 export const dynamic = 'force-dynamic';  // always fetch fresh
 export const revalidate = 0;
 
-/* OG/Twitter metadata + robots control for expired pages */
+/** Helper: which states are considered suspended on the public route */
+const isSuspendedState = (state) => {
+  const s = (state || '').toLowerCase();
+  return s === 'expired' || s === 'past_due' || s === 'inactive';
+};
+
+/* OG/Twitter metadata + robots control for suspended pages */
 export async function generateMetadata({ params }) {
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -30,8 +36,12 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  // Check account state to decide indexing policy
-  const { state } = await deriveAccountState(sb, p.slug);
+  // Check account state to decide indexing policy (fail-safe if derive throws)
+  let state = 'active';
+  try {
+    const out = await deriveAccountState(sb, p.slug);
+    state = out?.state ?? 'active';
+  } catch {}
 
   const title = p?.name || 'TradePage';
   const description =
@@ -41,11 +51,8 @@ export async function generateMetadata({ params }) {
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${p.avatar_path}`
     : '/og-default.png';
 
-  // If expired, keep the URL out of search results while suspended
-  const robots =
-    state === 'expired'
-      ? { index: false, follow: false } // Next.js will output both meta + X-Robots-Tag
-      : undefined;
+  // If suspended, keep the URL out of search results while suspended
+  const robots = isSuspendedState(state) ? { index: false, follow: false } : undefined;
 
   return {
     title,
@@ -92,17 +99,23 @@ export default async function Page({ params }) {
   if (error) return notFound();
   if (!p)   return notFound();
 
-  // Check subscription/trial status
-  const { state, endsAt } = await deriveAccountState(sb, p.slug);
+  // Check subscription/trial status (fail-safe defaults)
+  let state = 'active';
+  let endsAt = null;
+  try {
+    const out = await deriveAccountState(sb, p.slug);
+    state  = out?.state ?? 'active';
+    endsAt = out?.endsAt ?? null;
+  } catch {}
 
   // Friendlier alternative to 404: show a temporary-hold page
-  if (state === 'expired') {
+  if (isSuspendedState(state)) {
     return (
       <main style={{minHeight:'70vh',display:'grid',placeItems:'center',padding:'48px'}}>
         <div style={{maxWidth:680,textAlign:'center'}}>
           <h1 style={{marginBottom:12}}>Profile temporarily unavailable</h1>
           <p style={{opacity:.8,marginBottom:8}}>
-            This page is currently suspended (trial ended or subscription inactive).
+            This page is currently suspended (trial ended or subscription requires payment).
           </p>
           {endsAt ? (
             <p style={{opacity:.6,marginBottom:20,fontSize:14}}>
@@ -128,6 +141,6 @@ export default async function Page({ params }) {
     );
   }
 
-  // Active or in-trial → show public page
+  // Active or on trial → show public page
   return <PublicPage profile={p} />;
 }
