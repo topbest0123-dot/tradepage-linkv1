@@ -2,6 +2,8 @@
 import './globals.css';
 import AuthLinks from '@/components/AuthLinks';
 import AuthHandler from './AuthHandler'; // ⬅️ added
+import HeaderHider from '@/components/HeaderHider';
+import SiteMenu from '@/components/SiteMenu';
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.tradepage.link'),
@@ -47,16 +49,16 @@ export default function RootLayout({ children }) {
           fontFamily: 'system-ui,-apple-system,Segoe UI,Roboto,Arial',
           margin: 0,
           padding: 0,
-          background: 'var(--bg)',     // was hard-coded #0a0f14
-          color: 'var(--text)',        // follow theme text
+          background: 'var(--bg)',
+          color: 'var(--text)',
         }}
       >
         {/* TEMP: disable AuthHandler to stop redirect loop */}
         {/* <AuthHandler /> */}
 
-
         <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
           <header
+            className="site-header"
             style={{
               padding: '16px 0',
               borderBottom: '1px solid var(--border)',
@@ -66,15 +68,24 @@ export default function RootLayout({ children }) {
               gap: 12,
             }}
           >
-            <div>
-  <b>TradePageLink</b>
-  <div style={{ opacity: 0.7, fontSize: 16, lineHeight: '18px' }}>
-    Your business in a link
-  </div>
-</div>
+            <div className="brand">
+              <a href="/" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <b>TradePageLink</b>
+              </a>
+              <div style={{ opacity: 0.7, fontSize: 16, lineHeight: '18px' }}>
+                Your business in a link
+              </div>
+            </div>
 
-            <AuthLinks />
+            <div className="actions" style={{ display: 'inline-flex', gap: 12, alignItems: 'center' }}>
+              <AuthLinks />
+              <SiteMenu />
+            </div>
           </header>
+
+          {/* controller that hides header/brand or swaps to hamburger where needed */}
+          <HeaderHider />
+
           <main style={{ paddingTop: 16 }}>{children}</main>
         </div>
       </body>
