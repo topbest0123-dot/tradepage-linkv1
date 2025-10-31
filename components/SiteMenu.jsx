@@ -1,107 +1,164 @@
+// components/SiteMenu.jsx
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
+
+import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-const itemStyle = {
-  display: 'block',
-  padding: 8,
-  color: 'var(--text)',
-  textDecoration: 'none',
-  borderRadius: 8,
-  lineHeight: 1.2,
-};
-
 export default function SiteMenu() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState(null);
-  const rootRef = useRef(null);
+  const [user, setUser] = useState(null);
+  const panelRef = useRef(null);
+
+  const onDashboard = pathname?.startsWith('/dashboard');
 
   useEffect(() => {
+    let alive = true;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setEmail(user?.email ?? null);
+      if (alive) setUser(user || null);
     })();
+    return () => { alive = false; };
   }, []);
 
-  // Close on click/touch outside or Esc
+  // Close on outside click or ESC
   useEffect(() => {
     if (!open) return;
-    const onDown = (e) => {
-      if (!rootRef.current) return;
-      if (!rootRef.current.contains(e.target)) setOpen(false);
-    };
+
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('touchstart', onDown, { passive: true });
+    const onClick = (e) => {
+      if (!panelRef.current) return;
+      if (!panelRef.current.contains(e.target)) setOpen(false); // click anywhere closes
+    };
+
     document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onClick);
     return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('touchstart', onDown);
       document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onClick);
     };
   }, [open]);
 
-  const onSignOut = async () => {
-    try { await supabase.auth.signOut(); } finally {
-      window.location.href = '/';
-    }
+  // Common site items (homepage menu)
+  const coreItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Pricing', href: '/pricing' },
+    { label: 'Contact', href: '/contact' },
+    { label: 'Blog', href: '/blog' },
+  ];
+
+  // Build the list:
+  // - On dashboard: show ONLY core site items (no Dashboard/Sign out duplicates here)
+  // - Elsewhere: include Sign out inside the menu when logged in (so homepage has it)
+  const items = [...coreItems];
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
   };
 
-  // helper: close then navigate
-  const linkProps = { style: itemStyle, onClick: () => setOpen(false) };
+  if (!onDashboard && user) {
+    items.push({ label: 'Sign out', action: handleSignOut });
+  }
+
+  const Burger = (
+    <button
+      type="button"
+      aria-label="Open menu"
+      onClick={() => setOpen((v) => !v)}
+      style={{
+        width: 40, height: 36,
+        borderRadius: 10,
+        border: '1px solid var(--social-border)',
+        background: 'transparent',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer'
+      }}
+    >
+      <div style={{ width: 18 }}>
+        <div style={{ height: 2, background: 'var(--text)', margin: '3px 0' }} />
+        <div style={{ height: 2, background: 'var(--text)', margin: '3px 0' }} />
+        <div style={{ height: 2, background: 'var(--text)', margin: '3px 0' }} />
+      </div>
+    </button>
+  );
 
   return (
-    <div className="site-menu" ref={rootRef} style={{ position: 'relative' }}>
-      <button
-        type="button"
-        aria-label="Menu"
-        onClick={() => setOpen(v => !v)}
-        style={{
-          width: 36, height: 36, borderRadius: 10,
-          border: '1px solid var(--social-border)',
-          background: 'transparent', cursor: 'pointer',
-          display: 'grid', placeItems: 'center'
-        }}
-      >
-        <div style={{ width: 18 }}>
-          <div style={{ height: 2, margin: '3px 0', background: 'var(--text)' }} />
-          <div style={{ height: 2, margin: '3px 0', background: 'var(--text)' }} />
-          <div style={{ height: 2, margin: '3px 0', background: 'var(--text)' }} />
-        </div>
-      </button>
+    <div style={{ position: 'relative' }}>
+      {Burger}
 
       {open && (
-        <div
-          style={{
-            position: 'absolute', right: 0, top: 44, zIndex: 1000,
-            minWidth: 200, border: '1px solid var(--border)',
-            background: 'var(--card-bg-1)', borderRadius: 12, padding: 8,
-            boxShadow: '0 8px 24px rgba(0,0,0,.25)'
-          }}
-          role="menu"
-        >
-          {!email ? (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <li><Link href="/signin" {...linkProps}>Create your page</Link></li>
-              <li><Link href="/#features" {...linkProps}>Features</Link></li>
-              <li><Link href="/#pricing" {...linkProps}>Pricing</Link></li>
-              <li><Link href="/contact" {...linkProps}>Contact</Link></li>
-            </ul>
-          ) : (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <li><Link href="/dashboard" {...linkProps}>Dashboard</Link></li>
-              <li>
-                <button
-                  onClick={onSignOut}
-                  style={{ ...itemStyle, width: '100%', textAlign: 'left', background: 'transparent', border: 0, padding: 8, cursor: 'pointer' }}
-                >
-                  Sign out
-                </button>
-              </li>
-            </ul>
-          )}
-        </div>
+        <>
+          {/* Overlay: clicking anywhere closes */}
+          <div
+            onClick={() => setOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)',
+              zIndex: 40
+            }}
+          />
+          <div
+            ref={panelRef}
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 8px)',
+              right: 0,
+              zIndex: 50,
+              minWidth: 220,
+              borderRadius: 12,
+              border: '1px solid var(--border)',
+              background: 'var(--card-bg-1)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ padding: 8 }}>
+              {items.map((it, i) => (
+                it.action ? (
+                  <button
+                    key={`a-${i}`}
+                    type="button"
+                    onClick={() => { it.action(); setOpen(false); }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '10px 12px',
+                      borderRadius: 10,
+                      border: '1px solid var(--chip-border)',
+                      background: 'var(--chip-bg)',
+                      color: 'var(--text)',
+                      cursor: 'pointer',
+                      marginBottom: 6
+                    }}
+                  >
+                    {it.label}
+                  </button>
+                ) : (
+                  <a
+                    key={`l-${i}`}
+                    href={it.href}
+                    onClick={() => setOpen(false)}
+                    style={{
+                      display: 'block',
+                      padding: '10px 12px',
+                      borderRadius: 10,
+                      border: '1px solid var(--chip-border)',
+                      background: 'var(--chip-bg)',
+                      color: 'var(--text)',
+                      textDecoration: 'none',
+                      marginBottom: 6
+                    }}
+                  >
+                    {it.label}
+                  </a>
+                )
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
