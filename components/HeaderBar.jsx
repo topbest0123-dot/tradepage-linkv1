@@ -77,7 +77,7 @@ export default function HeaderBar() {
         </div>
       </div>
 
-      {/* Right-side actions: single button + burger on non-dashboard; full AuthLinks on dashboard */}
+            {/* Right-side actions: only Dashboard inline on /dashboard; Sign out lives in burger */}
       <div
         style={{
           display: 'inline-flex',
@@ -88,10 +88,23 @@ export default function HeaderBar() {
         }}
       >
         {onDashboard ? (
-          /* Dashboard: keep your existing two inline buttons (Dashboard + Sign out) */
-          <AuthLinks />
+          <>
+            {/* Keep only Dashboard as an inline button */}
+            <a
+              href="/dashboard"
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                height: 36, padding: '0 14px', borderRadius: 10, fontWeight: 700, fontSize: 14,
+                textDecoration: 'none', cursor: 'pointer',
+                background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
+                color: '#08101e', border: '1px solid var(--border)'
+              }}
+            >
+              Dashboard
+            </a>
+            <SiteMenu />
+          </>
         ) : (
-          /* Everywhere else: one primary button (Sign in/Create or Dashboard) */
           <>
             {user ? (
               <a
@@ -120,11 +133,11 @@ export default function HeaderBar() {
                 Create your page
               </a>
             )}
+            <SiteMenu />
           </>
         )}
-
-        <SiteMenu />
       </div>
+
     </header>
   );
 }
