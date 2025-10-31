@@ -287,12 +287,21 @@ h1 {
   margin-top: 14px;
   border-top: 1px dashed var(--border);
   padding-top: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: block; /* stack content vertically */
 }
+
 .help-title {
-  opacity: 0.8;
-  font-size: 13px;
+  font-size: 15px;   /* bigger */
+  font-weight: 700;  /* bolder */
+  letter-spacing: 0.2px;
+  margin-bottom: 8px; 
+  display: block;
 }
+
+/* put the button under the title with a little spacing */
+.help .cta { 
+  display: inline-flex; 
+  margin-top: 2px; 
+}
+
 `;
