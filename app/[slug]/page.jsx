@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import PublicPage from '@/components/PublicPage'; // client component below
+import HeaderHider from '@/components/HeaderHider'; // ← added
 
 export const dynamic = 'force-dynamic';  // always fetch fresh
 export const revalidate = 0;
@@ -126,36 +127,44 @@ export default async function Page({ params }) {
   if (isExpired) {
     // Friendlier than 404: show a temporary hold page (200 + noindex via metadata).
     return (
-      <main style={{ minHeight: '70vh', display: 'grid', placeItems: 'center', padding: '48px' }}>
-        <div style={{ maxWidth: 680, textAlign: 'center' }}>
-          <h1 style={{ marginBottom: 12 }}>Profile temporarily unavailable</h1>
-          <p style={{ opacity: .8, marginBottom: 8 }}>
-            This page is currently suspended (trial ended or subscription inactive).
-          </p>
-          {endsAt ? (
-            <p style={{ opacity: .6, marginBottom: 20, fontSize: 14 }}>
-              Last active: {new Date(endsAt).toLocaleString()}
+      <>
+        <HeaderHider />
+        <main style={{ minHeight: '70vh', display: 'grid', placeItems: 'center', padding: '48px' }}>
+          <div style={{ maxWidth: 680, textAlign: 'center' }}>
+            <h1 style={{ marginBottom: 12 }}>Profile temporarily unavailable</h1>
+            <p style={{ opacity: .8, marginBottom: 8 }}>
+              This page is currently suspended (trial ended or subscription inactive).
             </p>
-          ) : null}
-          <a
-            href="/signin"
-            style={{
-              padding: '10px 16px',
-              border: '1px solid var(--chip-border)',
-              background: 'var(--chip-bg)',
-              color: 'var(--text)',
-              borderRadius: 10,
-              display: 'inline-flex',
-              gap: 8
-            }}
-          >
-            Sign in to reactivate
-          </a>
-        </div>
-      </main>
+            {endsAt ? (
+              <p style={{ opacity: .6, marginBottom: 20, fontSize: 14 }}>
+                Last active: {new Date(endsAt).toLocaleString()}
+              </p>
+            ) : null}
+            <a
+              href="/signin"
+              style={{
+                padding: '10px 16px',
+                border: '1px solid var(--chip-border)',
+                background: 'var(--chip-bg)',
+                color: 'var(--text)',
+                borderRadius: 10,
+                display: 'inline-flex',
+                gap: 8
+              }}
+            >
+              Sign in to reactivate
+            </a>
+          </div>
+        </main>
+      </>
     );
   }
 
   // Active or in-trial → render public profile
-  return <PublicPage profile={p} />;
+  return (
+    <>
+      <HeaderHider />
+      <PublicPage profile={p} />
+    </>
+  );
 }
