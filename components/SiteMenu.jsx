@@ -48,19 +48,21 @@ export default function SiteMenu() {
     { label: 'Blog', href: '/blog' },
   ];
 
-  // Build the list:
-  // - On dashboard: show ONLY core site items (no Dashboard/Sign out duplicates here)
-  // - Elsewhere: include Sign out inside the menu when logged in (so homepage has it)
-  const items = [...coreItems];
+ // Build the list: always show core items; add Sign out whenever the user is logged in
+const items = [...coreItems];
 
-  const handleSignOut = async () => {
+const handleSignOut = async () => {
+  try {
     await supabase.auth.signOut();
+  } finally {
     window.location.href = '/';
-  };
-
-  if (!onDashboard && user) {
-    items.push({ label: 'Sign out', action: handleSignOut });
   }
+};
+
+if (user) {
+  items.push({ label: 'Sign out', action: handleSignOut });
+}
+
 
   const Burger = (
     <button
