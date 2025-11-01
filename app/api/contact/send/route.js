@@ -1,72 +1,75 @@
-// app/api/contact/send/route.js
-import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
-
-export const runtime = 'nodejs';
-
-const resend = new Resend(process.env.RESEND_API_KEY); // required
-const TO = process.env.CONTACT_TO_EMAIL || 'owner@example.com'; // set this
-const FROM = process.env.CONTACT_FROM_EMAIL || 'onboarding@resend.dev'; // replace with your verified sender when ready
+// app/api/contact/route.js
+export const runtime = 'nodejs';        // we need Node APIs (Buffer)
+export const dynamic = 'force-dynamic'; // don't cache
 
 export async function POST(req) {
   try {
-    const form = await req.formData();
+    const fd = await req.formData();
 
-    const name = (form.get('name') || '').toString().slice(0, 120);
-    const email = (form.get('email') || '').toString().slice(0, 200);
-    const phone = (form.get('phone') || '').toString().slice(0, 60);
-    const message = (form.get('message') || '').toString().slice(0, 8000);
+    const name    = (fd.get('name')    || '').toString().trim();
+    const email   = (fd.get('email')   || '').toString().trim();
+    const phone   = (fd.get('phone')   || '').toString().trim();
+    const message = (fd.get('message') || '').toString().trim();
+    const files   = fd.getAll('photos');  // may be []
 
     if (!name || !email || !message) {
-      return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
+      return Response.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
-    // Collect up to 10 image attachments, each ≤ 5MB
-    const files = form.getAll('photos');
-    const limited = files.slice(0, 10);
+    const to   = process.env.CONTACT_TO;
+    const from = process.env.CONTACT_FROM || 'onboarding@resend.dev'; // works w/o domain verification
+    const key  = process.env.RESEND_API_KEY;
+
+    if (!key) return Response.json({ error: 'RESEND_API_KEY not set.' }, { status: 500 });
+    if (!to)  return Response.json({ error: 'CONTACT_TO not set.' }, { status: 500 });
+
+    // Convert attachments (max 10, <=5MB each)
     const attachments = [];
-    for (const f of limited) {
-      if (typeof f?.arrayBuffer !== 'function') continue;
-      if (!f.type?.startsWith?.('image/')) continue;
+    for (const f of files) {
+      if (typeof f === 'string' || !f?.name) continue;
       if (f.size > 5 * 1024 * 1024) continue;
-      const buf = Buffer.from(await f.arrayBuffer());
-      attachments.push({ filename: f.name || 'photo.jpg', content: buf });
+      const ab  = await f.arrayBuffer();
+      const b64 = Buffer.from(ab).toString('base64');
+      attachments.push({ filename: f.name, content: b64 });
+      if (attachments.length >= 10) break;
     }
 
-    const html = `
-      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
-        <h2 style="margin:0 0 6px">New contact message</h2>
-        <p><b>Name:</b> ${escapeHtml(name)}</p>
-        <p><b>Email:</b> ${escapeHtml(email)}</p>
-        <p><b>Phone:</b> ${escapeHtml(phone || '-')}</p>
+    // Build email
+    const subject = `New contact — ${name}`;
+    const html =
+      `<div style="font-family:system-ui,Segoe UI,Roboto,Arial">
+        <h2 style="margin:0 0 8px">New contact</h2>
+        <p><b>Name:</b> ${esc(name)}</p>
+        <p><b>Email:</b> ${esc(email)}</p>
+        <p><b>Phone:</b> ${esc(phone)}</p>
         <p><b>Message:</b></p>
-        <pre style="white-space:pre-wrap;border:1px solid #eee;padding:12px;border-radius:8px;background:#fafafa">${escapeHtml(message)}</pre>
-        <p style="opacity:.7">Attachments: ${attachments.length}</p>
-      </div>
-    `;
+        <pre style="white-space:pre-wrap;background:#fafafa;border:1px solid #eee;border-radius:8px;padding:12px">${esc(message)}</pre>
+      </div>`;
 
-    const { error } = await resend.emails.send({
-      from: FROM,            // e.g. "TradePage Contact <hello@yourdomain.com>"
-      to: [TO],
-      reply_to: email,       // so you can reply straight to the sender
-      subject: `Contact form — ${name}`,
-      html,
-      attachments,           // buffers
+    // Send via Resend REST API (no npm package needed)
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ from, to, subject, html, attachments })
     });
 
-    if (error) {
-      return NextResponse.json({ error: error.message || 'Email failed' }, { status: 500 });
+    const out = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      // Pass Resend’s message back to the client so you see WHY it failed.
+      return Response.json({ error: out?.message || 'Email send failed.' }, { status: r.status });
     }
 
-    return NextResponse.json({ ok: true });
+    return Response.json({ ok: true });
   } catch (err) {
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+    return Response.json({ error: err?.message || 'Server error' }, { status: 500 });
   }
 }
 
-// tiny HTML escaper
-function escapeHtml(s) {
-  return s.replace(/[&<>"']/g, c => (
-    { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]
-  ));
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
 }
