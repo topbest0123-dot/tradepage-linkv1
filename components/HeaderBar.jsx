@@ -22,6 +22,18 @@ export default function HeaderBar() {
 
   const onDashboard = pathname?.startsWith('/dashboard');
 
+    /* ── NEW: detect "public slug" route (single segment that is not a known system page) ── */
+  const seg = (pathname || '/').replace(/^\/+|\/+$/g, '');       // 'john-plumber' | '' | 'pricing'
+  const first = seg.split('/')[0] || '';                          // first segment (or empty for home)
+  const isSingleSegment = seg !== '' && !seg.includes('/');       // exactly one segment
+  const NON_SLUG = new Set(['signin', 'dashboard', 'pricing', 'contact', 'blog', 'subscribe', 'api']);
+  const isPublicSlug = isSingleSegment && !NON_SLUG.has(first);
+
+  // Hide the entire header on public slug pages for logged-out visitors.
+  // Also hide while auth is loading to avoid a flash.
+  if (isPublicSlug && (!authChecked || !user)) return null;
+  /* ─────────────────────────────────────────────────────────────────────────────── */
+
   return (
     <header
       style={{
