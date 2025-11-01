@@ -7,23 +7,27 @@ export default function ContactPage() {
   const [sending, setSending] = useState(false);
   const [msg, setMsg] = useState('');
 
-  async function onSubmit(e) {
-    e.preventDefault();
-    setMsg('');
-    setSending(true);
-    try {
-      const fd = new FormData(e.currentTarget);
-      const res = await fetch('/api/contact', { method: 'POST', body: fd });
-      const out = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(out.error || 'Failed to send');
-      setMsg('Thanks! Your message was sent.');
-      e.currentTarget.reset();
-    } catch (err) {
-      setMsg(err.message || 'Something went wrong.');
-    } finally {
-      setSending(false);
-    }
+ async function onSubmit(e) {
+  e.preventDefault();
+  setMsg('');
+  setSending(true);
+
+  const form = e.currentTarget;           // <-- keep a stable reference
+  try {
+    const fd = new FormData(form);
+    const res = await fetch('/api/contact', { method: 'POST', body: fd });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(out?.error || 'Failed to send');
+
+    setMsg('Thanks! Your message was sent.');
+    form.reset();                          // <-- use the saved ref
+  } catch (err) {
+    setMsg(err.message || 'Something went wrong.');
+  } finally {
+    setSending(false);
   }
+}
+
 
   return (
     <main className="contact-slab">
