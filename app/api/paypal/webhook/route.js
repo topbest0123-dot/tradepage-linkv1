@@ -4,68 +4,123 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req) {
-  // read raw text then parse (Paypal sends JSON)
-  let body = {};
-  try {
-    body = await req.json();
-  } catch {
-    const raw = await req.text();
-    try { body = JSON.parse(raw || '{}'); } catch {}
-  }
+const supa = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY // server-only key
+);
 
-  const eventType = body?.event_type || body?.eventType || '';
-  const resource  = body?.resource || {};
-
-  // map event → status + last payment time (tweak if your schema differs)
-  let status;               // 'active' | 'inactive' | 'past_due'
-  let lastPaymentAt = null;
-
+// Map PayPal event -> internal status
+function mapStatus(eventType = '') {
   switch (eventType) {
     case 'BILLING.SUBSCRIPTION.ACTIVATED':
     case 'BILLING.SUBSCRIPTION.RE-ACTIVATED':
-      status = 'active';
-      lastPaymentAt = resource?.billing_info?.last_payment?.time || null;
-      break;
+    case 'BILLING.SUBSCRIPTION.PAYMENT.SUCCEEDED':
     case 'PAYMENT.SALE.COMPLETED':
-      status = 'active';
-      lastPaymentAt = resource?.create_time || new Date().toISOString();
-      break;
+    case 'PAYMENT.CAPTURE.COMPLETED':
+      return 'active';
+
     case 'BILLING.SUBSCRIPTION.CANCELLED':
     case 'BILLING.SUBSCRIPTION.SUSPENDED':
     case 'BILLING.SUBSCRIPTION.EXPIRED':
-      status = 'inactive';
-      break;
+      return 'inactive';
+
     case 'PAYMENT.SALE.DENIED':
-    case 'PAYMENT.SALE.REFUNDED':
-      status = 'past_due';
-      break;
+    case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
+      return 'past_due';
+
     default:
-      // accept unknown events quietly
-      return NextResponse.json({ ok: true, ignored: true });
+      return null; // unknown/neutral events
+  }
+}
+
+function getLastPaymentAt(resource = {}) {
+  // Try common fields where PayPal sticks a timestamp
+  return (
+    resource?.billing_info?.last_payment?.time ||
+    resource?.create_time ||
+    resource?.update_time ||
+    resource?.time ||
+    null
+  );
+}
+
+async function findUserId(resource = {}) {
+  // Prefer custom_id if you set it when creating the subscription
+  let userId = resource?.custom_id || null;
+
+  // Sub ID helps when you store subscription id on your side
+  const subId = resource?.id || resource?.billing_agreement_id || null;
+
+  if (!userId && subId) {
+    const { data: row } = await supa
+      .from('subscriptions')
+      .select('user_id')
+      .eq('paypal_sub_id', subId)
+      .maybeSingle();
+    userId = row?.user_id || null;
   }
 
-  // identify the user this event belongs to (ensure you store one of these IDs when creating the sub)
-  const userId =
-    resource?.custom_id || resource?.subscriber?.payer_id || resource?.payer_id || null;
-
-  if (userId && status) {
-    const supa = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY  // server-only
-    );
-
-    await supa.from('subscriptions').upsert(
-      {
-        user_id: userId,
-        status,
-        provider: 'paypal',
-        last_payment_at: lastPaymentAt ? new Date(lastPaymentAt).toISOString() : null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id' }
-    );
+  // Last resort: try matching subscriber email to profiles.email
+  const email = resource?.subscriber?.email_address || null;
+  if (!userId && email) {
+    const { data: p } = await supa
+      .from('profiles')
+      .select('id')
+      .ilike('email', email)
+      .maybeSingle();
+    userId = p?.id || null;
   }
+
+  return { userId, subId };
+}
+
+export async function POST(req) {
+  // Parse JSON safely
+  let payload = {};
+  try {
+    payload = await req.json();
+  } catch {
+    const raw = await req.text();
+    try { payload = JSON.parse(raw || '{}'); } catch {}
+  }
+
+  const eventType = payload?.event_type || payload?.eventType || '';
+  const resource  = payload?.resource || {};
+
+  // Always log minimal info to help debugging
+  await supa.from('webhook_logs').insert({
+    provider: 'paypal',
+    event_type: eventType,
+    sub_id: resource?.id || null,
+    raw: payload
+  }).catch(() => { /* ignore logging errors */ });
+
+  // Map to status and last payment time
+  const status = mapStatus(eventType);
+  const lastPaymentAt = getLastPaymentAt(resource);
+
+  // We still want to store the mapping even on non-status events (e.g., CREATED)
+  const { userId, subId } = await findUserId(resource);
+
+  // If we cannot resolve user, we’re done (but we logged the event)
+  if (!userId) {
+    return NextResponse.json({ ok: true, note: 'no-user-found' });
+  }
+
+  // Build patch
+  const patch = {
+    user_id: userId,
+    provider: 'paypal',
+    paypal_sub_id: subId,
+    updated_at: new Date().toISOString()
+  };
+  if (status) patch.status = status;
+  if (lastPaymentAt) patch.last_payment_at = new Date(lastPaymentAt).toISOString();
+
+  // Upsert by user_id
+  await supa
+    .from('subscriptions')
+    .upsert(patch, { onConflict: 'user_id' });
 
   return NextResponse.json({ ok: true });
 }
