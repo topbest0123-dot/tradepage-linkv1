@@ -14,8 +14,14 @@ function addDaysISO(iso, days) {
 }
 
 function computeSuspended(profile, sub) {
-  // active only if subscription row exists AND is 'active'
-  const hasActiveSub = !!(sub && sub.status === 'active');
+  // Treat common “good” statuses as active; also consider a very recent payment as active
+  const status = (sub?.status || '').toLowerCase();
+  const activeStatuses = new Set(['active', 'trialing', 'approved', 'succeeded', 'completed']);
+  const paidRecently =
+    sub?.last_payment_at &&
+    (Date.now() - new Date(sub.last_payment_at).getTime()) < (40 * 24 * 60 * 60 * 1000); // 40-day buffer
+
+  const hasActiveSub = activeStatuses.has(status) || !!paidRecently;
 
   // trial math
   const trialDays = Number.isFinite(profile?.trial_days) ? Number(profile.trial_days) : 14;
@@ -51,10 +57,13 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  // Always take newest subscription row for this user
   const { data: sub } = await sb
     .from('subscriptions')
-    .select('status')
+    .select('status, updated_at, last_payment_at, provider')
     .eq('user_id', p.id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   const { isExpired } = computeSuspended(p, sub);
@@ -114,11 +123,13 @@ export default async function Page({ params }) {
   if (error) return notFound();
   if (!p) return notFound();
 
-  // Lookup subscription for this profile
+  // Lookup newest subscription row for this profile's user
   const { data: sub } = await sb
     .from('subscriptions')
-    .select('status')
+    .select('status, updated_at, last_payment_at, provider')
     .eq('user_id', p.id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   // Decide visibility
