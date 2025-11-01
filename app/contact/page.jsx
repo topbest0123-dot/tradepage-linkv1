@@ -11,7 +11,6 @@ export default function ContactPage() {
     e.preventDefault();
     setMsg('');
     setSending(true);
-
     try {
       const fd = new FormData(e.currentTarget);
       const res = await fetch('/api/contact', { method: 'POST', body: fd });
@@ -29,55 +28,56 @@ export default function ContactPage() {
   return (
     <main className="contact-slab">
       <style jsx>{`
-        /* Light cream slab (matches your homepage light section) */
         .contact-slab {
-          background: #faf7f1;           /* slab bg (sand/cream) */
-          color: #191714;                /* dark ink */
+          background: #faf7f1;      /* light slab like homepage */
+          color: #191714;
           min-height: calc(100vh - 80px);
           padding: 24px 16px 56px;
         }
-        .wrap {
-          max-width: 900px;
-          margin: 0 auto;
-        }
+        .wrap { max-width: 900px; margin: 0 auto; }
 
-        /* Card look (like your homepage tiles) */
+        /* Card pattern */
         .card {
-          background: #ffffff;
+          background: #fff;
           border: 1px solid #eadfcd;
-          border-radius: 16px;
+          border-radius: 18px;
           box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+          overflow: hidden;         /* keep rounded look clean */
         }
+        .inner { padding: 16px; }
 
-        .lead {
-          padding: 18px 18px 16px;
-        }
+        .gap16 { height: 16px; }
 
-        form {
-          margin-top: 16px;
-          padding: 18px;
+        h1 { margin: 0 0 6px; }
+        p.lead { margin: 0; opacity: 0.9; }
+
+        /* Form layout */
+        form.inner {
           display: grid;
           gap: 14px;
+          padding: 16px;            /* inner padding = centered look */
         }
-
         label {
           font-size: 14px;
           font-weight: 600;
           margin-bottom: 6px;
           display: block;
         }
-
         .row {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
 
+        /* Inputs – fully centered with card using border-box */
         input[type="text"],
         input[type="email"],
         input[type="tel"],
         textarea {
+          -webkit-appearance: none;
+          appearance: none;
           width: 100%;
+          box-sizing: border-box;
           padding: 12px 12px;
           border-radius: 12px;
           border: 1px solid #eadfcd;
@@ -87,68 +87,47 @@ export default function ContactPage() {
         }
         textarea { min-height: 140px; resize: vertical; }
 
-        input:focus,
-        textarea:focus {
+        input:focus, textarea:focus {
           border-color: #dcccb4;
           box-shadow: 0 0 0 3px rgba(220,204,180,0.35);
         }
 
-        .hint {
-          font-size: 12px;
-          opacity: 0.75;
-          margin-top: 4px;
-        }
+        .hint { font-size: 12px; opacity: 0.75; margin-top: 4px; }
 
         .actions {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          align-items: center;
-          margin-top: 6px;
+          display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 6px;
         }
-
         .btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          height: 40px;
-          padding: 0 18px;
-          border-radius: 12px;
-          font-weight: 700;
-          border: 1px solid #dcccb4;
-          background: linear-gradient(135deg,#3b82f6,#22c55e); /* your primary gradient */
-          color: #08101e;
-          cursor: pointer;
+          display: inline-flex; align-items: center; justify-content: center;
+          height: 40px; padding: 0 18px; border-radius: 12px;
+          font-weight: 700; border: 1px solid #dcccb4;
+          background: linear-gradient(135deg,#3b82f6,#22c55e);
+          color: #08101e; cursor: pointer;
         }
-        .btn[disabled] { opacity: 0.6; cursor: not-allowed; }
-
+        .btn[disabled] { opacity: .6; cursor: not-allowed; }
         .note { font-size: 13px; }
 
-        /* Stop “merging”: clear separation between cards */
-        .gap16 { height: 16px; }
-
-        /* Mobile tweaks */
         @media (max-width: 720px) {
           .row { grid-template-columns: 1fr; }
-          form { padding: 14px; gap: 12px; }
-          .lead { padding: 14px; }
+          .inner { padding: 14px; }
+          form.inner { gap: 12px; }
         }
       `}</style>
 
       <div className="wrap">
         {/* Intro card */}
-        <section className="card lead">
-          <h1 style={{ margin: '0 0 6px' }}>Contact us</h1>
-          <p style={{ margin: 0, opacity: 0.9 }}>
-            We usually reply within 1 business day. Attach photos if it helps explain your request.
-          </p>
+        <section className="card">
+          <div className="inner">
+            <h1>Contact us</h1>
+            <p className="lead">We usually reply within 1 business day. Attach photos if it helps explain your request.</p>
+          </div>
         </section>
 
         <div className="gap16" />
 
         {/* Form card */}
         <section className="card">
-          <form onSubmit={onSubmit}>
+          <form className="inner" onSubmit={onSubmit}>
             <div>
               <label htmlFor="name">Name</label>
               <input id="name" name="name" type="text" placeholder="Your name" required />
