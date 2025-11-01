@@ -10,19 +10,21 @@ import AuthLinks from '@/components/AuthLinks';
 export default function HeaderBar() {
   const pathname = usePathname();
   const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false); // ◀️ NEW
 
   useEffect(() => {
     let alive = true;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (alive) setUser(user || null);
+      if (alive) setAuthChecked(true); // ◀️ NEW
     })();
     return () => { alive = false; };
   }, []);
 
   const onDashboard = pathname?.startsWith('/dashboard');
 
-    /* ── NEW: detect "public slug" route (single segment that is not a known system page) ── */
+  /* ── NEW: detect "public slug" route (single segment that is not a known system page) ── */
   const seg = (pathname || '/').replace(/^\/+|\/+$/g, '');       // 'john-plumber' | '' | 'pricing'
   const first = seg.split('/')[0] || '';                          // first segment (or empty for home)
   const isSingleSegment = seg !== '' && !seg.includes('/');       // exactly one segment
@@ -89,7 +91,7 @@ export default function HeaderBar() {
         </div>
       </div>
 
-            {/* Right-side actions: only Dashboard inline on /dashboard; Sign out lives in burger */}
+      {/* Right-side actions: only Dashboard inline on /dashboard; Sign out lives in burger */}
       <div
         style={{
           display: 'inline-flex',
