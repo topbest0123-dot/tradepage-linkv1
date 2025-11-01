@@ -7,15 +7,31 @@ import HeaderHider from '@/components/HeaderHider'; // ← added
 export const dynamic = 'force-dynamic';  // always fetch fresh
 export const revalidate = 0;
 
-// ───────────────── helpers ─────────────────
+/* ───────────────── helpers ───────────────── */
 function addDaysISO(iso, days) {
   const t = new Date(iso || Date.now()).getTime();
   return new Date(t + days * 86400000).toISOString();
 }
 
+function normalizeStatus(s) {
+  return String(s || '').toLowerCase().trim();
+}
+
+/**
+ * Treats Stripe/PayPal style statuses robustly.
+ * Active if subscription exists AND status is one of:
+ *   active, trialing, approved, paid, succeeded, authorized
+ * NOT active for: past_due, unpaid, canceled/cancelled, inactive, suspended, expired
+ */
 function computeSuspended(profile, sub) {
-  // active only if subscription row exists AND is 'active'
-  const hasActiveSub = !!(sub && sub.status === 'active');
+  const status = normalizeStatus(sub?.status);
+  const activeStatuses = new Set(['active', 'trialing', 'approved', 'paid', 'succeeded', 'authorized']);
+  const inactiveStatuses = new Set(['past_due', 'unpaid', 'canceled', 'cancelled', 'inactive', 'suspended', 'expired']);
+
+  const hasActiveSub =
+    !!sub &&
+    activeStatuses.has(status) &&
+    !inactiveStatuses.has(status);
 
   // trial math
   const trialDays = Number.isFinite(profile?.trial_days) ? Number(profile.trial_days) : 14;
@@ -23,13 +39,16 @@ function computeSuspended(profile, sub) {
   const trialEndISO = addDaysISO(startISO, trialDays);
   const now = new Date();
 
-  const isExpired =
-    !hasActiveSub && (trialDays <= 0 || now >= new Date(trialEndISO));
+  // expired when: no active sub AND (trial ended or set to 0)
+  const isExpired = !hasActiveSub && (trialDays <= 0 || now >= new Date(trialEndISO));
 
-  return { isExpired, endsAt: trialEndISO, hasActiveSub };
+  // prefer sub.current_period_end for "last active" if present
+  const endsAt = sub?.current_period_end || trialEndISO;
+
+  return { isExpired, endsAt, hasActiveSub, status };
 }
 
-// ───────────────── metadata ─────────────────
+/* ───────────────── metadata ───────────────── */
 export async function generateMetadata({ params }) {
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -51,10 +70,14 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  // pick latest subscription row if multiple
   const { data: sub } = await sb
     .from('subscriptions')
-    .select('status')
+    .select('status,current_period_end,updated_at,created_at')
     .eq('user_id', p.id)
+    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   const { isExpired } = computeSuspended(p, sub);
@@ -87,7 +110,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// ───────────────── page ─────────────────
+/* ───────────────── page ───────────────── */
 export default async function Page({ params }) {
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -114,11 +137,14 @@ export default async function Page({ params }) {
   if (error) return notFound();
   if (!p) return notFound();
 
-  // Lookup subscription for this profile
+  // Lookup latest subscription for this profile
   const { data: sub } = await sb
     .from('subscriptions')
-    .select('status')
+    .select('status,current_period_end,updated_at,created_at')
     .eq('user_id', p.id)
+    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   // Decide visibility
