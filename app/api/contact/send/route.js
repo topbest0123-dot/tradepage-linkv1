@@ -1,75 +1,124 @@
 // app/api/contact/route.js
-export const runtime = 'nodejs';        // we need Node APIs (Buffer)
-export const dynamic = 'force-dynamic'; // don't cache
+export const runtime = 'nodejs'; // needed for Buffer/attachments (not Edge)
 
-export async function POST(req) {
-  try {
+import { Resend } from 'resend';
+
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const CONTACT_TO      = process.env.CONTACT_TO_EMAIL;   // e.g. hello@yourdomain.com (your Gmail/Workspace inbox)
+const CONTACT_FROM    = process.env.CONTACT_FROM_EMAIL; // e.g. no-reply@tradepage.link (MUST be on a VERIFIED Resend domain)
+
+function ensureEnv() {
+  const missing = [];
+  if (!RESEND_API_KEY) missing.push('RESEND_API_KEY');
+  if (!CONTACT_TO)      missing.push('CONTACT_TO_EMAIL');
+  if (!CONTACT_FROM)    missing.push('CONTACT_FROM_EMAIL');
+  if (missing.length) throw new Error(`Missing env: ${missing.join(', ')}`);
+}
+
+async function parseRequest(req) {
+  const ct = req.headers.get('content-type') || '';
+  if (ct.includes('multipart/form-data')) {
     const fd = await req.formData();
+    const name    = (fd.get('name')    || '').toString();
+    const email   = (fd.get('email')   || '').toString();
+    const phone   = (fd.get('phone')   || '').toString();
+    const message = (fd.get('message') || '').toString();
 
-    const name    = (fd.get('name')    || '').toString().trim();
-    const email   = (fd.get('email')   || '').toString().trim();
-    const phone   = (fd.get('phone')   || '').toString().trim();
-    const message = (fd.get('message') || '').toString().trim();
-    const files   = fd.getAll('photos');  // may be []
+    // Collect any File entries under common keys
+    const files = [
+      ...fd.getAll('images'),
+      ...fd.getAll('photos'),
+      ...fd.getAll('attachments'),
+      ...fd.getAll('files'),
+    ].filter(v => typeof v === 'object' && 'arrayBuffer' in v);
 
-    if (!name || !email || !message) {
-      return Response.json({ error: 'Missing required fields.' }, { status: 400 });
-    }
-
-    const to   = process.env.CONTACT_TO;
-    const from = process.env.CONTACT_FROM || 'onboarding@resend.dev'; // works w/o domain verification
-    const key  = process.env.RESEND_API_KEY;
-
-    if (!key) return Response.json({ error: 'RESEND_API_KEY not set.' }, { status: 500 });
-    if (!to)  return Response.json({ error: 'CONTACT_TO not set.' }, { status: 500 });
-
-    // Convert attachments (max 10, <=5MB each)
     const attachments = [];
-    for (const f of files) {
-      if (typeof f === 'string' || !f?.name) continue;
-      if (f.size > 5 * 1024 * 1024) continue;
-      const ab  = await f.arrayBuffer();
-      const b64 = Buffer.from(ab).toString('base64');
-      attachments.push({ filename: f.name, content: b64 });
-      if (attachments.length >= 10) break;
+    for (const f of files.slice(0, 10)) {
+      const ab = await f.arrayBuffer();
+      attachments.push({
+        filename: f.name || 'upload',
+        content: Buffer.from(ab),
+      });
     }
-
-    // Build email
-    const subject = `New contact — ${name}`;
-    const html =
-      `<div style="font-family:system-ui,Segoe UI,Roboto,Arial">
-        <h2 style="margin:0 0 8px">New contact</h2>
-        <p><b>Name:</b> ${esc(name)}</p>
-        <p><b>Email:</b> ${esc(email)}</p>
-        <p><b>Phone:</b> ${esc(phone)}</p>
-        <p><b>Message:</b></p>
-        <pre style="white-space:pre-wrap;background:#fafafa;border:1px solid #eee;border-radius:8px;padding:12px">${esc(message)}</pre>
-      </div>`;
-
-    // Send via Resend REST API (no npm package needed)
-    const r = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ from, to, subject, html, attachments })
-    });
-
-    const out = await r.json().catch(() => ({}));
-    if (!r.ok) {
-      // Pass Resend’s message back to the client so you see WHY it failed.
-      return Response.json({ error: out?.message || 'Email send failed.' }, { status: r.status });
-    }
-
-    return Response.json({ ok: true });
-  } catch (err) {
-    return Response.json({ error: err?.message || 'Server error' }, { status: 500 });
+    return { name, email, phone, message, attachments };
+  } else {
+    const json = await req.json().catch(() => ({}));
+    return {
+      name:    json.name    || '',
+      email:   json.email   || '',
+      phone:   json.phone   || '',
+      message: json.message || '',
+      attachments: [], // JSON path: skip binary for now
+    };
   }
 }
 
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, ch => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[ch]));
+function renderHtml({ name, email, phone, message }) {
+  return `
+    <div style="font-family:system-ui,Segoe UI,Roboto,Arial">
+      <h2 style="margin:0 0 8px">New contact message</h2>
+      <p style="margin:0 0 6px"><b>Name:</b> ${escapeHtml(name)}</p>
+      <p style="margin:0 0 6px"><b>Email:</b> ${escapeHtml(email)}</p>
+      <p style="margin:0 0 12px"><b>Phone:</b> ${escapeHtml(phone)}</p>
+      <div style="padding:12px;border:1px solid #e5e7eb;border-radius:8px;white-space:pre-wrap">
+        ${escapeHtml(message)}
+      </div>
+    </div>`;
+}
+
+function renderText({ name, email, phone, message }) {
+  return [
+    `New contact message`,
+    `Name: ${name}`,
+    `Email: ${email}`,
+    `Phone: ${phone}`,
+    ``,
+    message || ''
+  ].join('\n');
+}
+
+function escapeHtml(s='') {
+  return s
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+export async function POST(req) {
+  try {
+    ensureEnv();
+
+    const data = await parseRequest(req);
+    const { name, email, phone, message, attachments } = data;
+
+    if (!name || !email || !message) {
+      return Response.json({ ok:false, error:'Missing required fields (name, email, message)' }, { status: 400 });
+    }
+
+    const resend = new Resend(RESEND_API_KEY);
+
+    const res = await resend.emails.send({
+      from: CONTACT_FROM,               // MUST be a verified domain in Resend
+      to:   [CONTACT_TO],               // your receiving inbox (can be Gmail/Workspace)
+      subject: 'New contact message — TradePageLink',
+      reply_to: email,                  // so you can reply directly
+      text: renderText(data),
+      html: renderHtml(data),
+      attachments: attachments.length ? attachments : undefined,
+    });
+
+    if (res?.error) {
+      console.error('Resend error:', res.error);
+      return Response.json({ ok:false, error:String(res.error) }, { status: 502 });
+    }
+
+    return Response.json({ ok:true });
+  } catch (err) {
+    console.error('Contact POST failed:', err);
+    return Response.json({ ok:false, error: String(err?.message || err) }, { status: 500 });
+  }
+}
+
+export function GET() {
+  return new Response('Method Not Allowed', { status: 405 });
 }
