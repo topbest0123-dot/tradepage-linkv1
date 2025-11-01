@@ -168,7 +168,54 @@ export async function POST(req) {
 
     const evt = JSON.parse(raw);
     const type = evt?.event_type;
-    const resource = evt?.resource || {};
+    const resource = evt?.resource || {};// make sure you have an admin client here
+// (service role key is required for server updates)
+import { createClient } from '@supabase/supabase-js';
+const supa = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // server key
+);
+
+// helper to update by PayPal subscription id
+async function markPaid(subId: string | undefined, paidAtISO: string | undefined) {
+  if (!subId) return;
+  await supa
+    .from('subscriptions')
+    .update({
+      provider: 'paypal',
+      last_payment_at: paidAtISO ?? new Date().toISOString(),
+      status: 'active', // optional: keep your current behavior
+    })
+    .eq('subscription_id', subId); // ← adjust if your column is named differently
+}
+
+// 1) Subscription activated — set provider upfront
+if (body?.event_type === 'BILLING.SUBSCRIPTION.ACTIVATED') {
+  const subId = body?.resource?.id;
+  await supa.from('subscriptions').update({ provider: 'paypal', status: 'active' })
+    .eq('subscription_id', subId);
+}
+
+// 2) Successful subscription payment (primary signal)
+if (body?.event_type === 'BILLING.SUBSCRIPTION.PAYMENT.SUCCEEDED') {
+  const subId   = body?.resource?.id || body?.resource?.subscription_id;
+  const paidISO = body?.resource?.billing_info?.last_payment?.time || body?.create_time;
+  await markPaid(subId, paidISO);
+}
+
+// 3) Fallbacks some merchants see from PayPal
+//    (sale/capture events can arrive with a link to the subscription)
+if (body?.event_type === 'PAYMENT.SALE.COMPLETED') {
+  const subId   = body?.resource?.billing_agreement_id;
+  const paidISO = body?.resource?.create_time;
+  await markPaid(subId, paidISO);
+}
+if (body?.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
+  const subId   = body?.resource?.supplementary_data?.related_ids?.billing_agreement_id;
+  const paidISO = body?.resource?.create_time || body?.resource?.update_time;
+  await markPaid(subId, paidISO);
+}
+
 
     // Extract identifiers from either SALE or BILLING events
     const subId =
