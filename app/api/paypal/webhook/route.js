@@ -1,6 +1,9 @@
 // app/api/paypal/webhook/route.js
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
+
 
 const {
   PAYPAL_API_BASE = 'https://api-m.paypal.com',
@@ -169,12 +172,21 @@ export async function POST(req) {
     const evt = JSON.parse(raw);
     const type = evt?.event_type;
     const resource = evt?.resource || {};// make sure you have an admin client here
-// (service role key is required for server updates)
-import { createClient } from '@supabase/supabase-js';
-const supa = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // server key
-);
+export async function POST(request) {
+  // ... your webhook parsing/verification code ...
+
+  // ✅ dynamic import so it works even if the file is treated as CJS
+  const { createClient } = await import('@supabase/supabase-js');
+  const supa = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY // non-public server key
+  );
+
+  // ... use `supa` to upsert status, last_payment_at, provider, etc. ...
+
+  return NextResponse.json({ ok: true });
+}
+
 
 // helper to update by PayPal subscription id
 async function markPaid(subId: string | undefined, paidAtISO: string | undefined) {
