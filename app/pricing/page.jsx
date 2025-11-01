@@ -1,131 +1,97 @@
-// app/pricing/page.jsx  (SERVER COMPONENT)
-export const metadata = {
-  title: 'Pricing — TradePage',
-  description: 'Simple pricing: $4.99/month. Start free — no card required.',
-};
+// app/pricing/page.jsx
+export const dynamic = 'force-dynamic';
 
 export default function PricingPage() {
-  const card = {
-    border: '1px solid var(--border)',
-    background: 'var(--card-bg-1)',
-    borderRadius: 16,
-    padding: 20,
-  };
-
-  const pill = {
-    display: 'inline-block',
-    border: '1px solid var(--chip-border)',
-    background: 'var(--chip-bg)',
-    color: 'var(--text)',
-    borderRadius: 999,
-    padding: '6px 12px',
-    fontSize: 12,
-    opacity: 0.9,
-  };
-
-  const cta = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 44,
-    padding: '0 18px',
-    borderRadius: 12,
-    fontWeight: 800,
-    fontSize: 14,
-    textDecoration: 'none',
-    background: 'linear-gradient(135deg,var(--btn-primary-1),var(--btn-primary-2))',
-    color: '#08101e',
-    border: '1px solid var(--border)',
-  };
-
-  const ghost = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 44,
-    padding: '0 16px',
-    borderRadius: 12,
-    fontWeight: 700,
-    fontSize: 14,
-    textDecoration: 'none',
-    border: '1px solid var(--social-border)',
-    color: 'var(--text)',
-    background: 'transparent',
-  };
-
   return (
-    <section>
-      <div style={{ textAlign: 'center', marginBottom: 18 }}>
-        <span style={pill}>Simple, honest pricing</span>
-        <h1 style={{ margin: '12px 0 8px' }}>Just $4.99/month</h1>
-        <p style={{ opacity: 0.85, margin: 0 }}>
-          A clean, professional public page for your trade — share one link everywhere.
-        </p>
-      </div>
+    <section className="pricing">
+      <style>{`
+        /* Light palette to match homepage (cream) */
+        .pricing{
+          --bg:#f6fbf8;          /* page background */
+          --text:#0b1b16;        /* primary text */
+          --muted:#4c6a5e;       /* subtle text */
+          --border:#cfe7dc;      /* soft borders */
+          --card:#ffffff;        /* card bg */
+          --card2:#f1f7f3;       /* subtle gradient partner */
+          --chip:#eef5f0;        /* pill/chip bg */
+          --chip-border:#cfe7dc;
+          --primary-1:#21c58b;   /* CTA gradient */
+          --primary-2:#5fb9ff;
+        }
+        .wrap{ background:var(--bg); color:var(--text); }
+        .container{ max-width:900px; margin:0 auto; padding:16px; }
+        .hero{
+          background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);
+          border:1px solid var(--border);
+          border-radius:20px;
+          padding:28px;
+          margin-bottom:16px;
+        }
+        .grid{ display:grid; gap:16px; grid-template-columns:1fr; }
+        @media (min-width:760px){ .grid{ grid-template-columns:1fr 1fr; } }
+        .card{
+          background:var(--card);
+          border:1px solid var(--border);
+          border-radius:16px;
+          padding:20px;
+        }
+        .price{ font-size:38px; font-weight:800; letter-spacing:.2px; }
+        .pill{
+          display:inline-block; padding:8px 10px;
+          border-radius:10px; background:var(--chip); border:1px solid var(--chip-border);
+        }
+        .cta{
+          display:inline-flex; align-items:center; gap:8px;
+          padding:12px 18px; border-radius:12px; font-weight:700; text-decoration:none;
+          background:linear-gradient(135deg,var(--primary-1),var(--primary-2));
+          color:#08101e; border:1px solid var(--border);
+        }
+        .muted{ color:var(--muted); }
+      `}</style>
 
-      {/* Plan card */}
-      <div style={{ ...card, marginTop: 18 }}>
-        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{
-            flex: '1 1 260px',
-            border: '1px solid var(--border)',
-            background: 'var(--card-bg-2)',
-            borderRadius: 14,
-            padding: 18,
-          }}>
-            <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>Plan</div>
-            <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 6 }}>$4.99<span style={{ fontSize: 14, opacity: 0.8 }}>/month</span></div>
-            <div style={{ fontSize: 12, opacity: 0.8 }}>14-day free trial • cancel anytime</div>
+      <div className="wrap">
+        <div className="container">
+          <div className="hero">
+            <h1 style={{margin:'0 0 6px'}}>Simple pricing</h1>
+            <p className="muted" style={{margin:0}}>
+              One plan. Everything you need for your public page. Cancel anytime.
+            </p>
           </div>
 
-          <ul style={{ flex: '2 1 380px', listStyle: 'none', padding: 0, margin: 0 }}>
-            {[
-              'Your own public link & page (SEO-friendly slug)',
-              'Call & WhatsApp buttons + contact email',
-              'About, services, prices & hours',
-              'Photo gallery',
-              'Social links (Facebook, Instagram, TikTok, X, YouTube, website)',
-              'Location & maps link',
-              'Beautiful themes with great readability',
-              'Quote requests delivered to your email',
-            ].map((t, i) => (
-              <li key={i} style={{
-                display: 'flex', gap: 10, alignItems: 'flex-start',
-                border: '1px solid var(--chip-border)', background: 'var(--chip-bg)',
-                borderRadius: 10, padding: '10px 12px', marginBottom: 8
-              }}>
-                <div style={{
-                  width: 8, height: 8, borderRadius: 999,
-                  background: 'var(--btn-primary-1)', marginTop: 6, flex: '0 0 auto'
-                }} />
-                <span>{t}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          <div className="grid">
+            <div className="card">
+              <div className="price">
+                $4.99 <span style={{fontSize:16,fontWeight:600}}>/month</span>
+              </div>
+              <p className="pill" style={{marginTop:12}}>Start today — 14-day free trial (no card)</p>
+              <ul style={{marginTop:14, lineHeight:1.7}}>
+                <li>Beautiful public page with your logo, phones, WhatsApp, gallery, hours and more.</li>
+                <li>Shareable link that works everywhere (bio, ads, email signatures).</li>
+                <li>Fast, mobile-first pages that customers can read in seconds.</li>
+                <li>Private dashboard to update details any time.</li>
+                <li>SEO-friendly markup & open-graph preview.</li>
+                <li>Cancel anytime. No hidden fees.</li>
+              </ul>
+              <a className="cta" href="/signin">Start free — no card</a>
+            </div>
 
-        {/* CTAs */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-          <a href="/signin" style={cta}>Start today for free — no card, no commitment</a>
-          <a href="/contact" style={ghost}>Questions? Contact us</a>
+            <div className="card">
+              <h3 style={{marginTop:0}}>Why it’s worth it</h3>
+              <p className="muted">
+                Your TradePage replaces scattered links with a clear, professional hub. Customers find your
+                number, WhatsApp and services fast — which means more calls and better jobs won.
+              </p>
+              <ul style={{marginTop:14, lineHeight:1.7}}>
+                <li>Looks great on every phone</li>
+                <li>Update in seconds — no web designer</li>
+                <li>Built for trades: simple, clean, trustworthy</li>
+              </ul>
+              <div style={{marginTop:16}}>
+                <a className="cta" href="/signin">Create your page</a>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Tiny FAQ */}
-      <div style={{ marginTop: 18, display: 'grid', gap: 12 }}>
-        <details style={{ ...card }}>
-          <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Do I need a website?</summary>
-          <p style={{ opacity: 0.85, marginTop: 8 }}>
-            No. TradePage gives you a clean single-page profile you can share anywhere — messages,
-            email, social, ads, business cards — all in one link.
-          </p>
-        </details>
-        <details style={{ ...card }}>
-          <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Can I cancel anytime?</summary>
-          <p style={{ opacity: 0.85, marginTop: 8 }}>
-            Yes. There’s a 14-day free trial and you can cancel any time. No contracts.
-          </p>
-        </details>
       </div>
     </section>
   );
