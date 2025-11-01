@@ -9,7 +9,7 @@ export const maxDuration = 30;
 const get = (k) => (process.env[k] || '').trim();
 
 const RESEND_KEY = get('RESEND_API_KEY');
-const FROM_RAW   = get('EMAIL_FROM') || get('CONTACT_FROM');        // your screenshot: contact@tradepage.link
+const FROM_RAW   = get('CONTACT_FROM') || get('EMAIL_FROM');        // your screenshot: contact@tradepage.link
 const TO_EMAIL   = get('CONTACT_TO_EMAIL') || get('EMAIL_TO') || get('EMAIL');
 
 function asFromHeader(raw) {
