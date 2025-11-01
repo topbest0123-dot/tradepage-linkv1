@@ -624,7 +624,7 @@ Sun Closed`)}
             title={slugTaken ? 'This link is taken' : 'Enter a slug to preview'}
             style={btn({ background: 'transparent', color: 'var(--muted)', border: '1px solid var(--social-border)', opacity: 0.6, cursor: 'not-allowed' })}
           >
-            Preview
+            Publish
           </button>
         )}
       </div>
