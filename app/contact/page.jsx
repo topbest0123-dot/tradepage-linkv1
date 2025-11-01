@@ -13,7 +13,7 @@ export default function ContactPage() {
     setSending(true);
     try {
       const fd = new FormData(e.currentTarget);
-      const res = await fetch('/api/contact/send', { method: 'POST', body: fd });
+      const res = await fetch('/api/contact', { method: 'POST', body: fd });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(out.error || 'Failed to send');
       setMsg('Thanks! Your message was sent.');
