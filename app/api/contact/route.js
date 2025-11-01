@@ -46,7 +46,7 @@ export async function POST(req) {
     }
 
     const resend = new Resend(RESEND_KEY);
-    const subject = `New contact — ${name || email || phone || 'anonymous'}`;
+    const subject = `New contact form enquire from — ${name || email || phone || 'anonymous'}`;
 
     const { data, error } = await resend.emails.send({
       from: FROM,                     // ← now robust (plain or "Name <…>" both OK)
