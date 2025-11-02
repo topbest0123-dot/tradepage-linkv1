@@ -9,7 +9,8 @@ import HeaderBar from '@/components/HeaderBar';
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.tradepage.link'),
-  title: { default: 'TradePage', template: '%s — TradePage' },
+  title: { default: 'TradePage.Link — All your trade info in one link',
+          template: '%s • TradePage.Link' },
   description: 'Your business in a link',
   openGraph: {
     type: 'website',
