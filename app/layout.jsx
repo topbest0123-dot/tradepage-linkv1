@@ -5,6 +5,7 @@ import AuthHandler from './AuthHandler'; // ⬅️ added
 import HeaderHider from '@/components/HeaderHider';
 import SiteMenu from '@/components/SiteMenu';
 import HeaderBar from '@/components/HeaderBar';
+import Script from 'next/script';
 
 
 export const metadata = {
@@ -56,6 +57,19 @@ export default function RootLayout({ children }) {
           color: 'var(--text)',
         }}
       >
+         {/* Google Analytics */}
+  <Script
+    src="https://www.googletagmanager.com/gtag/js?id=G-27S8R7CC7T"
+    strategy="afterInteractive"
+  />
+  <Script id="ga-gtag" strategy="afterInteractive">
+    {`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Z7S8R7CCT7');
+    `}
+  </Script>
         {/* TEMP: disable AuthHandler to stop redirect loop */}
         {/* <AuthHandler /> */}
 
